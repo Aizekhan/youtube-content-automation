@@ -1,0 +1,12 @@
+{
+  "assistants": {
+    "theme_agent": {
+      "id": "asst_LU5uAd9wl80iRcgIKEOhvRcUy",
+      "name": "ThemeAgent"
+    },
+    "narrative_architect": {
+      "id": "asst_fPFoVgntXOcQSIVJSMyGKlR8",
+      "name": "Narrative Architect"
+    }
+  }
+}

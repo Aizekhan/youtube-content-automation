@@ -1,0 +1,5 @@
+*.local.json
+*.pem
+*.key
+.env
+node_modules/

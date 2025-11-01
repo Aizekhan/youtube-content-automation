@@ -1,0 +1,7 @@
+{
+  "ec2": {
+    "ip": "3.75.97.188",
+    "user": "ubuntu",
+    "region": "eu-central-1"
+  }
+}
