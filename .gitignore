@@ -39,3 +39,9 @@ database/*.sqlite
 
 # Script files with spaces (problematic names)
 dynamodb scan
+
+# Problematic files
+dynamodb scan
+renew_ssl.sh
+.htpasswd
+awscliv2.zip
