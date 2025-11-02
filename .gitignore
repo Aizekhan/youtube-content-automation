@@ -1,5 +1,41 @@
-*.local.json
-*.pem
-*.key
+﻿# Backup files
+*.tar.gz
+*.bak
+backups/
+backup_*/
+
+# n8n data
+n8n_data/
+
+# Environment files 
 .env
-node_modules/
+
+# Certificates
+certbot/
+ssl/
+*.pem
+
+# AWS/Lambda build files
+aws/dist/
+awscliv2.zip
+
+# Temporary files
+*.tmp
+*.temp
+
+# Claude sessions
+.claude/
+
+# Sensitive files
+.htpasswd
+
+# Large binaries
+*.zip
+*.gz
+
+# Database files
+database/*.db
+database/*.sqlite
+
+# Script files with spaces (problematic names)
+dynamodb scan
