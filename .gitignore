@@ -4,9 +4,6 @@
 backups/
 backup_*/
 
-# n8n data
-n8n_data/
-
 # Environment files 
 .env
 
@@ -45,3 +42,12 @@ dynamodb scan
 renew_ssl.sh
 .htpasswd
 awscliv2.zip
+
+# Node modules
+node_modules/
+package-lock.json
+
+# Temporary migration files
+TEMP-*
+*-migration.js
+git-cleanup.bat
