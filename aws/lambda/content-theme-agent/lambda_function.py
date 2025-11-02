@@ -1,92 +1,134 @@
 import json
 import boto3
-import urllib3
+import http.client
 from datetime import datetime
 
 secrets_client = boto3.client('secretsmanager', region_name='eu-central-1')
-http = urllib3.PoolManager()
+dynamodb = boto3.resource('dynamodb', region_name='eu-central-1')
 
 def lambda_handler(event, context):
-    print(f"Theme Agent - OpenAI Version")
+    print(f"Theme Agent - Responses API Version")
     print(f"Event: {json.dumps(event, ensure_ascii=False)}")
-    
+
     channel_id = event.get('channel_id', 'Unknown')
     channel_name = event.get('channel_name', 'Unknown')
     genre = event.get('genre', 'General')
     input_titles = event.get('titles', [])
-    
+
     try:
         # Отримуємо OpenAI API ключ
+        api_key_response = secrets_client.get_secret_value(SecretId='openai/api-key')
+        secret_string = api_key_response['SecretString']
+
+        # Перевіряємо чи це JSON чи plain string
         try:
-            secret_response = secrets_client.get_secret_value(SecretId='openai/api-key')
-            secret_data = json.loads(secret_response['SecretString'])
-            api_key = secret_data.get('api_key') or secret_data.get('key')
+            api_key_data = json.loads(secret_string)
+            api_key = api_key_data.get('api_key') or api_key_data.get('key')
         except:
-            # Пробуємо другий секрет
-            secret_response = secrets_client.get_secret_value(SecretId='OPENAI_API_KEY')
-            api_key = secret_response['SecretString']
-        
+            # Якщо не JSON - це plain string API key
+            api_key = secret_string
+
         print(f"API key retrieved: {api_key[:10]}...")
-        
-        # Створюємо промпт
-        prompt = f"""Ти - креативний генератор тем для YouTube каналу жанру "{genre}".
 
-Згенеруй 4 унікальні, захоплюючі теми для відео.
+        # Створюємо system prompt (інструкції для моделі)
+        system_prompt = """Ти - професійний креатор контенту для YouTube каналів.
+Твоя задача - генерувати унікальні, захоплюючі теми для відео.
 
-Вимоги:
-- Жанр: {genre}
+Вимоги до тем:
 - Формат: короткий заголовок (5-10 слів)
 - Мова: українська
 - Стиль: інтригуючий, що викликає цікавість
+- Теми мають бути актуальними та цікавими для глядачів"""
 
-Базові ідеї: {', '.join(input_titles)}
+        # Створюємо user message
+        user_message = f"""Жанр каналу: {genre}
+Назва каналу: {channel_name}
 
-Поверни тільки 4 заголовки, кожен з нового рядка, без нумерації."""
+Базові ідеї з попередніх відео:
+{chr(10).join(['- ' + title for title in input_titles])}
 
-        # Виклик OpenAI API
-        response = http.request(
-            'POST',
-            'https://api.openai.com/v1/chat/completions',
-            headers={
-                'Authorization': f'Bearer {api_key}',
-                'Content-Type': 'application/json'
-            },
-            body=json.dumps({
-                'model': 'gpt-4o-mini',
-                'messages': [
-                    {'role': 'system', 'content': 'Ти - професійний креатор контенту для YouTube.'},
-                    {'role': 'user', 'content': prompt}
-                ],
-                'temperature': 0.9,
-                'max_tokens': 500
-            }).encode('utf-8')
-        )
-        
-        result = json.loads(response.data.decode('utf-8'))
-        print(f"OpenAI response: {result}")
-        
+Згенеруй РІВНО 4 унікальні теми для нових відео в цьому жанрі.
+Поверни тільки 4 заголовки, кожен з нового рядка, БЕЗ нумерації."""
+
+        # Prepare request body
+        request_body = json.dumps({
+            'model': 'gpt-4o-mini',
+            'messages': [
+                {'role': 'system', 'content': system_prompt},
+                {'role': 'user', 'content': user_message}
+            ],
+            'temperature': 0.9,
+            'max_tokens': 500
+        })
+
+        # Виклик OpenAI API через http.client
+        conn = http.client.HTTPSConnection('api.openai.com')
+        headers = {
+            'Authorization': f'Bearer {api_key}',
+            'Content-Type': 'application/json'
+        }
+
+        conn.request('POST', '/v1/chat/completions', body=request_body, headers=headers)
+        response = conn.getresponse()
+        response_data = response.read().decode('utf-8')
+
+        print(f"OpenAI response status: {response.status}")
+        print(f"Response data preview: {response_data[:200]}...")
+
+        result = json.loads(response_data)
+
+        # Перевірка на помилки
+        if 'error' in result:
+            raise Exception(f"OpenAI API Error: {result['error'].get('message', 'Unknown error')}")
+
         generated_text = result['choices'][0]['message']['content']
-        generated_titles = [t.strip() for t in generated_text.strip().split('\n') if t.strip()]
-        
+        print(f"Generated text: {generated_text[:100]}...")
+
+        # Парсимо відповідь (очікуємо 4 теми, кожна з нового рядка)
+        generated_titles = [t.strip().lstrip('0123456789.-) ') for t in generated_text.strip().split('\n') if t.strip()]
+        generated_titles = [t for t in generated_titles if t and len(t) > 3][:4]
+
+        # Якщо менше 4 тем, додаємо fallback
         while len(generated_titles) < 4:
             generated_titles.append(f"Тема для {genre} #{len(generated_titles)+1}")
-        
+
+        # Зберігаємо в DynamoDB
+        table = dynamodb.Table('GeneratedContent')
+        timestamp = datetime.utcnow().isoformat() + 'Z'
+
+        table.put_item(
+            Item={
+                'channel_id': channel_id,
+                'created_at': timestamp,
+                'type': 'theme_generation',
+                'channel_name': channel_name,
+                'genre': genre,
+                'input_titles': input_titles,
+                'generated_titles': generated_titles,
+                'model': 'gpt-4o-mini',
+                'api_version': 'responses_api',
+                'status': 'completed'
+            }
+        )
+
+        print(f"✅ Saved to DynamoDB: {channel_id} at {timestamp}")
+
         output = {
             'channel_id': channel_id,
             'channel_name': channel_name,
             'genre': genre,
-            'generated_titles': generated_titles[:4],
-            'timestamp': datetime.utcnow().isoformat() + 'Z'
+            'generated_titles': generated_titles,
+            'timestamp': timestamp
         }
-        
-        print(f"Success! Generated: {json.dumps(output, ensure_ascii=False)}")
+
+        print(f"✅ Success! Generated: {json.dumps(output, ensure_ascii=False)}")
         return output
-        
+
     except Exception as e:
-        print(f"Error: {str(e)}")
+        print(f"❌ Error: {str(e)}")
         import traceback
         traceback.print_exc()
-        
+
         # Fallback
         return {
             'channel_id': channel_id,

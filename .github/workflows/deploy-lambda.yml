@@ -1,0 +1,52 @@
+name: Deploy Lambda Functions to AWS
+
+on:
+  push:
+    branches:
+      - master
+    paths:
+      - 'aws/lambda/**'
+  workflow_dispatch:
+
+jobs:
+  deploy:
+    name: Deploy to AWS Lambda
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Configure AWS credentials
+        uses: aws-actions/configure-aws-credentials@v4
+        with:
+          aws-access-key-id: ${{ secrets.AWS_ACCESS_KEY_ID }}
+          aws-secret-access-key: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
+          aws-region: eu-central-1
+
+      - name: Deploy Theme Agent Lambda
+        run: |
+          cd aws/lambda/content-theme-agent
+          zip -r theme-agent.zip lambda_function.py
+          aws lambda update-function-code \
+            --function-name content-theme-agent \
+            --zip-file fileb://theme-agent.zip \
+            --region eu-central-1
+          echo "✅ Theme Agent deployed successfully"
+
+      - name: Deploy Narrative Architect Lambda
+        run: |
+          cd aws/lambda/content-narrative
+          zip -r narrative.zip lambda_function.py
+          aws lambda update-function-code \
+            --function-name content-narrative \
+            --zip-file fileb://narrative.zip \
+            --region eu-central-1
+          echo "✅ Narrative Architect deployed successfully"
+
+      - name: Deployment Summary
+        run: |
+          echo "🚀 Deployment completed!"
+          echo "- Theme Agent: content-theme-agent"
+          echo "- Narrative Architect: content-narrative"
+          echo "- Region: eu-central-1"
