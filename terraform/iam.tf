@@ -69,7 +69,7 @@ resource "aws_iam_role_policy" "lambda_dynamodb_policy" {
 }
 
 # =====================================
-# Secrets Manager Policy (для OpenAI API Key)
+# Secrets Manager Policy (для всіх secrets)
 # =====================================
 resource "aws_iam_role_policy" "lambda_secrets_policy" {
   name = "${var.project_name}-lambda-secrets-policy"
@@ -83,9 +83,11 @@ resource "aws_iam_role_policy" "lambda_secrets_policy" {
         Action = [
           "secretsmanager:GetSecretValue"
         ]
-        Resource = [
-          aws_secretsmanager_secret.openai_api_key.arn
-        ]
+        Resource = concat(
+          [aws_secretsmanager_secret.openai_api_key.arn],
+          var.notion_api_key != "" ? [aws_secretsmanager_secret.notion_integration[0].arn] : [],
+          var.youtube_api_key != "" ? [aws_secretsmanager_secret.youtube_credentials[0].arn] : []
+        )
       }
     ]
   })
@@ -184,20 +186,42 @@ resource "aws_secretsmanager_secret_version" "openai_api_key" {
 }
 
 # =====================================
-# Secrets Manager - Notion API Key (опціонально)
+# Secrets Manager - Notion Integration (опціонально)
 # =====================================
-resource "aws_secretsmanager_secret" "notion_api_key" {
+resource "aws_secretsmanager_secret" "notion_integration" {
   count       = var.notion_api_key != "" ? 1 : 0
-  name        = "${var.project_name}/notion-api-key"
-  description = "Notion API Key для інтеграції"
+  name        = "${var.project_name}/notion-integration"
+  description = "Notion API credentials і database IDs"
 
   tags = {
-    Name = "${var.project_name}-notion-api-key"
+    Name = "${var.project_name}-notion-integration"
   }
 }
 
-resource "aws_secretsmanager_secret_version" "notion_api_key" {
-  count         = var.notion_api_key != "" ? 1 : 0
-  secret_id     = aws_secretsmanager_secret.notion_api_key[0].id
-  secret_string = var.notion_api_key
+resource "aws_secretsmanager_secret_version" "notion_integration" {
+  count     = var.notion_api_key != "" ? 1 : 0
+  secret_id = aws_secretsmanager_secret.notion_integration[0].id
+  secret_string = jsonencode({
+    api_key           = var.notion_api_key
+    tasks_database_id = var.notion_tasks_database_id
+  })
+}
+
+# =====================================
+# Secrets Manager - YouTube API (опціонально)
+# =====================================
+resource "aws_secretsmanager_secret" "youtube_credentials" {
+  count       = var.youtube_api_key != "" ? 1 : 0
+  name        = "${var.project_name}/youtube-credentials"
+  description = "YouTube Data API credentials"
+
+  tags = {
+    Name = "${var.project_name}-youtube-credentials"
+  }
+}
+
+resource "aws_secretsmanager_secret_version" "youtube_credentials" {
+  count         = var.youtube_api_key != "" ? 1 : 0
+  secret_id     = aws_secretsmanager_secret.youtube_credentials[0].id
+  secret_string = var.youtube_api_key
 }

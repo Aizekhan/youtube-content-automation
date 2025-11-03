@@ -29,6 +29,20 @@ variable "notion_api_key" {
   default     = ""
 }
 
+variable "notion_tasks_database_id" {
+  description = "Notion Tasks Database ID"
+  type        = string
+  sensitive   = true
+  default     = ""
+}
+
+variable "youtube_api_key" {
+  description = "YouTube Data API Key (опціонально)"
+  type        = string
+  sensitive   = true
+  default     = ""
+}
+
 variable "lambda_runtime" {
   description = "Python runtime для Lambda"
   type        = string

@@ -8,9 +8,15 @@ environment = "prod"
 # Project
 project_name = "youtube-content-automation"
 
-# Secrets (не комітьте terraform.tfvars в git!)
+# Secrets (НЕ комітьте terraform.tfvars в git!)
 openai_api_key = "sk-..." # Ваш OpenAI API Key
-notion_api_key = ""        # Опціонально: Notion API Key
+
+# Notion Integration (опціонально)
+notion_api_key           = ""  # Notion API Token (ntn_...)
+notion_tasks_database_id = ""  # Notion Database ID
+
+# YouTube API (опціонально)
+youtube_api_key = ""  # YouTube Data API Key
 
 # Lambda Configuration
 lambda_runtime = "python3.11"
