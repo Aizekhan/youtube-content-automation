@@ -19,14 +19,14 @@ jobs:
       - name: Checkout code
         uses: actions/checkout@v4
 
-      - name: Deploy prompts-editor.html via SCP
+      - name: Deploy HTML files via SCP
         uses: appleboy/scp-action@v0.1.7
         with:
           host: ${{ secrets.SSH_HOST }}
           username: ${{ secrets.SSH_USER }}
           key: ${{ secrets.SSH_KEY }}
           port: ${{ secrets.SSH_PORT || 22 }}
-          source: "prompts-editor.html"
+          source: "prompts-editor.html,channel-configs.html"
           target: ${{ secrets.SSH_WEB_PATH }}
           strip_components: 0
 
@@ -39,14 +39,16 @@ jobs:
           port: ${{ secrets.SSH_PORT || 22 }}
           script: |
             cd ${{ secrets.SSH_WEB_PATH }}
-            chmod 644 prompts-editor.html
-            chown www-data:www-data prompts-editor.html 2>/dev/null || chown nginx:nginx prompts-editor.html 2>/dev/null || true
-            echo "✅ prompts-editor.html deployed successfully"
-            ls -lh prompts-editor.html
+            chmod 644 prompts-editor.html channel-configs.html
+            chown www-data:www-data prompts-editor.html channel-configs.html 2>/dev/null || chown nginx:nginx prompts-editor.html channel-configs.html 2>/dev/null || true
+            echo "✅ HTML files deployed successfully"
+            ls -lh prompts-editor.html channel-configs.html
 
       - name: Deployment Summary
         run: |
           echo "🚀 Website deployment completed!"
-          echo "- File: prompts-editor.html"
+          echo "- Files: prompts-editor.html, channel-configs.html"
           echo "- Server: ${{ secrets.SSH_HOST }}"
-          echo "- URL: https://n8n-creator.space/prompts-editor.html"
+          echo "- URLs:"
+          echo "  - https://n8n-creator.space/prompts-editor.html"
+          echo "  - https://n8n-creator.space/channel-configs.html"
