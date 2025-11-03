@@ -7,61 +7,81 @@ secrets_client = boto3.client('secretsmanager', region_name='eu-central-1')
 dynamodb = boto3.resource('dynamodb', region_name='eu-central-1')
 
 def lambda_handler(event, context):
-    print(f"Theme Agent - Responses API Version")
+    print(f"Theme Agent - AI Prompt Configs Version")
     print(f"Event: {json.dumps(event, ensure_ascii=False)}")
 
     channel_id = event.get('channel_id', 'Unknown')
     channel_name = event.get('channel_name', 'Unknown')
-    genre = event.get('genre', 'General')
     input_titles = event.get('titles', [])
+    topics_to_generate = event.get('topics_to_generate', 4)
+    avoid_list = event.get('avoid_list', [])
 
     try:
-        # Отримуємо OpenAI API ключ
+        # 1. Отримуємо OpenAI API ключ
         api_key_response = secrets_client.get_secret_value(SecretId='openai/api-key')
         secret_string = api_key_response['SecretString']
-
-        # Перевіряємо чи це JSON чи plain string
         try:
             api_key_data = json.loads(secret_string)
             api_key = api_key_data.get('api_key') or api_key_data.get('key')
         except:
-            # Якщо не JSON - це plain string API key
             api_key = secret_string
 
         print(f"API key retrieved: {api_key[:10]}...")
 
-        # Створюємо system prompt (інструкції для моделі)
-        system_prompt = """Ти - професійний креатор контенту для YouTube каналів.
-Твоя задача - генерувати унікальні, захоплюючі теми для відео.
+        # 2. Отримуємо prompt config з AIPromptConfigs
+        prompt_table = dynamodb.Table('AIPromptConfigs')
+        prompt_response = prompt_table.get_item(Key={'agent_id': 'theme_agent'})
 
-Вимоги до тем:
-- Формат: короткий заголовок (5-10 слів)
-- Мова: українська
-- Стиль: інтригуючий, що викликає цікавість
-- Теми мають бути актуальними та цікавими для глядачів"""
+        if 'Item' not in prompt_response:
+            raise Exception('Theme Agent config not found in AIPromptConfigs')
 
-        # Створюємо user message
-        user_message = f"""Жанр каналу: {genre}
-Назва каналу: {channel_name}
+        prompt_config = prompt_response['Item']
+        system_instructions = prompt_config['system_instructions']
+        model = prompt_config.get('model', 'gpt-4o-mini')
+        temperature = float(prompt_config.get('temperature', '0.9'))
+        max_tokens = int(prompt_config.get('max_tokens', '500'))
 
-Базові ідеї з попередніх відео:
-{chr(10).join(['- ' + title for title in input_titles])}
+        print(f"Prompt config loaded: model={model}, temp={temperature}")
 
-Згенеруй РІВНО 4 унікальні теми для нових відео в цьому жанрі.
-Поверни тільки 4 заголовки, кожен з нового рядка, БЕЗ нумерації."""
+        # 3. Отримуємо channel config з ChannelConfigs
+        channel_table = dynamodb.Table('ChannelConfigs')
+        channel_response = channel_table.get_item(Key={'channel_id': channel_id})
 
-        # Prepare request body
+        if 'Item' not in channel_response:
+            raise Exception(f'Channel config not found for {channel_id}')
+
+        channel_config = channel_response['Item']
+        print(f"Channel config loaded for: {channel_config.get('channel_name', 'Unknown')}")
+
+        # 4. Формуємо JSON input згідно з інструкцією Theme Agent
+        user_input = {
+            "channel_name": channel_config.get('channel_name', channel_name),
+            "channel_config": {
+                "genre": channel_config.get('genre', 'General'),
+                "tone": channel_config.get('tone', 'Neutral'),
+                "content_focus": channel_config.get('content_focus', ''),
+                "narrative_keywords": channel_config.get('narrative_keywords', ''),
+                "example_keywords_for_youtube": channel_config.get('example_keywords_for_youtube', '')
+            },
+            "topics_to_generate": topics_to_generate,
+            "avoid_list": avoid_list + input_titles  # Додаємо input_titles до avoid_list
+        }
+
+        user_message = json.dumps(user_input, ensure_ascii=False)
+
+        # 5. Prepare OpenAI request
         request_body = json.dumps({
-            'model': 'gpt-4o-mini',
+            'model': model,
             'messages': [
-                {'role': 'system', 'content': system_prompt},
+                {'role': 'system', 'content': system_instructions},
                 {'role': 'user', 'content': user_message}
             ],
-            'temperature': 0.9,
-            'max_tokens': 500
+            'temperature': temperature,
+            'max_tokens': max_tokens,
+            'response_format': {'type': 'json_object'}  # Force JSON output
         })
 
-        # Виклик OpenAI API через http.client
+        # 6. Виклик OpenAI API
         conn = http.client.HTTPSConnection('api.openai.com')
         headers = {
             'Authorization': f'Bearer {api_key}',
@@ -73,50 +93,52 @@ def lambda_handler(event, context):
         response_data = response.read().decode('utf-8')
 
         print(f"OpenAI response status: {response.status}")
-        print(f"Response data preview: {response_data[:200]}...")
 
         result = json.loads(response_data)
 
-        # Перевірка на помилки
         if 'error' in result:
             raise Exception(f"OpenAI API Error: {result['error'].get('message', 'Unknown error')}")
 
-        generated_text = result['choices'][0]['message']['content']
-        print(f"Generated text: {generated_text[:100]}...")
+        # 7. Parse JSON response
+        generated_content = result['choices'][0]['message']['content']
+        generated_json = json.loads(generated_content)
 
-        # Парсимо відповідь (очікуємо 4 теми, кожна з нового рядка)
-        generated_titles = [t.strip().lstrip('0123456789.-) ') for t in generated_text.strip().split('\n') if t.strip()]
-        generated_titles = [t for t in generated_titles if t and len(t) > 3][:4]
+        generated_titles = generated_json.get('new_topics', [])
 
-        # Якщо менше 4 тем, додаємо fallback
-        while len(generated_titles) < 4:
-            generated_titles.append(f"Тема для {genre} #{len(generated_titles)+1}")
+        print(f"Generated {len(generated_titles)} titles")
 
-        # Зберігаємо в DynamoDB
-        table = dynamodb.Table('GeneratedContent')
+        # Fallback якщо менше ніж потрібно
+        while len(generated_titles) < topics_to_generate:
+            generated_titles.append(f"Theme #{len(generated_titles)+1}")
+
+        # 8. Зберігаємо в DynamoDB GeneratedContent
+        content_table = dynamodb.Table('GeneratedContent')
         timestamp = datetime.utcnow().isoformat() + 'Z'
 
-        table.put_item(
+        content_table.put_item(
             Item={
                 'channel_id': channel_id,
                 'created_at': timestamp,
                 'type': 'theme_generation',
-                'channel_name': channel_name,
-                'genre': genre,
+                'channel_name': channel_config.get('channel_name', channel_name),
+                'genre': channel_config.get('genre', 'General'),
                 'input_titles': input_titles,
                 'generated_titles': generated_titles,
-                'model': 'gpt-4o-mini',
+                'full_response': generated_json,
+                'model': model,
                 'api_version': 'responses_api',
+                'prompt_version': prompt_config.get('version', '1.0'),
                 'status': 'completed'
             }
         )
 
         print(f"✅ Saved to DynamoDB: {channel_id} at {timestamp}")
 
+        # 9. Return output for Step Functions
         output = {
             'channel_id': channel_id,
-            'channel_name': channel_name,
-            'genre': genre,
+            'channel_name': channel_config.get('channel_name', channel_name),
+            'genre': channel_config.get('genre', 'General'),
             'generated_titles': generated_titles,
             'timestamp': timestamp
         }
@@ -133,13 +155,8 @@ def lambda_handler(event, context):
         return {
             'channel_id': channel_id,
             'channel_name': channel_name,
-            'genre': genre,
-            'generated_titles': [
-                f"Fallback тема 1 для {genre}",
-                f"Fallback тема 2 для {genre}",
-                f"Fallback тема 3 для {genre}",
-                f"Fallback тема 4 для {genre}"
-            ],
+            'genre': 'Unknown',
+            'generated_titles': [f"Fallback theme {i+1}" for i in range(topics_to_generate)],
             'timestamp': datetime.utcnow().isoformat() + 'Z',
             'error': str(e)
         }
