@@ -44,9 +44,20 @@ jobs:
             --region eu-central-1
           echo "✅ Narrative Architect deployed successfully"
 
+      - name: Deploy Prompts API Lambda
+        run: |
+          cd aws/lambda/prompts-api
+          zip -r prompts-api.zip lambda_function.py
+          aws lambda update-function-code \
+            --function-name prompts-api \
+            --zip-file fileb://prompts-api.zip \
+            --region eu-central-1
+          echo "✅ Prompts API deployed successfully"
+
       - name: Deployment Summary
         run: |
           echo "🚀 Deployment completed!"
           echo "- Theme Agent: content-theme-agent"
           echo "- Narrative Architect: content-narrative"
+          echo "- Prompts API: prompts-api"
           echo "- Region: eu-central-1"
