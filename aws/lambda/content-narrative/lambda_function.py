@@ -42,14 +42,18 @@ def lambda_handler(event, context):
 
         print(f"Prompt config loaded: model={model}, temp={temperature}, max_tokens={max_tokens}")
 
-        # 3. Отримуємо channel config з ChannelConfigs
+        # 3. Отримуємо channel config з ChannelConfigs (query через GSI)
         channel_table = dynamodb.Table('ChannelConfigs')
-        channel_response = channel_table.get_item(Key={'channel_id': channel_id})
+        channel_response = channel_table.query(
+            IndexName='channel_id-index',
+            KeyConditionExpression='channel_id = :cid',
+            ExpressionAttributeValues={':cid': channel_id}
+        )
 
-        if 'Item' not in channel_response:
+        if not channel_response.get('Items'):
             raise Exception(f'Channel config not found for {channel_id}')
 
-        channel_config = channel_response['Item']
+        channel_config = channel_response['Items'][0]
         print(f"Channel config loaded for: {channel_config.get('channel_name', 'Unknown')}")
 
         # 4. Формуємо JSON input згідно з інструкцією Narrative Architect
