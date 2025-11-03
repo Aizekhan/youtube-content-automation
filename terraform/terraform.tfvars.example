@@ -1,0 +1,18 @@
+# Terraform Variables Example
+# Скопіюйте цей файл як terraform.tfvars і заповніть своїми значеннями
+
+# AWS Configuration
+aws_region  = "eu-central-1"
+environment = "prod"
+
+# Project
+project_name = "youtube-content-automation"
+
+# Secrets (не комітьте terraform.tfvars в git!)
+openai_api_key = "sk-..." # Ваш OpenAI API Key
+notion_api_key = ""        # Опціонально: Notion API Key
+
+# Lambda Configuration
+lambda_runtime = "python3.11"
+lambda_timeout = 300
+lambda_memory  = 512
