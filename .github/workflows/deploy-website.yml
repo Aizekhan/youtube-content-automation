@@ -30,7 +30,7 @@ jobs:
           username: ${{ secrets.SSH_USER }}
           key: ${{ secrets.SSH_KEY }}
           port: ${{ secrets.SSH_PORT || 22 }}
-          source: "prompts-editor.html,channel-configs.html,index.html,dashboard.html,costs.html,content.html"
+          source: "admin.html,prompts-editor.html,channel-configs.html,index.html,dashboard.html,costs.html,content.html"
           target: ${{ secrets.SSH_WEB_PATH }}
           strip_components: 0
 
@@ -43,7 +43,7 @@ jobs:
           port: ${{ secrets.SSH_PORT || 22 }}
           script: |
             cd ${{ secrets.SSH_WEB_PATH }}
-            chmod 644 prompts-editor.html channel-configs.html index.html dashboard.html costs.html content.html
+            chmod 644 admin.html prompts-editor.html channel-configs.html index.html dashboard.html costs.html content.html
             chown www-data:www-data *.html 2>/dev/null || chown nginx:nginx *.html 2>/dev/null || true
             echo "✅ HTML files deployed successfully"
             ls -lh *.html
@@ -51,12 +51,13 @@ jobs:
       - name: Deployment Summary
         run: |
           echo "🚀 Website deployment completed!"
-          echo "- Files: index.html, dashboard.html, costs.html, content.html, prompts-editor.html, channel-configs.html"
+          echo "- Files: admin.html, index.html, dashboard.html, costs.html, content.html, prompts-editor.html, channel-configs.html"
           echo "- Server: ${{ secrets.SSH_HOST }}"
           echo "- URLs:"
-          echo "  - https://n8n-creator.space/index.html"
-          echo "  - https://n8n-creator.space/dashboard.html"
-          echo "  - https://n8n-creator.space/costs.html"
-          echo "  - https://n8n-creator.space/content.html"
-          echo "  - https://n8n-creator.space/prompts-editor.html"
-          echo "  - https://n8n-creator.space/channel-configs.html"
+          echo "  - https://n8n-creator.space/admin.html (YouTube Management)"
+          echo "  - https://n8n-creator.space/index.html (Dashboard Home)"
+          echo "  - https://n8n-creator.space/dashboard.html (Monitoring)"
+          echo "  - https://n8n-creator.space/costs.html (Cost Analytics)"
+          echo "  - https://n8n-creator.space/content.html (Content Browser)"
+          echo "  - https://n8n-creator.space/prompts-editor.html (AI Prompts)"
+          echo "  - https://n8n-creator.space/channel-configs.html (Channel Configs)"

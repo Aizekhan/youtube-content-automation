@@ -1,0 +1,199 @@
+<!DOCTYPE html>
+<html lang="uk">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>YouTube Management</title>
+<style>
+* { margin: 0; padding: 0; box-sizing: border-box; }
+body { background: linear-gradient(135deg, #0f172a 0%, #1e293b 100%); color: white; font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif; min-height: 100vh; padding: 20px; }
+.container { max-width: 1200px; margin: 0 auto; }
+.header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 30px; }
+h1 { font-size: 28px; }
+.subtitle { color: rgba(226, 232, 240, 0.6); font-size: 14px; margin-top: 5px; }
+.actions { display: flex; gap: 10px; flex-wrap: wrap; align-items: center; }
+.btn { padding: 12px 20px; border-radius: 6px; text-decoration: none; font-weight: 600; border: none; cursor: pointer; transition: all 0.2s; display: inline-flex; align-items: center; gap: 8px; }
+.btn-icon { width: 45px; height: 45px; padding: 0; display: inline-flex; align-items: center; justify-content: center; font-size: 20px; border-radius: 8px; }
+.btn-primary { background: linear-gradient(135deg, #3b82f6 0%, #2563eb 100%); color: white; }
+.btn-primary:hover { transform: translateY(-2px); box-shadow: 0 8px 16px rgba(59, 130, 246, 0.3); }
+.btn-secondary { background: rgba(148, 163, 184, 0.1); color: white; border: 1px solid rgba(148, 163, 184, 0.2); }
+.btn-secondary:hover { background: rgba(148, 163, 184, 0.2); }
+.section-title { font-size: 18px; margin-bottom: 15px; color: white; }
+.channels-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(280px, 1fr)); gap: 20px; }
+.channel-card { background: rgba(30, 41, 59, 0.8); border: 1px solid rgba(148, 163, 184, 0.2); border-radius: 12px; padding: 20px; transition: all 0.2s; }
+.channel-card:hover { border-color: #3b82f6; box-shadow: 0 8px 16px rgba(59, 130, 246, 0.1); transform: translateY(-2px); }
+.channel-header { display: flex; gap: 15px; margin-bottom: 15px; }
+.channel-thumbnail { width: 60px; height: 60px; border-radius: 6px; object-fit: cover; background: rgba(0, 0, 0, 0.3); }
+.channel-info h3 { font-size: 16px; margin-bottom: 5px; }
+.channel-id { font-size: 11px; color: rgba(226, 232, 240, 0.6); }
+.channel-stats { display: grid; grid-template-columns: repeat(3, 1fr); gap: 10px; margin-bottom: 15px; }
+.stat { text-align: center; }
+.stat-value { font-size: 16px; font-weight: 700; color: #3b82f6; }
+.stat-label { font-size: 11px; color: rgba(226, 232, 240, 0.6); margin-top: 3px; }
+.channel-meta { padding-top: 15px; border-top: 1px solid rgba(148, 163, 184, 0.1); display: flex; gap: 8px; flex-wrap: wrap; }
+.meta-badge { font-size: 11px; padding: 4px 8px; border-radius: 4px; display: inline-flex; align-items: center; gap: 4px; }
+.token-green { background: rgba(16, 185, 129, 0.1); border: 1px solid rgba(16, 185, 129, 0.2); color: #4ade80; }
+.token-yellow { background: rgba(251, 191, 36, 0.1); border: 1px solid rgba(251, 191, 36, 0.2); color: #fbbf24; }
+.token-red { background: rgba(239, 68, 68, 0.1); border: 1px solid rgba(239, 68, 68, 0.2); color: #f87171; }
+.meta-info { background: rgba(59, 130, 246, 0.1); border: 1px solid rgba(59, 130, 246, 0.2); color: #60a5fa; }
+.loading { text-align: center; padding: 40px; }
+.spinner { border: 3px solid rgba(59, 130, 246, 0.2); border-top-color: #3b82f6; border-radius: 50%; width: 40px; height: 40px; animation: spin 0.8s linear infinite; margin: 0 auto 10px; }
+@keyframes spin { to { transform: rotate(360deg); } }
+.empty-state { text-align: center; padding: 60px 20px; }
+.empty-state-icon { font-size: 64px; margin-bottom: 20px; opacity: 0.5; }
+</style>
+</head>
+<body>
+
+<div class="container">
+  <div class="header">
+    <div>
+      <h1>📱 YouTube Management</h1>
+      <p class="subtitle">Управління YouTube каналами</p>
+    </div>
+    <div class="actions">
+      <a href="index.html" class="btn btn-primary" style="background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);">🏠 Dashboard Home</a>
+      <a href="/oauth/start.html" class="btn btn-primary">🚀 Додати YouTube Канал</a>
+      <button onclick="window.open('/api/generate-oauth-urls.php', '_blank')" class="btn btn-icon" title="Реавторизація токенів" style="background: #9b59b6;">🔑</button>
+      <button onclick="updateAllStats()" class="btn btn-secondary" id="update-btn">🔄 Оновити статистику</button>
+      <a href="channel-configs.html" class="btn btn-secondary">⚙️ Редагувати Конфіги</a>
+      <a href="prompts-editor.html" class="btn btn-secondary">🤖 AI Prompts</a>
+      <a href="dashboard.html" class="btn btn-secondary">📊 Monitoring</a>
+    </div>
+  </div>
+
+  <h2 class="section-title">Активні канали: <span id="channel-count"></span></h2>
+
+  <div id="channels-container">
+    <div class="loading">
+      <div class="spinner"></div>
+      <p>⏳ Завантаження каналів...</p>
+    </div>
+  </div>
+</div>
+
+<script>
+function formatNumber(num) {
+  if (!num) return '0';
+  return num.toString().replace(/\B(?=(\d{3})+(?!\d))/g, ' ');
+}
+
+
+function getTokenStatus(expiryDate, createdAt) {
+  if (!expiryDate && createdAt) {
+    const created = new Date(createdAt);
+    expiryDate = new Date(created.getTime() + 60 * 60 * 1000).toISOString();
+  }
+  
+  if (!expiryDate) return { valid: false, class: 'token-red', icon: '🔴', text: 'Протух' };
+  
+  const expiry = new Date(expiryDate);
+  const now = new Date();
+  const minutesUntilExpiry = (expiry - now) / (1000 * 60);
+  
+  if (minutesUntilExpiry < 0) {
+    return { valid: false, class: 'token-red', icon: '🔴', text: 'Протух' };
+  } else if (minutesUntilExpiry < 5) {
+    return { valid: true, class: 'token-red', icon: '🔴', text: 'Скоро експірує' };
+  } else if (minutesUntilExpiry < 15) {
+    return { valid: true, class: 'token-yellow', icon: '🟡', text: 'Оновити незабаром' };
+  } else {
+    return { valid: true, class: 'token-green', icon: '🟢', text: 'Активний' };
+  }
+}
+
+function formatDate(dateString) {
+  if (!dateString) return 'Невідомо';
+  return new Date(dateString).toLocaleDateString('uk-UA', { year: 'numeric', month: 'long', day: 'numeric', hour: '2-digit', minute: '2-digit' });
+}
+
+function createChannelCard(channel) {
+  const tokenStatus = getTokenStatus(channel.token_expiry);
+  return `
+    <div class="channel-card">
+      <div class="channel-header">
+        ${channel.thumbnail_url ? `<img src="${channel.thumbnail_url}" alt="" class="channel-thumbnail">` : '<div class="channel-thumbnail">📺</div>'}
+        <div class="channel-info">
+          <h3>${channel.channel_title || 'Без назви'}</h3>
+          <div class="channel-id">${channel.channel_id}</div>
+        </div>
+      </div>
+      <div class="channel-stats">
+        <div class="stat">
+          <div class="stat-value">${formatNumber(channel.subscriber_count)}</div>
+          <div class="stat-label">Підписники</div>
+        </div>
+        <div class="stat">
+          <div class="stat-value">${formatNumber(channel.video_count)}</div>
+          <div class="stat-label">Відео</div>
+        </div>
+        <div class="stat">
+          <div class="stat-value">${formatNumber(channel.view_count)}</div>
+          <div class="stat-label">Перегляди</div>
+        </div>
+      </div>
+      <div class="channel-meta">
+        <span class="meta-badge ${tokenStatus.class}">${tokenStatus.icon} ${tokenStatus.text}</span>
+        <span class="meta-badge meta-info">📅 ${formatDate(channel.created_at)}</span>
+      </div>
+    </div>
+  `;
+}
+
+async function loadChannels() {
+  const container = document.getElementById('channels-container');
+  const countElement = document.getElementById('channel-count');
+
+  try {
+    const response = await fetch('/api/channels.php');
+    if (!response.ok) throw new Error('HTTP Error: ' + response.status);
+
+    const channels = await response.json();
+
+    if (!Array.isArray(channels) || channels.length === 0) {
+      container.innerHTML = `<div class="empty-state"><div class="empty-state-icon">📺</div><h3>Ще немає доданих каналів</h3><p>Натисніть "Додати YouTube Канал" щоб почати</p></div>`;
+      countElement.textContent = '(0)';
+      return;
+    }
+
+    countElement.textContent = `(${channels.length})`;
+    const channelsHTML = channels.map(ch => createChannelCard(ch)).join('');
+    container.innerHTML = `<div class="channels-grid">${channelsHTML}</div>`;
+
+  } catch (error) {
+    container.innerHTML = `<div class="empty-state"><h3>❌ Помилка</h3><p>${error.message}</p><button class="btn btn-primary" onclick="loadChannels()" style="margin-top: 20px;">🔄 Спробувати знову</button></div>`;
+  }
+}
+
+async function updateAllStats() {
+  const btn = document.getElementById('update-btn');
+  const originalText = btn.innerHTML;
+  btn.innerHTML = '⏳ Оновлення...';
+  btn.disabled = true;
+
+  try {
+    const response = await fetch('/api/update-stats.php');
+    const result = await response.json();
+
+    if (result.success) {
+      btn.innerHTML = '✅ Оновлено';
+      await loadChannels();
+    } else {
+      btn.innerHTML = '❌ Помилка';
+    }
+  } catch (error) {
+    btn.innerHTML = '❌ Помилка';
+  }
+
+  setTimeout(() => {
+    btn.innerHTML = originalText;
+    btn.disabled = false;
+  }, 2000);
+}
+
+document.addEventListener('DOMContentLoaded', loadChannels);
+setInterval(loadChannels, 30000);
+</script>
+
+</body>
+</html>
