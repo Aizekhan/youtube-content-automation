@@ -16,7 +16,7 @@ def lambda_handler(event, context):
     - POST   /prompts         - Create agent (if needed)
     """
 
-    print(f"Event: {json.dumps(event)}")
+    print(f"Event: {json.dumps(event, default=str)}")
 
     # CORS headers
     headers = {
@@ -26,11 +26,16 @@ def lambda_handler(event, context):
     }
 
     try:
-        http_method = event.get('httpMethod', event.get('requestContext', {}).get('http', {}).get('method'))
-        path = event.get('path', event.get('rawPath', ''))
+        # Lambda Function URL format
+        http_method = event.get('requestContext', {}).get('http', {}).get('method')
+        if not http_method:
+            # API Gateway format fallback
+            http_method = event.get('httpMethod', 'GET')
 
-        # Handle OPTIONS (CORS preflight)
-        if http_method == 'OPTIONS':
+        path = event.get('rawPath', event.get('path', '/'))
+
+        # Handle OPTIONS (CORS preflight) and HEAD
+        if http_method in ['OPTIONS', 'HEAD']:
             return {
                 'statusCode': 200,
                 'headers': headers,
