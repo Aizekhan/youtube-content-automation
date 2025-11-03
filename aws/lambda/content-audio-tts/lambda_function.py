@@ -183,38 +183,60 @@ def get_voice_for_channel(channel_id):
 
 def synthesize_speech(ssml_text, voice_id):
     """
-    Generate audio from SSML text using AWS Polly Neural
+    Generate audio from SSML text using AWS Polly
     Returns: (audio_stream, duration_ms)
     """
+    # Fix SSML: replace single quotes with double quotes
+    ssml_text = ssml_text.replace("rate='", 'rate="').replace("pitch='", 'pitch="')
+    ssml_text = ssml_text.replace("time='", 'time="').replace("level='", 'level="')
+    ssml_text = ssml_text.replace("'", '"')  # Replace all remaining single quotes
+
     try:
-        response = polly.synthesize_speech(
-            Text=ssml_text,
-            TextType='ssml',
-            OutputFormat='mp3',
-            VoiceId=voice_id,
-            Engine='neural',  # Use Neural engine for better quality
-            LanguageCode='en-US'
-        )
-
-        # Read audio stream
-        audio_stream = response['AudioStream'].read()
-
-        # Get metadata if available
-        audio_marks = response.get('Markers', [])
-        request_characters = response.get('RequestCharacters', 0)
-
-        # Estimate duration (rough approximation)
-        # Average speaking rate: ~150 words per minute = ~2.5 words/sec
-        # Average word length: ~5 characters
-        # So: characters / 12.5 = seconds
-        estimated_duration_sec = request_characters / 12.5 if request_characters > 0 else 10
-        duration_ms = int(estimated_duration_sec * 1000)
-
-        return audio_stream, duration_ms
-
+        # Try Neural engine first
+        try:
+            response = polly.synthesize_speech(
+                Text=ssml_text,
+                TextType='ssml',
+                OutputFormat='mp3',
+                VoiceId=voice_id,
+                Engine='neural',  # Try Neural engine for better quality
+                LanguageCode='en-US'
+            )
+            return process_polly_response(response)
+        except Exception as neural_error:
+            print(f"Neural engine failed: {str(neural_error)}, trying standard...")
+            # Fallback to standard engine
+            response = polly.synthesize_speech(
+                Text=ssml_text,
+                TextType='ssml',
+                OutputFormat='mp3',
+                VoiceId=voice_id,
+                Engine='standard',  # Fallback to standard
+                LanguageCode='en-US'
+            )
+            return process_polly_response(response)
     except Exception as e:
         print(f"Error synthesizing speech: {str(e)}")
         raise
+
+
+def process_polly_response(response):
+    """Process Polly API response and extract audio data"""
+    # Read audio stream
+    audio_stream = response['AudioStream'].read()
+
+    # Get metadata if available
+    audio_marks = response.get('Markers', [])
+    request_characters = response.get('RequestCharacters', 0)
+
+    # Estimate duration (rough approximation)
+    # Average speaking rate: ~150 words per minute = ~2.5 words/sec
+    # Average word length: ~5 characters
+    # So: characters / 12.5 = seconds
+    estimated_duration_sec = request_characters / 12.5 if request_characters > 0 else 10
+    duration_ms = int(estimated_duration_sec * 1000)
+
+    return audio_stream, duration_ms
 
 
 def upload_to_s3(audio_data, s3_key):
