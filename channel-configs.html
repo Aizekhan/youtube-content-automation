@@ -251,10 +251,47 @@
             margin-top: 4px;
             font-style: italic;
         }
+        .nav-menu {
+            background: white;
+            border-radius: 12px;
+            padding: 0.5rem;
+            margin-bottom: 2rem;
+            box-shadow: 0 5px 15px rgba(0,0,0,0.1);
+        }
+
+        .nav-menu a {
+            color: #4a5568;
+            text-decoration: none;
+            padding: 0.75rem 1.5rem;
+            border-radius: 8px;
+            transition: all 0.3s ease;
+            display: inline-block;
+            margin: 0.25rem;
+        }
+
+        .nav-menu a:hover {
+            background: rgba(102, 126, 234, 0.1);
+            color: #667eea;
+        }
+
+        .nav-menu a.active {
+            background: linear-gradient(135deg, #667eea, #764ba2);
+            color: white;
+        }
     </style>
 </head>
 <body>
     <div class="container">
+        <!-- Navigation Menu -->
+        <div class="nav-menu" style="margin-top: 20px;">
+            <a href="index.html"><i class="bi bi-house"></i> Home</a>
+            <a href="prompts-editor.html"><i class="bi bi-robot"></i> Prompts</a>
+            <a href="channel-configs.html" class="active"><i class="bi bi-collection-play"></i> Channels</a>
+            <a href="dashboard.html"><i class="bi bi-speedometer2"></i> Dashboard</a>
+            <a href="costs.html"><i class="bi bi-cash-coin"></i> Costs</a>
+            <a href="content.html"><i class="bi bi-folder2-open"></i> Content</a>
+        </div>
+
         <div class="header">
             <div>
                 <h1>📝 Редагування Конфігів Каналів</h1>

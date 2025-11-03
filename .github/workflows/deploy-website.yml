@@ -7,6 +7,10 @@ on:
     paths:
       - 'prompts-editor.html'
       - 'channel-configs.html'
+      - 'index.html'
+      - 'dashboard.html'
+      - 'costs.html'
+      - 'content.html'
       - '*.html'
   workflow_dispatch:
 
@@ -26,7 +30,7 @@ jobs:
           username: ${{ secrets.SSH_USER }}
           key: ${{ secrets.SSH_KEY }}
           port: ${{ secrets.SSH_PORT || 22 }}
-          source: "prompts-editor.html,channel-configs.html"
+          source: "prompts-editor.html,channel-configs.html,index.html,dashboard.html,costs.html,content.html"
           target: ${{ secrets.SSH_WEB_PATH }}
           strip_components: 0
 
@@ -39,16 +43,20 @@ jobs:
           port: ${{ secrets.SSH_PORT || 22 }}
           script: |
             cd ${{ secrets.SSH_WEB_PATH }}
-            chmod 644 prompts-editor.html channel-configs.html
-            chown www-data:www-data prompts-editor.html channel-configs.html 2>/dev/null || chown nginx:nginx prompts-editor.html channel-configs.html 2>/dev/null || true
+            chmod 644 prompts-editor.html channel-configs.html index.html dashboard.html costs.html content.html
+            chown www-data:www-data *.html 2>/dev/null || chown nginx:nginx *.html 2>/dev/null || true
             echo "✅ HTML files deployed successfully"
-            ls -lh prompts-editor.html channel-configs.html
+            ls -lh *.html
 
       - name: Deployment Summary
         run: |
           echo "🚀 Website deployment completed!"
-          echo "- Files: prompts-editor.html, channel-configs.html"
+          echo "- Files: index.html, dashboard.html, costs.html, content.html, prompts-editor.html, channel-configs.html"
           echo "- Server: ${{ secrets.SSH_HOST }}"
           echo "- URLs:"
+          echo "  - https://n8n-creator.space/index.html"
+          echo "  - https://n8n-creator.space/dashboard.html"
+          echo "  - https://n8n-creator.space/costs.html"
+          echo "  - https://n8n-creator.space/content.html"
           echo "  - https://n8n-creator.space/prompts-editor.html"
           echo "  - https://n8n-creator.space/channel-configs.html"

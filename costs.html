@@ -1,0 +1,463 @@
+<!DOCTYPE html>
+<html lang="uk">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Cost Analytics - YouTube Automation</title>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.0/font/bootstrap-icons.css">
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <style>
+        :root {
+            --primary-color: #667eea;
+            --secondary-color: #764ba2;
+            --success-color: #10b981;
+            --warning-color: #f59e0b;
+            --danger-color: #ef4444;
+            --dark-bg: #1a1d2e;
+            --card-bg: #22263a;
+            --text-primary: #e5e7eb;
+            --text-secondary: #9ca3af;
+        }
+
+        body {
+            background: linear-gradient(135deg, var(--dark-bg) 0%, #16213e 100%);
+            color: var(--text-primary);
+            min-height: 100vh;
+            font-family: 'Inter', -apple-system, BlinkMacSystemFont, sans-serif;
+        }
+
+        .navbar {
+            background: rgba(34, 38, 58, 0.95) !important;
+            backdrop-filter: blur(10px);
+            border-bottom: 1px solid rgba(102, 126, 234, 0.2);
+        }
+
+        .nav-menu {
+            background: var(--card-bg);
+            border-radius: 12px;
+            padding: 0.5rem;
+            margin-bottom: 2rem;
+        }
+
+        .nav-menu a {
+            color: var(--text-secondary);
+            text-decoration: none;
+            padding: 0.75rem 1.5rem;
+            border-radius: 8px;
+            transition: all 0.3s ease;
+            display: inline-block;
+            margin: 0.25rem;
+        }
+
+        .nav-menu a:hover {
+            background: rgba(102, 126, 234, 0.2);
+            color: var(--text-primary);
+        }
+
+        .nav-menu a.active {
+            background: linear-gradient(135deg, var(--primary-color), var(--secondary-color));
+            color: white;
+        }
+
+        .card {
+            background: var(--card-bg);
+            border: 1px solid rgba(102, 126, 234, 0.2);
+            border-radius: 16px;
+            margin-bottom: 1.5rem;
+        }
+
+        .card-header {
+            background: transparent;
+            border-bottom: 1px solid rgba(102, 126, 234, 0.2);
+            padding: 1.25rem;
+            font-weight: 600;
+            font-size: 1.1rem;
+        }
+
+        .cost-card {
+            background: var(--card-bg);
+            border: 1px solid rgba(102, 126, 234, 0.2);
+            border-radius: 12px;
+            padding: 1.5rem;
+        }
+
+        .cost-value {
+            font-size: 2.5rem;
+            font-weight: 700;
+            background: linear-gradient(135deg, var(--warning-color), #d97706);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            background-clip: text;
+        }
+
+        .cost-label {
+            color: var(--text-secondary);
+            font-size: 0.85rem;
+            margin-top: 0.5rem;
+        }
+
+        .service-item {
+            padding: 1rem;
+            border-bottom: 1px solid rgba(102, 126, 234, 0.1);
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+
+        .service-item:last-child {
+            border-bottom: none;
+        }
+
+        .service-name {
+            font-weight: 500;
+        }
+
+        .service-cost {
+            font-size: 1.2rem;
+            font-weight: 600;
+            color: var(--warning-color);
+        }
+
+        .progress-custom {
+            height: 8px;
+            background: rgba(102, 126, 234, 0.1);
+            border-radius: 4px;
+            overflow: hidden;
+            margin-top: 0.5rem;
+        }
+
+        .progress-bar-custom {
+            height: 100%;
+            background: linear-gradient(90deg, var(--warning-color), #d97706);
+            border-radius: 4px;
+            transition: width 0.5s ease;
+        }
+
+        .btn-primary {
+            background: linear-gradient(135deg, var(--primary-color), var(--secondary-color));
+            border: none;
+            transition: all 0.3s ease;
+        }
+
+        .btn-primary:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 4px 12px rgba(102, 126, 234, 0.4);
+        }
+
+        .chart-container {
+            position: relative;
+            height: 300px;
+        }
+
+        .forecast-badge {
+            background: linear-gradient(135deg, #3b82f6, #2563eb);
+            color: white;
+            padding: 0.5rem 1rem;
+            border-radius: 8px;
+            font-weight: 600;
+        }
+    </style>
+</head>
+<body>
+    <!-- Navigation -->
+    <nav class="navbar navbar-expand-lg navbar-dark">
+        <div class="container">
+            <a class="navbar-brand" href="index.html">
+                <i class="bi bi-youtube"></i> YouTube Automation
+            </a>
+            <span class="badge bg-warning">Cost Analytics</span>
+        </div>
+    </nav>
+
+    <div class="container mt-4">
+        <!-- Navigation Menu -->
+        <div class="nav-menu">
+            <a href="index.html"><i class="bi bi-house"></i> Home</a>
+            <a href="prompts-editor.html"><i class="bi bi-robot"></i> Prompts</a>
+            <a href="channel-configs.html"><i class="bi bi-collection-play"></i> Channels</a>
+            <a href="dashboard.html"><i class="bi bi-speedometer2"></i> Dashboard</a>
+            <a href="costs.html" class="active"><i class="bi bi-cash-coin"></i> Costs</a>
+            <a href="content.html"><i class="bi bi-folder2-open"></i> Content</a>
+        </div>
+
+        <!-- Cost Summary -->
+        <div class="row mb-4">
+            <div class="col-md-3">
+                <div class="cost-card text-center">
+                    <div class="cost-value" id="monthToDate">-</div>
+                    <div class="cost-label">Month-to-Date</div>
+                </div>
+            </div>
+            <div class="col-md-3">
+                <div class="cost-card text-center">
+                    <div class="cost-value text-success" id="yesterday">-</div>
+                    <div class="cost-label">Yesterday</div>
+                </div>
+            </div>
+            <div class="col-md-3">
+                <div class="cost-card text-center">
+                    <div class="cost-value text-info" id="forecast">-</div>
+                    <div class="cost-label">Forecast (Month)</div>
+                </div>
+            </div>
+            <div class="col-md-3">
+                <div class="cost-card text-center">
+                    <div class="cost-value text-primary" id="lastMonth">-</div>
+                    <div class="cost-label">Last Month</div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Cost by Service -->
+        <div class="row">
+            <div class="col-md-6">
+                <div class="card">
+                    <div class="card-header d-flex justify-content-between align-items-center">
+                        <span><i class="bi bi-graph-up"></i> Costs by AWS Service</span>
+                        <button class="btn btn-sm btn-primary" onclick="refreshCosts()">
+                            <i class="bi bi-arrow-clockwise"></i> Refresh
+                        </button>
+                    </div>
+                    <div class="card-body">
+                        <div id="servicesList">
+                            <div class="text-center text-secondary py-5">
+                                <i class="bi bi-hourglass-split" style="font-size: 3rem;"></i>
+                                <p class="mt-3">Loading cost data...</p>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <div class="col-md-6">
+                <div class="card">
+                    <div class="card-header">
+                        <i class="bi bi-pie-chart"></i> Cost Distribution
+                    </div>
+                    <div class="card-body">
+                        <div class="chart-container">
+                            <canvas id="costChart"></canvas>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- OpenAI API Costs -->
+        <div class="card">
+            <div class="card-header">
+                <i class="bi bi-robot"></i> OpenAI API Usage & Costs
+            </div>
+            <div class="card-body">
+                <div class="row">
+                    <div class="col-md-3 text-center mb-3">
+                        <div class="cost-value" id="openaiCost">-</div>
+                        <div class="cost-label">Total Cost (Month)</div>
+                    </div>
+                    <div class="col-md-3 text-center mb-3">
+                        <div class="cost-value text-info" id="openaiRequests">-</div>
+                        <div class="cost-label">API Requests</div>
+                    </div>
+                    <div class="col-md-3 text-center mb-3">
+                        <div class="cost-value text-success" id="openaiTokens">-</div>
+                        <div class="cost-label">Tokens Used</div>
+                    </div>
+                    <div class="col-md-3 text-center mb-3">
+                        <div class="cost-value text-warning" id="openaiAvgCost">-</div>
+                        <div class="cost-label">Avg per Request</div>
+                    </div>
+                </div>
+                <div class="chart-container mt-4">
+                    <canvas id="openaiChart"></canvas>
+                </div>
+            </div>
+        </div>
+
+        <!-- Daily Trend -->
+        <div class="card">
+            <div class="card-header">
+                <i class="bi bi-graph-up-arrow"></i> Daily Cost Trend (Last 30 Days)
+            </div>
+            <div class="card-body">
+                <div class="chart-container" style="height: 250px;">
+                    <canvas id="trendChart"></canvas>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        const API_URL = 'https://e2c5y2h1qj.execute-api.eu-central-1.amazonaws.com/prod';
+        let costChart, openaiChart, trendChart;
+
+        async function refreshCosts() {
+            try {
+                const response = await fetch(`${API_URL}/costs/summary`);
+                const data = await response.json();
+
+                updateCostSummary(data.summary || {});
+                displayServices(data.services || []);
+                updateCharts(data);
+            } catch (error) {
+                console.error('Error loading costs:', error);
+                document.getElementById('servicesList').innerHTML = `
+                    <div class="alert alert-danger">
+                        <i class="bi bi-exclamation-triangle"></i> Failed to load cost data: ${error.message}
+                    </div>
+                `;
+            }
+        }
+
+        function updateCostSummary(summary) {
+            document.getElementById('monthToDate').textContent = `$${(summary.monthToDate || 0).toFixed(2)}`;
+            document.getElementById('yesterday').textContent = `$${(summary.yesterday || 0).toFixed(2)}`;
+            document.getElementById('forecast').textContent = `$${(summary.forecast || 0).toFixed(2)}`;
+            document.getElementById('lastMonth').textContent = `$${(summary.lastMonth || 0).toFixed(2)}`;
+        }
+
+        function displayServices(services) {
+            if (services.length === 0) {
+                document.getElementById('servicesList').innerHTML = `
+                    <div class="text-center text-secondary py-5">
+                        <i class="bi bi-inbox" style="font-size: 3rem;"></i>
+                        <p class="mt-3">No cost data available</p>
+                    </div>
+                `;
+                return;
+            }
+
+            const maxCost = Math.max(...services.map(s => s.cost));
+            const html = services.map(service => `
+                <div class="service-item">
+                    <div style="flex: 1;">
+                        <div class="service-name">
+                            <i class="bi bi-${getServiceIcon(service.name)}"></i> ${service.name}
+                        </div>
+                        <div class="progress-custom">
+                            <div class="progress-bar-custom" style="width: ${(service.cost / maxCost * 100)}%"></div>
+                        </div>
+                    </div>
+                    <div class="service-cost ms-3">
+                        $${service.cost.toFixed(2)}
+                    </div>
+                </div>
+            `).join('');
+
+            document.getElementById('servicesList').innerHTML = html;
+        }
+
+        function updateCharts(data) {
+            // Cost Distribution Pie Chart
+            if (costChart) costChart.destroy();
+            const costCtx = document.getElementById('costChart').getContext('2d');
+            costChart = new Chart(costCtx, {
+                type: 'doughnut',
+                data: {
+                    labels: (data.services || []).map(s => s.name),
+                    datasets: [{
+                        data: (data.services || []).map(s => s.cost),
+                        backgroundColor: [
+                            '#667eea', '#764ba2', '#10b981', '#f59e0b', '#ef4444', '#3b82f6', '#8b5cf6'
+                        ]
+                    }]
+                },
+                options: {
+                    responsive: true,
+                    maintainAspectRatio: false,
+                    plugins: {
+                        legend: {
+                            position: 'bottom',
+                            labels: { color: '#e5e7eb' }
+                        }
+                    }
+                }
+            });
+
+            // OpenAI Trend Chart
+            if (openaiChart) openaiChart.destroy();
+            const openaiCtx = document.getElementById('openaiChart').getContext('2d');
+            openaiChart = new Chart(openaiCtx, {
+                type: 'line',
+                data: {
+                    labels: (data.openai?.daily || []).map(d => d.date),
+                    datasets: [{
+                        label: 'Daily Cost ($)',
+                        data: (data.openai?.daily || []).map(d => d.cost),
+                        borderColor: '#f59e0b',
+                        backgroundColor: 'rgba(245, 158, 11, 0.1)',
+                        tension: 0.4
+                    }]
+                },
+                options: {
+                    responsive: true,
+                    maintainAspectRatio: false,
+                    plugins: {
+                        legend: { labels: { color: '#e5e7eb' } }
+                    },
+                    scales: {
+                        x: { ticks: { color: '#9ca3af' } },
+                        y: { ticks: { color: '#9ca3af' } }
+                    }
+                }
+            });
+
+            // Daily Trend Chart
+            if (trendChart) trendChart.destroy();
+            const trendCtx = document.getElementById('trendChart').getContext('2d');
+            trendChart = new Chart(trendCtx, {
+                type: 'line',
+                data: {
+                    labels: (data.daily || []).map(d => d.date),
+                    datasets: [{
+                        label: 'Daily Total ($)',
+                        data: (data.daily || []).map(d => d.cost),
+                        borderColor: '#667eea',
+                        backgroundColor: 'rgba(102, 126, 234, 0.1)',
+                        tension: 0.4,
+                        fill: true
+                    }]
+                },
+                options: {
+                    responsive: true,
+                    maintainAspectRatio: false,
+                    plugins: {
+                        legend: { labels: { color: '#e5e7eb' } }
+                    },
+                    scales: {
+                        x: { ticks: { color: '#9ca3af' } },
+                        y: { ticks: { color: '#9ca3af' } }
+                    }
+                }
+            });
+
+            // Update OpenAI stats
+            if (data.openai) {
+                document.getElementById('openaiCost').textContent = `$${(data.openai.totalCost || 0).toFixed(2)}`;
+                document.getElementById('openaiRequests').textContent = (data.openai.requests || 0).toLocaleString();
+                document.getElementById('openaiTokens').textContent = ((data.openai.tokens || 0) / 1000).toFixed(1) + 'K';
+                document.getElementById('openaiAvgCost').textContent = `$${(data.openai.avgCost || 0).toFixed(3)}`;
+            }
+        }
+
+        function getServiceIcon(serviceName) {
+            const icons = {
+                'Lambda': 'lightning',
+                'DynamoDB': 'database',
+                'S3': 'folder',
+                'CloudWatch': 'eye',
+                'API Gateway': 'globe',
+                'Step Functions': 'diagram-3',
+                'OpenAI': 'robot'
+            };
+            return icons[serviceName] || 'cloud';
+        }
+
+        // Initial load
+        refreshCosts();
+
+        // Auto-refresh every 5 minutes
+        setInterval(refreshCosts, 300000);
+    </script>
+</body>
+</html>

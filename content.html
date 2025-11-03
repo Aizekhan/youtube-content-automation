@@ -1,0 +1,539 @@
+<!DOCTYPE html>
+<html lang="uk">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Content Browser - YouTube Automation</title>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.0/font/bootstrap-icons.css">
+    <style>
+        :root {
+            --primary-color: #667eea;
+            --secondary-color: #764ba2;
+            --success-color: #10b981;
+            --warning-color: #f59e0b;
+            --danger-color: #ef4444;
+            --dark-bg: #1a1d2e;
+            --card-bg: #22263a;
+            --text-primary: #e5e7eb;
+            --text-secondary: #9ca3af;
+        }
+
+        body {
+            background: linear-gradient(135deg, var(--dark-bg) 0%, #16213e 100%);
+            color: var(--text-primary);
+            min-height: 100vh;
+            font-family: 'Inter', -apple-system, BlinkMacSystemFont, sans-serif;
+        }
+
+        .navbar {
+            background: rgba(34, 38, 58, 0.95) !important;
+            backdrop-filter: blur(10px);
+            border-bottom: 1px solid rgba(102, 126, 234, 0.2);
+        }
+
+        .nav-menu {
+            background: var(--card-bg);
+            border-radius: 12px;
+            padding: 0.5rem;
+            margin-bottom: 2rem;
+        }
+
+        .nav-menu a {
+            color: var(--text-secondary);
+            text-decoration: none;
+            padding: 0.75rem 1.5rem;
+            border-radius: 8px;
+            transition: all 0.3s ease;
+            display: inline-block;
+            margin: 0.25rem;
+        }
+
+        .nav-menu a:hover {
+            background: rgba(102, 126, 234, 0.2);
+            color: var(--text-primary);
+        }
+
+        .nav-menu a.active {
+            background: linear-gradient(135deg, var(--primary-color), var(--secondary-color));
+            color: white;
+        }
+
+        .card {
+            background: var(--card-bg);
+            border: 1px solid rgba(102, 126, 234, 0.2);
+            border-radius: 16px;
+            margin-bottom: 1.5rem;
+        }
+
+        .card-header {
+            background: transparent;
+            border-bottom: 1px solid rgba(102, 126, 234, 0.2);
+            padding: 1.25rem;
+            font-weight: 600;
+            font-size: 1.1rem;
+        }
+
+        .filters-bar {
+            background: var(--card-bg);
+            border: 1px solid rgba(102, 126, 234, 0.2);
+            border-radius: 12px;
+            padding: 1.5rem;
+            margin-bottom: 1.5rem;
+        }
+
+        .content-item {
+            background: var(--card-bg);
+            border: 1px solid rgba(102, 126, 234, 0.2);
+            border-radius: 12px;
+            padding: 1.5rem;
+            margin-bottom: 1rem;
+            transition: all 0.3s ease;
+            cursor: pointer;
+        }
+
+        .content-item:hover {
+            border-color: var(--primary-color);
+            transform: translateY(-2px);
+            box-shadow: 0 4px 12px rgba(102, 126, 234, 0.2);
+        }
+
+        .content-title {
+            font-size: 1.2rem;
+            font-weight: 600;
+            margin-bottom: 0.5rem;
+            color: var(--text-primary);
+        }
+
+        .content-meta {
+            color: var(--text-secondary);
+            font-size: 0.85rem;
+            margin-bottom: 1rem;
+        }
+
+        .content-preview {
+            color: var(--text-secondary);
+            line-height: 1.6;
+            max-height: 100px;
+            overflow: hidden;
+            position: relative;
+        }
+
+        .content-preview::after {
+            content: '';
+            position: absolute;
+            bottom: 0;
+            left: 0;
+            right: 0;
+            height: 30px;
+            background: linear-gradient(transparent, var(--card-bg));
+        }
+
+        .type-badge {
+            padding: 0.25rem 0.75rem;
+            border-radius: 8px;
+            font-size: 0.75rem;
+            font-weight: 600;
+            margin-right: 0.5rem;
+        }
+
+        .type-theme {
+            background: linear-gradient(135deg, #3b82f6, #2563eb);
+            color: white;
+        }
+
+        .type-narrative {
+            background: linear-gradient(135deg, var(--success-color), #059669);
+            color: white;
+        }
+
+        .btn-primary {
+            background: linear-gradient(135deg, var(--primary-color), var(--secondary-color));
+            border: none;
+            transition: all 0.3s ease;
+        }
+
+        .btn-primary:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 4px 12px rgba(102, 126, 234, 0.4);
+        }
+
+        .form-control, .form-select {
+            background: rgba(30, 34, 50, 0.8);
+            border: 1px solid rgba(102, 126, 234, 0.3);
+            color: var(--text-primary);
+        }
+
+        .form-control:focus, .form-select:focus {
+            background: rgba(30, 34, 50, 0.95);
+            border-color: var(--primary-color);
+            color: var(--text-primary);
+            box-shadow: 0 0 0 0.2rem rgba(102, 126, 234, 0.25);
+        }
+
+        .modal-content {
+            background: var(--card-bg);
+            border: 1px solid rgba(102, 126, 234, 0.3);
+            color: var(--text-primary);
+        }
+
+        .modal-header {
+            border-bottom-color: rgba(102, 126, 234, 0.2);
+        }
+
+        .modal-footer {
+            border-top-color: rgba(102, 126, 234, 0.2);
+        }
+
+        .narrative-text {
+            background: rgba(30, 34, 50, 0.8);
+            border: 1px solid rgba(102, 126, 234, 0.2);
+            border-radius: 8px;
+            padding: 1rem;
+            line-height: 1.8;
+            white-space: pre-wrap;
+            max-height: 400px;
+            overflow-y: auto;
+        }
+
+        .scene-item {
+            background: rgba(30, 34, 50, 0.5);
+            border-left: 3px solid var(--primary-color);
+            padding: 1rem;
+            margin-bottom: 1rem;
+            border-radius: 4px;
+        }
+
+        .stat-card {
+            background: var(--card-bg);
+            border: 1px solid rgba(102, 126, 234, 0.2);
+            border-radius: 12px;
+            padding: 1.5rem;
+            text-align: center;
+        }
+
+        .stat-value {
+            font-size: 2rem;
+            font-weight: 700;
+            background: linear-gradient(135deg, var(--primary-color), var(--secondary-color));
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            background-clip: text;
+        }
+
+        .stat-label {
+            color: var(--text-secondary);
+            font-size: 0.85rem;
+            margin-top: 0.5rem;
+        }
+    </style>
+</head>
+<body>
+    <!-- Navigation -->
+    <nav class="navbar navbar-expand-lg navbar-dark">
+        <div class="container">
+            <a class="navbar-brand" href="index.html">
+                <i class="bi bi-youtube"></i> YouTube Automation
+            </a>
+            <span class="badge bg-info">Content Browser</span>
+        </div>
+    </nav>
+
+    <div class="container mt-4">
+        <!-- Navigation Menu -->
+        <div class="nav-menu">
+            <a href="index.html"><i class="bi bi-house"></i> Home</a>
+            <a href="prompts-editor.html"><i class="bi bi-robot"></i> Prompts</a>
+            <a href="channel-configs.html"><i class="bi bi-collection-play"></i> Channels</a>
+            <a href="dashboard.html"><i class="bi bi-speedometer2"></i> Dashboard</a>
+            <a href="costs.html"><i class="bi bi-cash-coin"></i> Costs</a>
+            <a href="content.html" class="active"><i class="bi bi-folder2-open"></i> Content</a>
+        </div>
+
+        <!-- Stats Row -->
+        <div class="row mb-4">
+            <div class="col-md-3">
+                <div class="stat-card">
+                    <div class="stat-value" id="totalContent">-</div>
+                    <div class="stat-label">Total Items</div>
+                </div>
+            </div>
+            <div class="col-md-3">
+                <div class="stat-card">
+                    <div class="stat-value text-info" id="themesCount">-</div>
+                    <div class="stat-label">Theme Generations</div>
+                </div>
+            </div>
+            <div class="col-md-3">
+                <div class="stat-card">
+                    <div class="stat-value text-success" id="narrativesCount">-</div>
+                    <div class="stat-label">Narratives</div>
+                </div>
+            </div>
+            <div class="col-md-3">
+                <div class="stat-card">
+                    <div class="stat-value text-warning" id="todayCount">-</div>
+                    <div class="stat-label">Today</div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Filters -->
+        <div class="filters-bar">
+            <div class="row g-3">
+                <div class="col-md-3">
+                    <label class="form-label">Type</label>
+                    <select class="form-select" id="filterType" onchange="applyFilters()">
+                        <option value="">All Types</option>
+                        <option value="theme_generation">Theme Generation</option>
+                        <option value="narrative_generation">Narrative</option>
+                    </select>
+                </div>
+                <div class="col-md-3">
+                    <label class="form-label">Channel</label>
+                    <select class="form-select" id="filterChannel" onchange="applyFilters()">
+                        <option value="">All Channels</option>
+                    </select>
+                </div>
+                <div class="col-md-3">
+                    <label class="form-label">Date Range</label>
+                    <select class="form-select" id="filterDate" onchange="applyFilters()">
+                        <option value="">All Time</option>
+                        <option value="today">Today</option>
+                        <option value="week">Last 7 Days</option>
+                        <option value="month">Last 30 Days</option>
+                    </select>
+                </div>
+                <div class="col-md-3">
+                    <label class="form-label">Search</label>
+                    <input type="text" class="form-control" id="filterSearch" placeholder="Search..." onkeyup="applyFilters()">
+                </div>
+            </div>
+            <div class="mt-3">
+                <button class="btn btn-primary btn-sm" onclick="refreshContent()">
+                    <i class="bi bi-arrow-clockwise"></i> Refresh
+                </button>
+                <button class="btn btn-success btn-sm" onclick="exportData()">
+                    <i class="bi bi-download"></i> Export JSON
+                </button>
+            </div>
+        </div>
+
+        <!-- Content List -->
+        <div id="contentList">
+            <div class="text-center text-secondary py-5">
+                <i class="bi bi-hourglass-split" style="font-size: 3rem;"></i>
+                <p class="mt-3">Loading content...</p>
+            </div>
+        </div>
+
+        <!-- Pagination -->
+        <nav id="pagination" class="d-none">
+            <ul class="pagination justify-content-center">
+            </ul>
+        </nav>
+    </div>
+
+    <!-- Content Details Modal -->
+    <div class="modal fade" id="contentModal" tabindex="-1">
+        <div class="modal-dialog modal-lg modal-dialog-scrollable">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h5 class="modal-title" id="modalTitle">Content Details</h5>
+                    <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal"></button>
+                </div>
+                <div class="modal-body" id="modalBody">
+                    <!-- Content will be loaded here -->
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Close</button>
+                    <button type="button" class="btn btn-primary" onclick="copyToClipboard()">
+                        <i class="bi bi-clipboard"></i> Copy JSON
+                    </button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+    <script>
+        const API_URL = 'https://e2c5y2h1qj.execute-api.eu-central-1.amazonaws.com/prod';
+        let allContent = [];
+        let filteredContent = [];
+        let currentContent = null;
+
+        async function refreshContent() {
+            try {
+                const response = await fetch(`${API_URL}/content/list`);
+                const data = await response.json();
+
+                allContent = data.content || [];
+                updateStats(data.stats || {});
+                populateChannelFilter();
+                applyFilters();
+            } catch (error) {
+                console.error('Error loading content:', error);
+                document.getElementById('contentList').innerHTML = `
+                    <div class="alert alert-danger">
+                        <i class="bi bi-exclamation-triangle"></i> Failed to load content: ${error.message}
+                    </div>
+                `;
+            }
+        }
+
+        function updateStats(stats) {
+            document.getElementById('totalContent').textContent = stats.total || 0;
+            document.getElementById('themesCount').textContent = stats.themes || 0;
+            document.getElementById('narrativesCount').textContent = stats.narratives || 0;
+            document.getElementById('todayCount').textContent = stats.today || 0;
+        }
+
+        function populateChannelFilter() {
+            const channels = [...new Set(allContent.map(c => c.channel_name))];
+            const select = document.getElementById('filterChannel');
+            select.innerHTML = '<option value="">All Channels</option>' +
+                channels.map(ch => `<option value="${ch}">${ch}</option>`).join('');
+        }
+
+        function applyFilters() {
+            const type = document.getElementById('filterType').value;
+            const channel = document.getElementById('filterChannel').value;
+            const date = document.getElementById('filterDate').value;
+            const search = document.getElementById('filterSearch').value.toLowerCase();
+
+            filteredContent = allContent.filter(item => {
+                if (type && item.type !== type) return false;
+                if (channel && item.channel_name !== channel) return false;
+                if (search && !JSON.stringify(item).toLowerCase().includes(search)) return false;
+                if (date) {
+                    const itemDate = new Date(item.created_at);
+                    const now = new Date();
+                    if (date === 'today' && itemDate.toDateString() !== now.toDateString()) return false;
+                    if (date === 'week' && (now - itemDate) > 7 * 24 * 60 * 60 * 1000) return false;
+                    if (date === 'month' && (now - itemDate) > 30 * 24 * 60 * 60 * 1000) return false;
+                }
+                return true;
+            });
+
+            displayContent();
+        }
+
+        function displayContent() {
+            if (filteredContent.length === 0) {
+                document.getElementById('contentList').innerHTML = `
+                    <div class="text-center text-secondary py-5">
+                        <i class="bi bi-inbox" style="font-size: 3rem;"></i>
+                        <p class="mt-3">No content found</p>
+                    </div>
+                `;
+                return;
+            }
+
+            const html = filteredContent.map(item => {
+                const typeBadge = item.type === 'theme_generation' ? 'type-theme' : 'type-narrative';
+                const typeLabel = item.type === 'theme_generation' ? 'THEME' : 'NARRATIVE';
+                const preview = item.type === 'narrative_generation'
+                    ? (item.narrative_text || '').substring(0, 200)
+                    : (item.generated_titles || []).join(', ');
+
+                return `
+                    <div class="content-item" onclick="showDetails('${item.channel_id}_${item.created_at}')">
+                        <div class="d-flex justify-content-between align-items-start mb-2">
+                            <div>
+                                <span class="type-badge ${typeBadge}">${typeLabel}</span>
+                                <span class="text-secondary small">
+                                    <i class="bi bi-calendar"></i> ${formatDate(item.created_at)}
+                                </span>
+                            </div>
+                        </div>
+                        <div class="content-title">
+                            ${item.story_title || item.channel_name || 'Untitled'}
+                        </div>
+                        <div class="content-meta">
+                            <i class="bi bi-collection-play"></i> ${item.channel_name || 'Unknown Channel'}
+                            ${item.genre ? ` | <i class="bi bi-tag"></i> ${item.genre}` : ''}
+                            ${item.character_count ? ` | <i class="bi bi-file-text"></i> ${item.character_count} chars` : ''}
+                            ${item.scene_count ? ` | <i class="bi bi-camera-video"></i> ${item.scene_count} scenes` : ''}
+                        </div>
+                        <div class="content-preview">
+                            ${preview}...
+                        </div>
+                    </div>
+                `;
+            }).join('');
+
+            document.getElementById('contentList').innerHTML = html;
+        }
+
+        function showDetails(id) {
+            const item = allContent.find(c => `${c.channel_id}_${c.created_at}` === id);
+            if (!item) return;
+
+            currentContent = item;
+            document.getElementById('modalTitle').textContent = item.story_title || item.channel_name || 'Content Details';
+
+            let body = `
+                <div class="mb-3">
+                    <strong>Type:</strong> ${item.type}<br>
+                    <strong>Channel:</strong> ${item.channel_name}<br>
+                    <strong>Genre:</strong> ${item.genre || 'N/A'}<br>
+                    <strong>Created:</strong> ${formatDate(item.created_at)}<br>
+                    <strong>Model:</strong> ${item.model || 'N/A'}
+                </div>
+            `;
+
+            if (item.type === 'narrative_generation') {
+                body += `
+                    <h6>Narrative Text:</h6>
+                    <div class="narrative-text">${item.narrative_text || 'No text available'}</div>
+                `;
+
+                if (item.scenes && item.scenes.length > 0) {
+                    body += `<h6 class="mt-4">Scenes (${item.scenes.length}):</h6>`;
+                    item.scenes.forEach((scene, i) => {
+                        body += `
+                            <div class="scene-item">
+                                <strong>Scene ${i + 1}</strong><br>
+                                ${JSON.stringify(scene, null, 2)}
+                            </div>
+                        `;
+                    });
+                }
+            } else if (item.type === 'theme_generation') {
+                body += `<h6>Generated Titles:</h6><ul>`;
+                (item.generated_titles || []).forEach(title => {
+                    body += `<li>${title}</li>`;
+                });
+                body += `</ul>`;
+            }
+
+            document.getElementById('modalBody').innerHTML = body;
+            new bootstrap.Modal(document.getElementById('contentModal')).show();
+        }
+
+        function copyToClipboard() {
+            if (!currentContent) return;
+            navigator.clipboard.writeText(JSON.stringify(currentContent, null, 2));
+            alert('Copied to clipboard!');
+        }
+
+        function exportData() {
+            const dataStr = JSON.stringify(filteredContent, null, 2);
+            const dataBlob = new Blob([dataStr], {type: 'application/json'});
+            const url = URL.createObjectURL(dataBlob);
+            const link = document.createElement('a');
+            link.href = url;
+            link.download = `youtube-content-${new Date().toISOString().split('T')[0]}.json`;
+            link.click();
+        }
+
+        function formatDate(dateString) {
+            const date = new Date(dateString);
+            return date.toLocaleString('uk-UA');
+        }
+
+        // Initial load
+        refreshContent();
+    </script>
+</body>
+</html>

@@ -1,0 +1,439 @@
+<!DOCTYPE html>
+<html lang="uk">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Process Monitoring - YouTube Automation</title>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.0/font/bootstrap-icons.css">
+    <style>
+        :root {
+            --primary-color: #667eea;
+            --secondary-color: #764ba2;
+            --success-color: #10b981;
+            --warning-color: #f59e0b;
+            --danger-color: #ef4444;
+            --dark-bg: #1a1d2e;
+            --card-bg: #22263a;
+            --text-primary: #e5e7eb;
+            --text-secondary: #9ca3af;
+        }
+
+        body {
+            background: linear-gradient(135deg, var(--dark-bg) 0%, #16213e 100%);
+            color: var(--text-primary);
+            min-height: 100vh;
+            font-family: 'Inter', -apple-system, BlinkMacSystemFont, sans-serif;
+        }
+
+        .navbar {
+            background: rgba(34, 38, 58, 0.95) !important;
+            backdrop-filter: blur(10px);
+            border-bottom: 1px solid rgba(102, 126, 234, 0.2);
+        }
+
+        .nav-menu {
+            background: var(--card-bg);
+            border-radius: 12px;
+            padding: 0.5rem;
+            margin-bottom: 2rem;
+        }
+
+        .nav-menu a {
+            color: var(--text-secondary);
+            text-decoration: none;
+            padding: 0.75rem 1.5rem;
+            border-radius: 8px;
+            transition: all 0.3s ease;
+            display: inline-block;
+            margin: 0.25rem;
+        }
+
+        .nav-menu a:hover {
+            background: rgba(102, 126, 234, 0.2);
+            color: var(--text-primary);
+        }
+
+        .nav-menu a.active {
+            background: linear-gradient(135deg, var(--primary-color), var(--secondary-color));
+            color: white;
+        }
+
+        .card {
+            background: var(--card-bg);
+            border: 1px solid rgba(102, 126, 234, 0.2);
+            border-radius: 16px;
+            margin-bottom: 1.5rem;
+        }
+
+        .card-header {
+            background: transparent;
+            border-bottom: 1px solid rgba(102, 126, 234, 0.2);
+            padding: 1.25rem;
+            font-weight: 600;
+            font-size: 1.1rem;
+        }
+
+        .status-badge {
+            padding: 0.5rem 1rem;
+            border-radius: 8px;
+            font-size: 0.85rem;
+            font-weight: 600;
+        }
+
+        .status-running {
+            background: linear-gradient(135deg, #3b82f6, #2563eb);
+            color: white;
+        }
+
+        .status-succeeded {
+            background: linear-gradient(135deg, var(--success-color), #059669);
+            color: white;
+        }
+
+        .status-failed {
+            background: linear-gradient(135deg, var(--danger-color), #dc2626);
+            color: white;
+        }
+
+        .status-pending {
+            background: linear-gradient(135deg, var(--warning-color), #d97706);
+            color: white;
+        }
+
+        .execution-item {
+            padding: 1rem;
+            border-bottom: 1px solid rgba(102, 126, 234, 0.1);
+            transition: background 0.2s ease;
+        }
+
+        .execution-item:hover {
+            background: rgba(102, 126, 234, 0.05);
+        }
+
+        .execution-item:last-child {
+            border-bottom: none;
+        }
+
+        .log-viewer {
+            background: #0d1117;
+            border: 1px solid rgba(102, 126, 234, 0.2);
+            border-radius: 8px;
+            padding: 1rem;
+            max-height: 400px;
+            overflow-y: auto;
+            font-family: 'Monaco', 'Courier New', monospace;
+            font-size: 0.85rem;
+        }
+
+        .log-entry {
+            padding: 0.25rem 0;
+            border-left: 3px solid transparent;
+            padding-left: 0.5rem;
+            margin-bottom: 0.25rem;
+        }
+
+        .log-entry.log-info {
+            border-left-color: #3b82f6;
+            color: #93c5fd;
+        }
+
+        .log-entry.log-error {
+            border-left-color: #ef4444;
+            color: #fca5a5;
+        }
+
+        .log-entry.log-warning {
+            border-left-color: #f59e0b;
+            color: #fcd34d;
+        }
+
+        .log-entry.log-success {
+            border-left-color: #10b981;
+            color: #6ee7b7;
+        }
+
+        .stat-card {
+            background: var(--card-bg);
+            border: 1px solid rgba(102, 126, 234, 0.2);
+            border-radius: 12px;
+            padding: 1.5rem;
+            text-align: center;
+        }
+
+        .stat-value {
+            font-size: 2rem;
+            font-weight: 700;
+            background: linear-gradient(135deg, var(--primary-color), var(--secondary-color));
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            background-clip: text;
+        }
+
+        .stat-label {
+            color: var(--text-secondary);
+            font-size: 0.85rem;
+            margin-top: 0.5rem;
+        }
+
+        .btn-primary {
+            background: linear-gradient(135deg, var(--primary-color), var(--secondary-color));
+            border: none;
+            transition: all 0.3s ease;
+        }
+
+        .btn-primary:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 4px 12px rgba(102, 126, 234, 0.4);
+        }
+
+        .refresh-btn {
+            animation: rotate 1s linear infinite;
+        }
+
+        @keyframes rotate {
+            from { transform: rotate(0deg); }
+            to { transform: rotate(360deg); }
+        }
+
+        .timestamp {
+            color: var(--text-secondary);
+            font-size: 0.85rem;
+        }
+    </style>
+</head>
+<body>
+    <!-- Navigation -->
+    <nav class="navbar navbar-expand-lg navbar-dark">
+        <div class="container">
+            <a class="navbar-brand" href="index.html">
+                <i class="bi bi-youtube"></i> YouTube Automation
+            </a>
+            <span class="badge bg-primary">Process Monitoring</span>
+        </div>
+    </nav>
+
+    <div class="container mt-4">
+        <!-- Navigation Menu -->
+        <div class="nav-menu">
+            <a href="index.html"><i class="bi bi-house"></i> Home</a>
+            <a href="prompts-editor.html"><i class="bi bi-robot"></i> Prompts</a>
+            <a href="channel-configs.html"><i class="bi bi-collection-play"></i> Channels</a>
+            <a href="dashboard.html" class="active"><i class="bi bi-speedometer2"></i> Dashboard</a>
+            <a href="costs.html"><i class="bi bi-cash-coin"></i> Costs</a>
+            <a href="content.html"><i class="bi bi-folder2-open"></i> Content</a>
+        </div>
+
+        <!-- Stats Row -->
+        <div class="row mb-4">
+            <div class="col-md-3">
+                <div class="stat-card">
+                    <div class="stat-value" id="runningExecutions">-</div>
+                    <div class="stat-label">Running</div>
+                </div>
+            </div>
+            <div class="col-md-3">
+                <div class="stat-card">
+                    <div class="stat-value text-success" id="succeededExecutions">-</div>
+                    <div class="stat-label">Succeeded Today</div>
+                </div>
+            </div>
+            <div class="col-md-3">
+                <div class="stat-card">
+                    <div class="stat-value text-danger" id="failedExecutions">-</div>
+                    <div class="stat-label">Failed Today</div>
+                </div>
+            </div>
+            <div class="col-md-3">
+                <div class="stat-card">
+                    <div class="stat-value" id="avgDuration">-</div>
+                    <div class="stat-label">Avg Duration (min)</div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Step Functions Executions -->
+        <div class="card">
+            <div class="card-header d-flex justify-content-between align-items-center">
+                <span><i class="bi bi-diagram-3"></i> Step Functions Executions</span>
+                <button class="btn btn-sm btn-primary" onclick="refreshExecutions()">
+                    <i class="bi bi-arrow-clockwise" id="refreshIcon"></i> Refresh
+                </button>
+            </div>
+            <div class="card-body">
+                <div id="executionsList">
+                    <div class="text-center text-secondary py-5">
+                        <i class="bi bi-hourglass-split" style="font-size: 3rem;"></i>
+                        <p class="mt-3">Loading executions...</p>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- CloudWatch Logs -->
+        <div class="card">
+            <div class="card-header d-flex justify-content-between align-items-center">
+                <span><i class="bi bi-terminal"></i> CloudWatch Logs (Latest 50)</span>
+                <button class="btn btn-sm btn-primary" onclick="refreshLogs()">
+                    <i class="bi bi-arrow-clockwise"></i> Refresh
+                </button>
+            </div>
+            <div class="card-body">
+                <div class="log-viewer" id="logsViewer">
+                    <div class="text-secondary">Loading logs...</div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        const API_URL = 'https://e2c5y2h1qj.execute-api.eu-central-1.amazonaws.com/prod';
+
+        async function refreshExecutions() {
+            const icon = document.getElementById('refreshIcon');
+            icon.classList.add('refresh-btn');
+
+            try {
+                const response = await fetch(`${API_URL}/monitoring/executions`);
+                const data = await response.json();
+
+                displayExecutions(data.executions || []);
+                updateStats(data.stats || {});
+            } catch (error) {
+                console.error('Error loading executions:', error);
+                document.getElementById('executionsList').innerHTML = `
+                    <div class="alert alert-danger">
+                        <i class="bi bi-exclamation-triangle"></i> Failed to load executions: ${error.message}
+                    </div>
+                `;
+            } finally {
+                icon.classList.remove('refresh-btn');
+            }
+        }
+
+        function displayExecutions(executions) {
+            if (executions.length === 0) {
+                document.getElementById('executionsList').innerHTML = `
+                    <div class="text-center text-secondary py-5">
+                        <i class="bi bi-inbox" style="font-size: 3rem;"></i>
+                        <p class="mt-3">No executions found</p>
+                    </div>
+                `;
+                return;
+            }
+
+            const html = executions.map(exec => `
+                <div class="execution-item">
+                    <div class="d-flex justify-content-between align-items-center">
+                        <div>
+                            <strong>${exec.name || 'Unnamed Execution'}</strong>
+                            <br>
+                            <small class="timestamp">
+                                <i class="bi bi-clock"></i> ${formatDate(exec.startDate)}
+                            </small>
+                        </div>
+                        <div>
+                            <span class="status-badge status-${exec.status.toLowerCase()}">
+                                ${getStatusIcon(exec.status)} ${exec.status}
+                            </span>
+                        </div>
+                    </div>
+                    ${exec.stopDate ? `
+                        <div class="mt-2">
+                            <small class="text-secondary">
+                                Duration: ${calculateDuration(exec.startDate, exec.stopDate)}
+                            </small>
+                        </div>
+                    ` : ''}
+                </div>
+            `).join('');
+
+            document.getElementById('executionsList').innerHTML = html;
+        }
+
+        function updateStats(stats) {
+            document.getElementById('runningExecutions').textContent = stats.running || 0;
+            document.getElementById('succeededExecutions').textContent = stats.succeeded || 0;
+            document.getElementById('failedExecutions').textContent = stats.failed || 0;
+            document.getElementById('avgDuration').textContent = stats.avgDuration || '-';
+        }
+
+        async function refreshLogs() {
+            try {
+                const response = await fetch(`${API_URL}/monitoring/logs?limit=50`);
+                const data = await response.json();
+
+                displayLogs(data.logs || []);
+            } catch (error) {
+                console.error('Error loading logs:', error);
+                document.getElementById('logsViewer').innerHTML = `
+                    <div class="log-entry log-error">
+                        ERROR: Failed to load logs - ${error.message}
+                    </div>
+                `;
+            }
+        }
+
+        function displayLogs(logs) {
+            if (logs.length === 0) {
+                document.getElementById('logsViewer').innerHTML = `
+                    <div class="text-secondary">No logs available</div>
+                `;
+                return;
+            }
+
+            const html = logs.map(log => {
+                const logClass = getLogClass(log.message);
+                return `<div class="log-entry ${logClass}">${escapeHtml(log.timestamp)} ${escapeHtml(log.message)}</div>`;
+            }).join('');
+
+            document.getElementById('logsViewer').innerHTML = html;
+        }
+
+        function getLogClass(message) {
+            if (message.includes('ERROR') || message.includes('❌')) return 'log-error';
+            if (message.includes('WARNING') || message.includes('⚠️')) return 'log-warning';
+            if (message.includes('SUCCESS') || message.includes('✅')) return 'log-success';
+            return 'log-info';
+        }
+
+        function getStatusIcon(status) {
+            const icons = {
+                'RUNNING': '<i class="bi bi-arrow-clockwise"></i>',
+                'SUCCEEDED': '<i class="bi bi-check-circle"></i>',
+                'FAILED': '<i class="bi bi-x-circle"></i>',
+                'PENDING': '<i class="bi bi-hourglass"></i>'
+            };
+            return icons[status] || '<i class="bi bi-question-circle"></i>';
+        }
+
+        function formatDate(dateString) {
+            const date = new Date(dateString);
+            return date.toLocaleString('uk-UA');
+        }
+
+        function calculateDuration(start, end) {
+            const duration = (new Date(end) - new Date(start)) / 1000;
+            const minutes = Math.floor(duration / 60);
+            const seconds = Math.floor(duration % 60);
+            return `${minutes}m ${seconds}s`;
+        }
+
+        function escapeHtml(text) {
+            const div = document.createElement('div');
+            div.textContent = text;
+            return div.innerHTML;
+        }
+
+        // Auto-refresh every 30 seconds
+        setInterval(() => {
+            refreshExecutions();
+            refreshLogs();
+        }, 30000);
+
+        // Initial load
+        refreshExecutions();
+        refreshLogs();
+    </script>
+</body>
+</html>
