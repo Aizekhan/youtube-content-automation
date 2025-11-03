@@ -1,0 +1,26 @@
+{
+  "Version": "2012-10-17",
+  "Statement": [
+    {
+      "Effect": "Allow",
+      "Action": [
+        "polly:SynthesizeSpeech",
+        "polly:GetSpeechSynthesisTask",
+        "polly:StartSpeechSynthesisTask"
+      ],
+      "Resource": "*"
+    },
+    {
+      "Effect": "Allow",
+      "Action": [
+        "s3:PutObject",
+        "s3:GetObject",
+        "s3:ListBucket"
+      ],
+      "Resource": [
+        "arn:aws:s3:::youtube-automation-audio-files",
+        "arn:aws:s3:::youtube-automation-audio-files/*"
+      ]
+    }
+  ]
+}
