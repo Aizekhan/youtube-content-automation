@@ -2,6 +2,7 @@ import json
 import boto3
 import http.client
 from datetime import datetime
+from boto3.dynamodb.conditions import Key
 
 secrets_client = boto3.client('secretsmanager', region_name='eu-central-1')
 dynamodb = boto3.resource('dynamodb', region_name='eu-central-1')
@@ -47,8 +48,7 @@ def lambda_handler(event, context):
         channel_table = dynamodb.Table('ChannelConfigs')
         channel_response = channel_table.query(
             IndexName='channel_id-index',
-            KeyConditionExpression='channel_id = :cid',
-            ExpressionAttributeValues={':cid': channel_id}
+            KeyConditionExpression=Key('channel_id').eq(channel_id)
         )
 
         if not channel_response.get('Items'):
