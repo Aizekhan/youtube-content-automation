@@ -6,6 +6,7 @@
     <title>Cost Analytics - YouTube Automation</title>
     <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
     <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.0/font/bootstrap-icons.css">
+    <link rel="stylesheet" href="css/unified-navigation.css">
     <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
     <style>
         :root {
@@ -160,43 +161,33 @@
     </style>
 </head>
 <body>
-    <!-- Navigation -->
-    <nav class="navbar navbar-expand-lg navbar-dark">
-        <div class="container">
-            <a class="navbar-brand" href="index.html">
-                <i class="bi bi-youtube"></i> YouTube Automation
-            </a>
-            <div class="d-flex align-items-center gap-3">
-                <div class="btn-group">
-                    <button type="button" class="btn btn-sm btn-outline-light dropdown-toggle" data-bs-toggle="dropdown">
-                        <i class="bi bi-grid-3x3-gap"></i> Навігація
-                    </button>
-                    <ul class="dropdown-menu dropdown-menu-dark">
-                        <li><a class="dropdown-item" href="index.html"><i class="bi bi-house"></i> Home</a></li>
-                        <li><hr class="dropdown-divider"></li>
-                        <li><a class="dropdown-item" href="prompts-editor.html"><i class="bi bi-robot"></i> AI Prompts</a></li>
-                        <li><a class="dropdown-item" href="channel-configs.html"><i class="bi bi-collection-play"></i> Channels</a></li>
-                        <li><hr class="dropdown-divider"></li>
-                        <li><a class="dropdown-item" href="dashboard.html"><i class="bi bi-speedometer2"></i> Monitoring</a></li>
-                        <li><a class="dropdown-item active" href="costs.html"><i class="bi bi-cash-coin"></i> Costs</a></li>
-                        <li><a class="dropdown-item" href="content.html"><i class="bi bi-folder2-open"></i> Content</a></li>
-                    </ul>
-                </div>
-                <span class="badge bg-warning">Costs</span>
+    <!-- Unified Navigation -->
+    <nav class="nav-container">
+        <div class="nav-wrapper">
+            <div class="nav-bar">
+                <a href="index.html" class="nav-link">
+                    <i class="bi bi-house-door"></i> Home
+                </a>
+                <a href="dashboard.html" class="nav-link">
+                    <i class="bi bi-speedometer2"></i> Dashboard
+                </a>
+                <a href="channels.html" class="nav-link">
+                    <i class="bi bi-collection"></i> Channels
+                </a>
+                <a href="content.html" class="nav-link">
+                    <i class="bi bi-file-earmark-text"></i> Content
+                </a>
+                <a href="costs.html" class="nav-link active">
+                    <i class="bi bi-currency-dollar"></i> Costs
+                </a>
+                <a href="prompts-editor.html" class="nav-link">
+                    <i class="bi bi-pencil-square"></i> Prompts
+                </a>
             </div>
         </div>
     </nav>
 
     <div class="container mt-4">
-        <!-- Navigation Menu -->
-        <div class="nav-menu">
-            <a href="index.html"><i class="bi bi-house"></i> Home</a>
-            <a href="prompts-editor.html"><i class="bi bi-robot"></i> Prompts</a>
-            <a href="channel-configs.html"><i class="bi bi-collection-play"></i> Channels</a>
-            <a href="dashboard.html"><i class="bi bi-speedometer2"></i> Dashboard</a>
-            <a href="costs.html" class="active"><i class="bi bi-cash-coin"></i> Costs</a>
-            <a href="content.html"><i class="bi bi-folder2-open"></i> Content</a>
-        </div>
 
         <!-- Cost Summary -->
         <div class="row mb-4">
@@ -209,13 +200,13 @@
             <div class="col-md-3">
                 <div class="cost-card text-center">
                     <div class="cost-value text-success" id="yesterday">-</div>
-                    <div class="cost-label">Yesterday</div>
+                    <div class="cost-label">Daily Average</div>
                 </div>
             </div>
             <div class="col-md-3">
                 <div class="cost-card text-center">
-                    <div class="cost-value text-info" id="forecast">-</div>
-                    <div class="cost-label">Forecast (Month)</div>
+                    <div class="cost-value text-info" id="today">-</div>
+                    <div class="cost-label">Today</div>
                 </div>
             </div>
             <div class="col-md-3">
@@ -327,10 +318,16 @@
         }
 
         function updateCostSummary(summary) {
-            document.getElementById('monthToDate').textContent = `$${(summary.monthToDate || 0).toFixed(2)}`;
-            document.getElementById('yesterday').textContent = `$${(summary.yesterday || 0).toFixed(2)}`;
-            document.getElementById('forecast').textContent = `$${(summary.forecast || 0).toFixed(2)}`;
-            document.getElementById('lastMonth').textContent = `$${(summary.lastMonth || 0).toFixed(2)}`;
+            document.getElementById('monthToDate').textContent = `$${(summary.total_usd || 0).toFixed(4)}`;
+            document.getElementById('yesterday').textContent = `$${(summary.avg_daily_usd || 0).toFixed(4)}`;
+
+            // Get today's cost from daily_trend
+            const today = new Date().toISOString().split('T')[0];
+            const todayData = (summary.daily_trend || []).find(d => d.date === today);
+            const todayCost = todayData ? todayData.cost_usd : 0;
+            document.getElementById('today').textContent = `$${(todayCost || 0).toFixed(4)}`;
+
+            document.getElementById('lastMonth').textContent = `$${((summary.total_usd || 0) * 30 / (summary.period_days || 7)).toFixed(4)}`;
         }
 
         function displayServices(services) {
@@ -344,7 +341,7 @@
                 return;
             }
 
-            const maxCost = Math.max(...services.map(s => s.cost));
+            const maxCost = Math.max(...services.map(s => s.cost_usd || 0));
             const html = services.map(service => `
                 <div class="service-item">
                     <div style="flex: 1;">
@@ -352,11 +349,11 @@
                             <i class="bi bi-${getServiceIcon(service.name)}"></i> ${service.name}
                         </div>
                         <div class="progress-custom">
-                            <div class="progress-bar-custom" style="width: ${(service.cost / maxCost * 100)}%"></div>
+                            <div class="progress-bar-custom" style="width: ${((service.cost_usd || 0) / maxCost * 100)}%"></div>
                         </div>
                     </div>
                     <div class="service-cost ms-3">
-                        $${service.cost.toFixed(2)}
+                        $${(service.cost_usd || 0).toFixed(2)}
                     </div>
                 </div>
             `).join('');
@@ -373,7 +370,7 @@
                 data: {
                     labels: (data.services || []).map(s => s.name),
                     datasets: [{
-                        data: (data.services || []).map(s => s.cost),
+                        data: (data.services || []).map(s => s.cost_usd || 0),
                         backgroundColor: [
                             '#667eea', '#764ba2', '#10b981', '#f59e0b', '#ef4444', '#3b82f6', '#8b5cf6'
                         ]
@@ -391,19 +388,17 @@
                 }
             });
 
-            // OpenAI Trend Chart
+            // Operations Chart (replaces OpenAI chart)
             if (openaiChart) openaiChart.destroy();
             const openaiCtx = document.getElementById('openaiChart').getContext('2d');
             openaiChart = new Chart(openaiCtx, {
-                type: 'line',
+                type: 'bar',
                 data: {
-                    labels: (data.openai?.daily || []).map(d => d.date),
+                    labels: (data.operations || []).map(o => o.name),
                     datasets: [{
-                        label: 'Daily Cost ($)',
-                        data: (data.openai?.daily || []).map(d => d.cost),
-                        borderColor: '#f59e0b',
-                        backgroundColor: 'rgba(245, 158, 11, 0.1)',
-                        tension: 0.4
+                        label: 'Cost by Operation ($)',
+                        data: (data.operations || []).map(o => o.cost_usd || 0),
+                        backgroundColor: '#f59e0b'
                     }]
                 },
                 options: {
@@ -425,10 +420,10 @@
             trendChart = new Chart(trendCtx, {
                 type: 'line',
                 data: {
-                    labels: (data.daily || []).map(d => d.date),
+                    labels: (data.daily_trend || []).map(d => d.date),
                     datasets: [{
                         label: 'Daily Total ($)',
-                        data: (data.daily || []).map(d => d.cost),
+                        data: (data.daily_trend || []).map(d => d.cost_usd || 0),
                         borderColor: '#667eea',
                         backgroundColor: 'rgba(102, 126, 234, 0.1)',
                         tension: 0.4,
@@ -448,12 +443,18 @@
                 }
             });
 
-            // Update OpenAI stats
-            if (data.openai) {
-                document.getElementById('openaiCost').textContent = `$${(data.openai.totalCost || 0).toFixed(2)}`;
-                document.getElementById('openaiRequests').textContent = (data.openai.requests || 0).toLocaleString();
-                document.getElementById('openaiTokens').textContent = ((data.openai.tokens || 0) / 1000).toFixed(1) + 'K';
-                document.getElementById('openaiAvgCost').textContent = `$${(data.openai.avgCost || 0).toFixed(3)}`;
+            // Update OpenAI stats (calculated from services)
+            const openaiService = (data.services || []).find(s => s.name === 'OpenAI');
+            if (openaiService) {
+                document.getElementById('openaiCost').textContent = `$${(openaiService.cost_usd || 0).toFixed(2)}`;
+                document.getElementById('openaiRequests').textContent = (data.summary?.total_records || 0).toLocaleString();
+                document.getElementById('openaiTokens').textContent = '~';
+                document.getElementById('openaiAvgCost').textContent = `$${((openaiService.cost_usd || 0) / (data.summary?.total_records || 1)).toFixed(3)}`;
+            } else {
+                document.getElementById('openaiCost').textContent = '$0.00';
+                document.getElementById('openaiRequests').textContent = '0';
+                document.getElementById('openaiTokens').textContent = '0';
+                document.getElementById('openaiAvgCost').textContent = '$0.000';
             }
         }
 
@@ -465,7 +466,10 @@
                 'CloudWatch': 'eye',
                 'API Gateway': 'globe',
                 'Step Functions': 'diagram-3',
-                'OpenAI': 'robot'
+                'OpenAI': 'robot',
+                'AWS Polly': 'volume-up',
+                'AWS S3': 'folder',
+                'AWS Lambda': 'lightning'
             };
             return icons[serviceName] || 'cloud';
         }

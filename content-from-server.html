@@ -480,10 +480,19 @@
                 // Check for channel parameter in URL
                 const urlParams = new URLSearchParams(window.location.search);
                 const channelParam = urlParams.get('channel');
-                if (channelParam && channelsMap[channelParam]) {
+                if (channelParam) {
                     const channelSelect = document.getElementById('filterChannel');
-                    const channelName = channelsMap[channelParam].name;
-                    channelSelect.value = channelName;
+                    // Try to find and select the channel
+                    for (let i = 0; i < channelSelect.options.length; i++) {
+                        const option = channelSelect.options[i];
+                        const matchingContent = allContent.find(c => 
+                            c.channel_id === channelParam && c.channel_name === option.value
+                        );
+                        if (matchingContent) {
+                            channelSelect.value = option.value;
+                            break;
+                        }
+                    }
                 }
                 
                 applyFilters();
@@ -511,64 +520,6 @@
                 channelsList.sort().map(ch => `<option value="${ch}">${ch}</option>`).join("");
         }
 
-        function updateFilteredStats() {
-
-
-            // Calculate stats from filtered content
-
-
-            const stats = {
-
-
-                total: filteredContent.length,
-
-
-                themes: filteredContent.filter(c => c.type === 'theme_generation').length,
-
-
-                narratives: filteredContent.filter(c => c.type === 'narrative_generation').length,
-
-
-                today: filteredContent.filter(c => {
-
-
-                    const itemDate = new Date(c.created_at);
-
-
-                    const now = new Date();
-
-
-                    return itemDate.toDateString() === now.toDateString();
-
-
-                }).length
-
-
-            };
-
-
-            
-
-
-            // Update the stats display
-
-
-            document.getElementById('totalContent').textContent = stats.total;
-
-
-            document.getElementById('themesCount').textContent = stats.themes;
-
-
-            document.getElementById('narrativesCount').textContent = stats.narratives;
-
-
-            document.getElementById('todayCount').textContent = stats.today;
-
-
-        }
-
-
-
         function applyFilters() {
             const type = document.getElementById('filterType').value;
             const channel = document.getElementById('filterChannel').value;
@@ -590,9 +541,6 @@
             });
 
             displayContent();
-
-
-            updateFilteredStats();
         }
 
         function displayContent() {

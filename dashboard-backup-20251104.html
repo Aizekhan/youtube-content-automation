@@ -16,8 +16,8 @@
             --danger-color: #ef4444;
             --dark-bg: #1a1d2e;
             --card-bg: #22263a;
-            --text-primary: #e5e7eb;
-            --text-secondary: #9ca3af;
+            --text-primary: #f3f4f6;
+            --text-secondary: #d1d5db;
         }
 
         body {
@@ -41,7 +41,7 @@
         }
 
         .nav-menu a {
-            color: var(--text-secondary);
+            color: #d1d5db;
             text-decoration: none;
             padding: 0.75rem 1.5rem;
             border-radius: 8px;
@@ -173,7 +173,7 @@
         }
 
         .stat-label {
-            color: var(--text-secondary);
+            color: #d1d5db;
             font-size: 0.85rem;
             margin-top: 0.5rem;
         }
@@ -199,7 +199,7 @@
         }
 
         .timestamp {
-            color: var(--text-secondary);
+            color: #d1d5db;
             font-size: 0.85rem;
         }
     </style>
@@ -302,7 +302,7 @@
                 <h3 style="margin: 0; color: var(--text-primary);">
                     <i class="bi bi-info-circle"></i> Execution Details
                 </h3>
-                <button onclick="closeExecutionModal()" style="background: none; border: none; color: var(--text-secondary); font-size: 1.5rem; cursor: pointer; padding: 0; line-height: 1;">
+                <button onclick="closeExecutionModal()" style="background: none; border: none; color: #d1d5db; font-size: 1.5rem; cursor: pointer; padding: 0; line-height: 1;">
                     &times;
                 </button>
             </div>
@@ -473,7 +473,7 @@
                     <div style="font-weight: 600; color: #fca5a5; margin-bottom: 0.5rem;">
                         <i class="bi bi-exclamation-triangle"></i> Error Details
                     </div>
-                    <div style="color: var(--text-secondary); font-size: 0.9rem; font-family: monospace;">
+                    <div style="color: #d1d5db; font-size: 0.9rem; font-family: monospace;">
                         ${escapeHtml(exec.error)}
                     </div>
                 </div>
@@ -482,12 +482,12 @@
             content.innerHTML = `
                 <div style="display: grid; gap: 1rem;">
                     <div>
-                        <div style="color: var(--text-secondary); font-size: 0.85rem; margin-bottom: 0.25rem;">Execution Name</div>
+                        <div style="color: #d1d5db; font-size: 0.85rem; margin-bottom: 0.25rem;">Execution Name</div>
                         <div style="color: var(--text-primary); font-weight: 500;">${exec.name || 'Unnamed Execution'}</div>
                     </div>
 
                     <div>
-                        <div style="color: var(--text-secondary); font-size: 0.85rem; margin-bottom: 0.25rem;">Status</div>
+                        <div style="color: #d1d5db; font-size: 0.85rem; margin-bottom: 0.25rem;">Status</div>
                         <div>
                             <span class="status-badge status-${exec.status.toLowerCase()}">
                                 ${getStatusIcon(exec.status)} ${exec.status}
@@ -496,7 +496,7 @@
                     </div>
 
                     <div>
-                        <div style="color: var(--text-secondary); font-size: 0.85rem; margin-bottom: 0.25rem;">Execution ARN</div>
+                        <div style="color: #d1d5db; font-size: 0.85rem; margin-bottom: 0.25rem;">Execution ARN</div>
                         <div style="color: var(--text-primary); font-size: 0.85rem; word-break: break-all; font-family: monospace;">
                             ${exec.executionArn || 'N/A'}
                         </div>
@@ -504,14 +504,14 @@
 
                     <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 1rem;">
                         <div>
-                            <div style="color: var(--text-secondary); font-size: 0.85rem; margin-bottom: 0.25rem;">
+                            <div style="color: #d1d5db; font-size: 0.85rem; margin-bottom: 0.25rem;">
                                 <i class="bi bi-play-circle"></i> Start Time
                             </div>
                             <div style="color: var(--text-primary);">${formatDate(exec.startDate)}</div>
                         </div>
                         ${exec.stopDate ? `
                         <div>
-                            <div style="color: var(--text-secondary); font-size: 0.85rem; margin-bottom: 0.25rem;">
+                            <div style="color: #d1d5db; font-size: 0.85rem; margin-bottom: 0.25rem;">
                                 <i class="bi bi-stop-circle"></i> End Time
                             </div>
                             <div style="color: var(--text-primary);">${formatDate(exec.stopDate)}</div>
@@ -520,7 +520,7 @@
                     </div>
 
                     <div>
-                        <div style="color: var(--text-secondary); font-size: 0.85rem; margin-bottom: 0.25rem;">
+                        <div style="color: #d1d5db; font-size: 0.85rem; margin-bottom: 0.25rem;">
                             <i class="bi bi-clock-history"></i> Duration
                         </div>
                         <div style="color: var(--text-primary); font-weight: 600;">${duration}</div>
@@ -543,14 +543,14 @@
             content.innerHTML = `
                 <div style="display: grid; gap: 1rem;">
                     <div>
-                        <div style="color: var(--text-secondary); font-size: 0.85rem; margin-bottom: 0.25rem;">
+                        <div style="color: #d1d5db; font-size: 0.85rem; margin-bottom: 0.25rem;">
                             <i class="bi bi-clock"></i> Timestamp
                         </div>
                         <div style="color: var(--text-primary);">${escapeHtml(log.timestamp)}</div>
                     </div>
 
                     <div>
-                        <div style="color: var(--text-secondary); font-size: 0.85rem; margin-bottom: 0.25rem;">
+                        <div style="color: #d1d5db; font-size: 0.85rem; margin-bottom: 0.25rem;">
                             <i class="bi bi-file-text"></i> Full Log Message
                         </div>
                         <div style="background: #0d1117; border: 1px solid rgba(102, 126, 234, 0.2); border-radius: 8px; padding: 1rem; color: #93c5fd; font-family: monospace; font-size: 0.9rem; max-height: 400px; overflow-y: auto; white-space: pre-wrap; word-break: break-word;">
@@ -560,7 +560,7 @@
 
                     ${log.logStreamName ? `
                     <div>
-                        <div style="color: var(--text-secondary); font-size: 0.85rem; margin-bottom: 0.25rem;">
+                        <div style="color: #d1d5db; font-size: 0.85rem; margin-bottom: 0.25rem;">
                             <i class="bi bi-diagram-3"></i> Log Stream
                         </div>
                         <div style="color: var(--text-primary); font-size: 0.85rem; word-break: break-all;">

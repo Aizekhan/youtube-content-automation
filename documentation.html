@@ -1,0 +1,232 @@
+<!DOCTYPE html>
+<html lang="uk">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>System Documentation - YouTube Content Automation</title>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.0/font/bootstrap-icons.css">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.8.0/styles/github-dark.min.css">
+    <link rel="stylesheet" href="css/unified-navigation.css">
+    <style>
+        :root {
+            --primary-color: #667eea;
+            --secondary-color: #764ba2;
+            --dark-bg: #1a1d2e;
+            --card-bg: #22263a;
+            --text-primary: #e5e7eb;
+            --text-secondary: #9ca3af;
+        }
+
+        body {
+            background: linear-gradient(135deg, var(--dark-bg) 0%, #16213e 100%);
+            color: var(--text-primary);
+            min-height: 100vh;
+            font-family: 'Inter', -apple-system, BlinkMacSystemFont, sans-serif;
+        }
+
+        .doc-container {
+            background: var(--card-bg);
+            border: 1px solid rgba(102, 126, 234, 0.2);
+            border-radius: 16px;
+            padding: 3rem;
+            margin: 2rem auto;
+            max-width: 1200px;
+        }
+
+        .doc-content {
+            line-height: 1.8;
+        }
+
+        .doc-content h1 {
+            color: var(--primary-color);
+            border-bottom: 2px solid rgba(102, 126, 234, 0.3);
+            padding-bottom: 1rem;
+            margin-bottom: 2rem;
+        }
+
+        .doc-content h2 {
+            color: var(--text-primary);
+            margin-top: 2.5rem;
+            margin-bottom: 1rem;
+            border-left: 4px solid var(--primary-color);
+            padding-left: 1rem;
+        }
+
+        .doc-content h3 {
+            color: var(--text-primary);
+            margin-top: 1.5rem;
+            margin-bottom: 1rem;
+        }
+
+        .doc-content code {
+            background: rgba(102, 126, 234, 0.1);
+            padding: 0.2rem 0.5rem;
+            border-radius: 4px;
+            color: #93c5fd;
+            font-size: 0.9em;
+        }
+
+        .doc-content pre {
+            background: #0d1117;
+            border: 1px solid rgba(102, 126, 234, 0.2);
+            border-radius: 8px;
+            padding: 1.5rem;
+            overflow-x: auto;
+        }
+
+        .doc-content pre code {
+            background: none;
+            padding: 0;
+            color: inherit;
+        }
+
+        .doc-content ul, .doc-content ol {
+            margin-left: 2rem;
+        }
+
+        .doc-content li {
+            margin-bottom: 0.5rem;
+        }
+
+        .doc-content a {
+            color: var(--primary-color);
+            text-decoration: none;
+        }
+
+        .doc-content a:hover {
+            text-decoration: underline;
+        }
+
+        .doc-content table {
+            width: 100%;
+            margin: 1rem 0;
+            border-collapse: collapse;
+        }
+
+        .doc-content table th,
+        .doc-content table td {
+            border: 1px solid rgba(102, 126, 234, 0.2);
+            padding: 0.75rem;
+        }
+
+        .doc-content table th {
+            background: rgba(102, 126, 234, 0.1);
+            font-weight: 600;
+        }
+
+        .toc {
+            background: rgba(102, 126, 234, 0.05);
+            border: 1px solid rgba(102, 126, 234, 0.2);
+            border-radius: 8px;
+            padding: 1.5rem;
+            margin-bottom: 2rem;
+        }
+
+        .toc h3 {
+            margin-top: 0;
+            color: var(--primary-color);
+        }
+
+        .toc ul {
+            list-style: none;
+            padding-left: 0;
+        }
+
+        .toc li {
+            margin-bottom: 0.5rem;
+        }
+
+        .toc a {
+            color: var(--text-primary);
+            text-decoration: none;
+            transition: color 0.2s;
+        }
+
+        .toc a:hover {
+            color: var(--primary-color);
+        }
+    </style>
+</head>
+<body>
+    <!-- Unified Navigation -->
+    <nav class="nav-container">
+        <div class="nav-wrapper">
+            <div class="nav-bar">
+                <a href="index.html" class="nav-link">
+                    <i class="bi bi-house-door"></i> Home
+                </a>
+                <a href="dashboard.html" class="nav-link">
+                    <i class="bi bi-speedometer2"></i> Dashboard
+                </a>
+                <a href="channels.html" class="nav-link">
+                    <i class="bi bi-collection"></i> Channels
+                </a>
+                <a href="content.html" class="nav-link">
+                    <i class="bi bi-file-earmark-text"></i> Content
+                </a>
+                <a href="costs.html" class="nav-link">
+                    <i class="bi bi-currency-dollar"></i> Costs
+                </a>
+                <a href="prompts-editor.html" class="nav-link">
+                    <i class="bi bi-pencil-square"></i> Prompts
+                </a>
+            </div>
+        </div>
+    </nav>
+
+    <div class="container">
+        <div class="doc-container">
+            <div class="doc-content" id="markdown-content">
+                <p class="text-center text-secondary">
+                    <i class="bi bi-hourglass-split" style="font-size: 3rem;"></i><br>
+                    Loading documentation...
+                </p>
+            </div>
+        </div>
+    </div>
+
+    <script src="https://cdn.jsdelivr.net/npm/marked/marked.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.8.0/highlight.min.js"></script>
+    <script>
+        async function loadDocumentation() {
+            try {
+                const response = await fetch('DOCUMENTATION.md');
+                const markdown = await response.text();
+                
+                // Configure marked
+                marked.setOptions({
+                    highlight: function(code, lang) {
+                        if (lang && hljs.getLanguage(lang)) {
+                            return hljs.highlight(code, { language: lang }).value;
+                        }
+                        return hljs.highlightAuto(code).value;
+                    },
+                    breaks: true,
+                    gfm: true
+                });
+                
+                // Convert markdown to HTML
+                const html = marked.parse(markdown);
+                document.getElementById('markdown-content').innerHTML = html;
+                
+                // Highlight code blocks
+                document.querySelectorAll('pre code').forEach((block) => {
+                    hljs.highlightElement(block);
+                });
+            } catch (error) {
+                console.error('Error loading documentation:', error);
+                document.getElementById('markdown-content').innerHTML = `
+                    <div class="alert alert-danger">
+                        <i class="bi bi-exclamation-triangle"></i> Failed to load documentation: ${error.message}
+                    </div>
+                `;
+            }
+        }
+
+        loadDocumentation();
+    </script>
+
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+</body>
+</html>
