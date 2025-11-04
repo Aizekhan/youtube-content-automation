@@ -2,10 +2,67 @@ import json
 import boto3
 import http.client
 from datetime import datetime
+from decimal import Decimal
 from boto3.dynamodb.conditions import Key
 
 secrets_client = boto3.client('secretsmanager', region_name='eu-central-1')
 dynamodb = boto3.resource('dynamodb', region_name='eu-central-1')
+cost_table = dynamodb.Table('CostTracking')
+
+# OpenAI Pricing (USD) - November 2025
+OPENAI_PRICING = {
+    'gpt-4o': {
+        'input': 2.50 / 1_000_000,  # $2.50 per 1M input tokens
+        'output': 10.00 / 1_000_000,  # $10.00 per 1M output tokens
+    },
+    'gpt-4o-mini': {
+        'input': 0.150 / 1_000_000,
+        'output': 0.600 / 1_000_000,
+    }
+}
+
+def log_openai_cost(channel_id, content_id, model, input_tokens, output_tokens):
+    """Log OpenAI API cost to CostTracking table"""
+    try:
+        # Get pricing for model
+        model_key = model if model in OPENAI_PRICING else 'gpt-4o'
+        pricing = OPENAI_PRICING[model_key]
+
+        # Calculate cost
+        input_cost = input_tokens * pricing['input']
+        output_cost = output_tokens * pricing['output']
+        total_cost = Decimal(str(input_cost + output_cost))
+
+        # Log to CostTracking
+        now = datetime.utcnow()
+        date_str = now.strftime('%Y-%m-%d')
+        timestamp = now.isoformat() + 'Z'
+
+        cost_table.put_item(
+            Item={
+                'date': date_str,
+                'timestamp': timestamp,
+                'service': 'OpenAI',
+                'operation': 'narrative_generation',
+                'channel_id': channel_id,
+                'content_id': content_id,
+                'cost_usd': total_cost,
+                'units': input_tokens + output_tokens,
+                'details': {
+                    'model': model,
+                    'input_tokens': input_tokens,
+                    'output_tokens': output_tokens,
+                    'input_cost_usd': round(input_cost, 6),
+                    'output_cost_usd': round(output_cost, 6)
+                }
+            }
+        )
+
+        print(f"✅ Logged OpenAI cost: ${float(total_cost):.6f} ({input_tokens + output_tokens} tokens)")
+        return float(total_cost)
+    except Exception as e:
+        print(f"❌ Failed to log cost: {str(e)}")
+        return 0.0
 
 def lambda_handler(event, context):
     print(f"Narrative Architect - AI Prompt Configs Version")
@@ -128,9 +185,27 @@ def lambda_handler(event, context):
         print(f"Generated: {len(scenes)} scenes, {character_count} characters")
         print(f"Story title: {story_title}")
 
+        # 7.5. Extract usage and log cost
+        usage = result.get('usage', {})
+        input_tokens = usage.get('prompt_tokens', 0)
+        output_tokens = usage.get('completion_tokens', 0)
+        total_tokens = usage.get('total_tokens', input_tokens + output_tokens)
+
+        print(f"Token usage: {input_tokens} input + {output_tokens} output = {total_tokens} total")
+
         # 8. Зберігаємо в DynamoDB GeneratedContent
         content_table = dynamodb.Table('GeneratedContent')
         timestamp = datetime.utcnow().isoformat() + 'Z'
+        narrative_id = timestamp.replace(':', '').replace('-', '').replace('.', '')[:20]
+
+        # Log cost
+        cost_usd = log_openai_cost(
+            channel_id=channel_id,
+            content_id=narrative_id,
+            model=model,
+            input_tokens=input_tokens,
+            output_tokens=output_tokens
+        )
 
         content_table.put_item(
             Item={
@@ -147,24 +222,29 @@ def lambda_handler(event, context):
                 'model': model,
                 'api_version': 'responses_api',
                 'prompt_version': prompt_config.get('version', '1.0'),
-                'status': 'completed'
+                'status': 'completed',
+                'cost_usd': Decimal(str(cost_usd)),
+                'tokens_used': total_tokens
             }
         )
 
         print(f"✅ Saved to DynamoDB: {channel_id} at {timestamp}")
 
         # 9. Return output for Step Functions
+
         output = {
             'channel_id': channel_id,
             'selected_topic': selected_topic,
             'story_title': story_title,
-            'narrative_content': narrative_text,
+            'narrative_content': narrative_json,  # Full JSON response
+            'narrative_id': narrative_id,  # For TTS Lambda
+            'scenes': scenes,  # For TTS Lambda
             'character_count': character_count,
             'scene_count': len(scenes),
             'timestamp': timestamp
         }
 
-        print(f"✅ Success! Narrative generated")
+        print(f"✅ Success! Narrative generated with {len(scenes)} scenes")
         return output
 
     except Exception as e:
@@ -173,6 +253,9 @@ def lambda_handler(event, context):
         traceback.print_exc()
 
         # Fallback
+        timestamp_err = datetime.utcnow().isoformat() + 'Z'
+        narrative_id_err = timestamp_err.replace(':', '').replace('-', '').replace('.', '')[:20]
+
         fallback_narrative = f"""INTRO:
 Welcome! Today we explore: {selected_topic}
 
@@ -187,8 +270,10 @@ Thank you for watching! Subscribe for more content!"""
             'selected_topic': selected_topic,
             'story_title': selected_topic,
             'narrative_content': fallback_narrative,
+            'narrative_id': narrative_id_err,  # Required for TTS
+            'scenes': [],  # Required for TTS (empty array)
             'character_count': len(fallback_narrative),
             'scene_count': 0,
-            'timestamp': datetime.utcnow().isoformat() + 'Z',
+            'timestamp': timestamp_err,
             'error': str(e)
         }

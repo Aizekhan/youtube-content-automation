@@ -3,6 +3,7 @@ import boto3
 import hashlib
 import os
 from datetime import datetime
+from decimal import Decimal
 from io import BytesIO
 
 polly = boto3.client('polly', region_name='eu-central-1')
@@ -11,6 +12,13 @@ dynamodb = boto3.resource('dynamodb', region_name='eu-central-1')
 
 S3_BUCKET = 'youtube-automation-audio-files'
 CHANNEL_CONFIGS_TABLE = 'ChannelConfigs'
+COST_TRACKING_TABLE = 'CostTracking'
+
+# AWS Polly Pricing (USD) - November 2025
+POLLY_PRICING = {
+    'standard': 4.00 / 1_000_000,  # $4 per 1M characters
+    'neural': 16.00 / 1_000_000,   # $16 per 1M characters
+}
 
 # Voice mapping from profile to AWS Polly voice
 VOICE_MAPPING = {
@@ -21,6 +29,43 @@ VOICE_MAPPING = {
     'gentle_female': 'Joanna',  # US female, gentle
     'warm_female': 'Amy',  # British female, warm
 }
+
+def log_polly_cost(channel_id, content_id, total_characters, engine='neural'):
+    """Log AWS Polly cost to CostTracking table"""
+    try:
+        cost_table = dynamodb.Table(COST_TRACKING_TABLE)
+
+        # Calculate cost
+        cost_per_char = POLLY_PRICING.get(engine, POLLY_PRICING['neural'])
+        total_cost = Decimal(str(total_characters * cost_per_char))
+
+        # Log to CostTracking
+        now = datetime.utcnow()
+        date_str = now.strftime('%Y-%m-%d')
+        timestamp = now.isoformat() + 'Z'
+
+        cost_table.put_item(
+            Item={
+                'date': date_str,
+                'timestamp': timestamp,
+                'service': 'AWS Polly',
+                'operation': 'audio_generation',
+                'channel_id': channel_id,
+                'content_id': content_id,
+                'cost_usd': total_cost,
+                'units': total_characters,
+                'details': {
+                    'characters': total_characters,
+                    'engine': engine
+                }
+            }
+        )
+
+        print(f"✅ Logged Polly cost: ${float(total_cost):.6f} ({total_characters} characters, {engine})")
+        return float(total_cost)
+    except Exception as e:
+        print(f"❌ Failed to log cost: {str(e)}")
+        return 0.0
 
 def lambda_handler(event, context):
     """
@@ -63,10 +108,24 @@ def lambda_handler(event, context):
         scenes = event.get('scenes', [])
         story_title = event.get('story_title', 'Untitled')
 
-        if not channel_id or not scenes:
+        if not channel_id:
             return {
-                'statusCode': 400,
-                'body': json.dumps({'error': 'channel_id and scenes are required'})
+                'error': 'channel_id is required',
+                'audio_files': [],
+                'total_duration_ms': 0,
+                'total_duration_sec': 0,
+                'scene_count': 0
+            }
+
+        # Handle empty scenes gracefully (e.g., when narrative generation failed)
+        if not scenes:
+            print("Warning: No scenes provided, returning empty audio result")
+            return {
+                'audio_files': [],
+                'total_duration_ms': 0,
+                'total_duration_sec': 0,
+                'scene_count': 0,
+                'message': 'No scenes to process'
             }
 
         # Get voice from ChannelConfig
@@ -76,6 +135,8 @@ def lambda_handler(event, context):
         # Generate audio for each scene
         audio_files = []
         audio_streams = []
+        total_characters = 0
+        engine_used = 'neural'  # Track engine used
 
         for scene in scenes:
             scene_id = scene.get('id', 0)
@@ -88,7 +149,9 @@ def lambda_handler(event, context):
             print(f"Generating audio for scene {scene_id}...")
 
             # Generate audio with AWS Polly
-            audio_stream, duration_ms = synthesize_speech(ssml_text, voice_id)
+            audio_stream, duration_ms, characters, engine = synthesize_speech(ssml_text, voice_id)
+            total_characters += characters
+            engine_used = engine  # Save last engine used
 
             # Upload to S3
             s3_key = f"narratives/{channel_id}/{narrative_id}/scene_{scene_id}.mp3"
@@ -109,22 +172,30 @@ def lambda_handler(event, context):
         total_duration_ms = sum(af['duration_ms'] for af in audio_files)
         total_duration_sec = total_duration_ms / 1000
 
+        # Log Polly cost
+        cost_usd = log_polly_cost(
+            channel_id=channel_id,
+            content_id=narrative_id,
+            total_characters=total_characters,
+            engine=engine_used
+        )
+
         print(f"✅ Generated {len(audio_files)} audio files")
         print(f"Total duration: {total_duration_sec:.2f} seconds")
+        print(f"Total characters: {total_characters}, Cost: ${cost_usd:.6f}")
 
         return {
-            'statusCode': 200,
-            'body': json.dumps({
-                'message': 'Audio generated successfully',
-                'narrative_id': narrative_id,
-                'channel_id': channel_id,
-                'story_title': story_title,
-                'voice_id': voice_id,
-                'audio_files': audio_files,
-                'total_duration_ms': total_duration_ms,
-                'total_duration_sec': round(total_duration_sec, 2),
-                'scene_count': len(audio_files)
-            }, default=str)
+            'message': 'Audio generated successfully',
+            'narrative_id': narrative_id,
+            'channel_id': channel_id,
+            'story_title': story_title,
+            'voice_id': voice_id,
+            'audio_files': audio_files,
+            'total_duration_ms': total_duration_ms,
+            'total_duration_sec': round(total_duration_sec, 2),
+            'scene_count': len(audio_files),
+            'cost_usd': cost_usd,
+            'total_characters': total_characters
         }
 
     except Exception as e:
@@ -133,11 +204,12 @@ def lambda_handler(event, context):
         traceback.print_exc()
 
         return {
-            'statusCode': 500,
-            'body': json.dumps({
-                'error': 'Failed to generate audio',
-                'message': str(e)
-            })
+            'error': 'Failed to generate audio',
+            'message': str(e),
+            'audio_files': [],
+            'total_duration_ms': 0,
+            'total_duration_sec': 0,
+            'scene_count': 0
         }
 
 
@@ -160,19 +232,24 @@ def get_voice_for_channel(channel_id):
 
         config = items[0]
 
-        # Get voice profile (e.g., "authoritative_male")
-        voice_profile = config.get('tts_voice_profile', 'authoritative_male')
+        # Get voice profile - може бути реальне ім'я (наприклад "Matthew") або старий профіль ("deep_male")
+        voice_profile = config.get('tts_voice_profile', 'Brian')
 
-        # Map to Polly voice
+        # List of valid AWS Polly voice names
+        valid_polly_voices = [
+            'Matthew', 'Joey', 'Justin', 'Kevin', 'Stephen', 'Russell', 'Brian',
+            'Joanna', 'Kendra', 'Kimberly', 'Salli', 'Ruth', 'Danielle', 'Ivy',
+            'Nicole', 'Emma', 'Amy'
+        ]
+
+        # Check if it's already a valid Polly voice name (new format)
+        if voice_profile in valid_polly_voices:
+            print(f"Using direct voice: {voice_profile}")
+            return voice_profile
+
+        # Otherwise, try to map from old profile format (backward compatibility)
         voice_id = VOICE_MAPPING.get(voice_profile, 'Brian')
-
-        # Check if tts_voice_options has specific voice names
-        voice_options = config.get('tts_voice_options', '')
-        if voice_options:
-            # tts_voice_options might be "Brian, Emma"
-            voices = [v.strip() for v in voice_options.split(',')]
-            if voices:
-                voice_id = voices[0]  # Use first option
+        print(f"Mapped profile '{voice_profile}' to voice: {voice_id}")
 
         return voice_id
 
@@ -184,7 +261,7 @@ def get_voice_for_channel(channel_id):
 def synthesize_speech(ssml_text, voice_id):
     """
     Generate audio from SSML text using AWS Polly
-    Returns: (audio_stream, duration_ms)
+    Returns: (audio_stream, duration_ms, characters, engine)
     """
     # Fix SSML: replace single quotes with double quotes
     ssml_text = ssml_text.replace("rate='", 'rate="').replace("pitch='", 'pitch="')
@@ -202,7 +279,8 @@ def synthesize_speech(ssml_text, voice_id):
                 Engine='neural',  # Try Neural engine for better quality
                 LanguageCode='en-US'
             )
-            return process_polly_response(response)
+            audio_stream, duration_ms, characters = process_polly_response(response)
+            return audio_stream, duration_ms, characters, 'neural'
         except Exception as neural_error:
             print(f"Neural engine failed: {str(neural_error)}, trying standard...")
             # Fallback to standard engine
@@ -214,14 +292,17 @@ def synthesize_speech(ssml_text, voice_id):
                 Engine='standard',  # Fallback to standard
                 LanguageCode='en-US'
             )
-            return process_polly_response(response)
+            audio_stream, duration_ms, characters = process_polly_response(response)
+            return audio_stream, duration_ms, characters, 'standard'
     except Exception as e:
         print(f"Error synthesizing speech: {str(e)}")
         raise
 
 
 def process_polly_response(response):
-    """Process Polly API response and extract audio data"""
+    """Process Polly API response and extract audio data
+    Returns: (audio_stream, duration_ms, characters)
+    """
     # Read audio stream
     audio_stream = response['AudioStream'].read()
 
@@ -236,7 +317,7 @@ def process_polly_response(response):
     estimated_duration_sec = request_characters / 12.5 if request_characters > 0 else 10
     duration_ms = int(estimated_duration_sec * 1000)
 
-    return audio_stream, duration_ms
+    return audio_stream, duration_ms, request_characters
 
 
 def upload_to_s3(audio_data, s3_key):

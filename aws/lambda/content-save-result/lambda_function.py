@@ -1,9 +1,20 @@
 import json
 import boto3
 from datetime import datetime
+from decimal import Decimal
 
 dynamodb = boto3.resource('dynamodb', region_name='eu-central-1')
 table = dynamodb.Table('GeneratedContent')
+
+def convert_floats_to_decimal(obj):
+    """Recursively convert float values to Decimal for DynamoDB compatibility"""
+    if isinstance(obj, list):
+        return [convert_floats_to_decimal(item) for item in obj]
+    elif isinstance(obj, dict):
+        return {key: convert_floats_to_decimal(value) for key, value in obj.items()}
+    elif isinstance(obj, float):
+        return Decimal(str(obj))
+    return obj
 
 def lambda_handler(event, context):
     print(f"Save Result - Python Version with Audio Support")
@@ -47,6 +58,9 @@ def lambda_handler(event, context):
         item['has_audio'] = False
 
     try:
+        # Convert all floats to Decimal for DynamoDB
+        item = convert_floats_to_decimal(item)
+
         table.put_item(Item=item)
 
         result = {
