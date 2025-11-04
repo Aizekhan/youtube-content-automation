@@ -1,0 +1,455 @@
+<!DOCTYPE html>
+<html lang="uk">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Channels Management - n8n Creator Space</title>
+
+    <!-- Bootstrap Icons -->
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.1/font/bootstrap-icons.css" rel="stylesheet">
+
+    <!-- Unified Navigation CSS -->
+    <link rel="stylesheet" href="css/unified-navigation.css">
+
+    <!-- Channels Unified CSS -->
+    <link rel="stylesheet" href="css/channels-unified.css">
+
+    <!-- Base Styles -->
+    <style>
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+            background: linear-gradient(135deg, #0f172a 0%, #1e293b 100%);
+            color: #e5e7eb;
+            min-height: 100vh;
+            padding-bottom: 2rem;
+        }
+
+        .container {
+            max-width: 1400px;
+            margin: 0 auto;
+            padding: 0 1.5rem;
+        }
+
+        .page-header {
+            margin-bottom: 2rem;
+        }
+
+        .page-title {
+            font-size: 2rem;
+            font-weight: 700;
+            color: #e5e7eb;
+            margin-bottom: 0.5rem;
+        }
+
+        .page-subtitle {
+            font-size: 1rem;
+            color: rgba(226, 232, 240, 0.6);
+        }
+
+        /* Modal Styles */
+        .modal {
+            display: none;
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: rgba(0,0,0,0.7);
+            z-index: 10000;
+            overflow-y: auto;
+            padding: 20px;
+        }
+
+        .modal-content {
+            background: white;
+            max-width: 1200px;
+            margin: 40px auto;
+            border-radius: 15px;
+            padding: 40px;
+            position: relative;
+        }
+
+        .close-modal {
+            position: absolute;
+            top: 20px;
+            right: 20px;
+            font-size: 32px;
+            cursor: pointer;
+            color: #a0aec0;
+        }
+
+        .close-modal:hover { color: #667eea; }
+
+        .form-section {
+            margin-bottom: 40px;
+            padding-bottom: 30px;
+            border-bottom: 2px solid #e2e8f0;
+        }
+
+        .form-section:last-child { border-bottom: none; }
+
+        .section-title {
+            font-size: 24px;
+            color: #667eea;
+            margin-bottom: 20px;
+            display: flex;
+            align-items: center;
+        }
+
+        .section-title::before {
+            content: '';
+            width: 5px;
+            height: 24px;
+            background: #667eea;
+            margin-right: 12px;
+            border-radius: 3px;
+        }
+
+        .form-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+            gap: 20px;
+        }
+
+        .form-group {
+            display: flex;
+            flex-direction: column;
+        }
+
+        .form-group.full {
+            grid-column: 1 / -1;
+        }
+
+        .modal label {
+            font-weight: 600;
+            color: #2d3748;
+            margin-bottom: 8px;
+            font-size: 14px;
+        }
+
+        .modal input, .modal textarea, .modal select {
+            padding: 12px;
+            border: 2px solid #e2e8f0;
+            border-radius: 8px;
+            font-size: 14px;
+            transition: border 0.3s;
+        }
+
+        .modal input:focus, .modal textarea:focus, .modal select:focus {
+            outline: none;
+            border-color: #667eea;
+        }
+
+        .modal textarea {
+            min-height: 60px;
+            resize: vertical;
+            font-family: inherit;
+        }
+
+        .save-btn {
+            width: 100%;
+            padding: 16px;
+            background: #48bb78;
+            color: white;
+            border: none;
+            border-radius: 8px;
+            font-size: 18px;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.3s;
+            margin-top: 30px;
+        }
+
+        .save-btn:hover {
+            background: #38a169;
+            transform: translateY(-2px);
+        }
+
+        .field-hint {
+            font-size: 12px;
+            color: #718096;
+            margin-top: 4px;
+            font-style: italic;
+        }
+    </style>
+</head>
+<body>
+    <!-- Unified Navigation -->
+    <nav class="nav-container">
+        <div class="nav-wrapper">
+            <div class="nav-bar">
+                <a href="index.html" class="nav-link">
+                    <i class="bi bi-house-door"></i> Home
+                </a>
+                <a href="dashboard.html" class="nav-link">
+                    <i class="bi bi-speedometer2"></i> Dashboard
+                </a>
+                <a href="channels.html" class="nav-link active">
+                    <i class="bi bi-collection"></i> Channels
+                </a>
+                <a href="content.html" class="nav-link">
+                    <i class="bi bi-file-earmark-text"></i> Content
+                </a>
+                <a href="costs.html" class="nav-link">
+                    <i class="bi bi-currency-dollar"></i> Costs
+                </a>
+                <a href="prompts-editor.html" class="nav-link">
+                    <i class="bi bi-pencil-square"></i> Prompts
+                </a>
+            </div>
+        </div>
+    </nav>
+
+    <div class="container">
+        <!-- Page Header -->
+        <div class="page-header">
+            <h1 class="page-title">
+                <i class="bi bi-collection"></i> Channels Management
+            </h1>
+            <p class="page-subtitle">Manage your YouTube channels and configurations</p>
+        </div>
+
+        <!-- Action Buttons -->
+        <div class="action-buttons" style="margin-bottom: 2rem; display: flex; gap: 1rem; flex-wrap: wrap;">
+            <button class="btn btn-primary" onclick="window.location.href='/oauth/start.html'">
+                <i class="bi bi-plus-circle"></i> Додати YouTube Канал
+            </button>
+            <button class="btn btn-secondary" onclick="updateAllStats()">
+                <i class="bi bi-arrow-clockwise"></i> Оновити статистику
+            </button>
+            <button class="btn btn-secondary" onclick="window.open('/api/generate-oauth-urls.php', '_blank')" title="Реавторизація токенів">
+                <i class="bi bi-key"></i> Реавторизація токенів
+            </button>
+        </div>
+
+        <!-- Channels Container -->
+        <div id="channels-container">
+            <div class="loading">
+                <i class="bi bi-arrow-repeat"></i>
+                <p>Loading channels...</p>
+            </div>
+        </div>
+    </div>
+
+    <!-- Configuration Modal -->
+    <div id="editModal" class="modal">
+        <div class="modal-content">
+            <span class="close-modal" onclick="closeModal()">&times;</span>
+            <h2 id="modalTitle" style="color: #667eea; margin-bottom: 30px;">Редагування каналу</h2>
+
+            <form id="configForm">
+                <input type="hidden" id="channel_id">
+
+                <!-- SECTION 1: TTS & VOICE -->
+                <div class="form-section">
+                    <h3 class="section-title">🎙️ TTS & Озвучка</h3>
+                    <div class="form-grid">
+                        <div class="form-group">
+                            <label>TTS Voice Profile</label>
+                            <select id="tts_voice_profile">
+                                <option value="deep_male">Deep Male (глибокий чоловічий)</option>
+                                <option value="authoritative_male">Authoritative Male (авторитетний)</option>
+                                <option value="neutral_male">Neutral Male (нейтральний)</option>
+                                <option value="young_male">Young Male (молодий)</option>
+                                <option value="soft_female">Soft Female (м'який жіночий)</option>
+                                <option value="gentle_female">Gentle Female (ніжний жіночий)</option>
+                                <option value="neutral_female">Neutral Female (нейтральний жіночий)</option>
+                            </select>
+                            <span class="field-hint">Абстрактний профіль голосу</span>
+                        </div>
+
+                        <div class="form-group">
+                            <label>TTS Service</label>
+                            <select id="tts_service">
+                                <option value="aws_polly_neural">AWS Polly Neural (рекомендовано)</option>
+                                <option value="aws_polly_standard">AWS Polly Standard</option>
+                                <option value="elevenlabs">ElevenLabs</option>
+                                <option value="google_tts">Google TTS</option>
+                            </select>
+                            <span class="field-hint">Який TTS сервіс використовувати</span>
+
+                        <div class="form-group">
+                            <label>TTS Language</label>
+                            <select id="tts_language">
+                                <option value="US English">US English</option>
+                                <option value="British English">British English</option>
+                                <option value="Australian English">Australian English</option>
+                            </select>
+                            <span class="field-hint">Мова озвучки (фільтрує доступні голоси)</span>
+                        </div>
+                        </div>
+
+                        <div class="form-group full">
+                            <label>TTS Mood Variants</label>
+                            <input type="text" id="tts_mood_variants" placeholder="whispered, suspenseful, calm">
+                            <span class="field-hint">Емоційні теги через кому (для SSML)</span>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- SECTION 2: VIDEO DURATION -->
+                <div class="form-section">
+                    <h3 class="section-title">⏱️ Тривалість і Структура</h3>
+                    <div class="form-grid">
+                        <div class="form-group">
+                            <label>Тривалість відео (хвилини)</label>
+                            <input type="number" id="video_duration_target" min="5" max="20" value="10">
+                            <span class="field-hint">Цільова тривалість відео (5-20 хв)</span>
+                        </div>
+
+                        <div class="form-group">
+                            <label>Цільова к-ть символів</label>
+                            <input type="number" id="target_character_count" min="5000" max="15000" value="8000">
+                            <span class="field-hint">Для 10 хв: slow=7700, medium=8800, fast=9900</span>
+                        </div>
+
+                        <div class="form-group">
+                            <label>Кількість сцен</label>
+                            <input type="number" id="scene_count_target" min="10" max="30" value="18">
+                            <span class="field-hint">К-ть окремих сцен/картинок у відео</span>
+                        </div>
+
+                        <div class="form-group">
+                            <label>Narrative Pace</label>
+                            <select id="narrative_pace">
+                                <option value="slow">Slow (повільний)</option>
+                                <option value="medium">Medium (середній)</option>
+                                <option value="fast">Fast (швидкий)</option>
+                            </select>
+                            <span class="field-hint">Швидкість наррації</span>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- SECTION 3: AI IMAGE GENERATION -->
+                <div class="form-section">
+                    <h3 class="section-title">🎨 AI Генерація Зображень</h3>
+                    <div class="form-grid">
+                        <div class="form-group">
+                            <label>Image Generation Service</label>
+                            <select id="image_generation_service">
+                                <option value="replicate_sdxl">Replicate (SDXL) — рекомендовано</option>
+                                <option value="stability_ai">Stability AI</option>
+                                <option value="leonardo_ai">Leonardo.ai</option>
+                                <option value="openai_dalle3">OpenAI DALL-E 3</option>
+                            </select>
+                            <span class="field-hint">Сервіс для генерації зображень</span>
+                        </div>
+
+                        <div class="form-group">
+                            <label>Image Model</label>
+                            <select id="image_model">
+                                <option value="sdxl_1.0">SDXL 1.0</option>
+                                <option value="sdxl_turbo">SDXL Turbo (швидше)</option>
+                                <option value="leonardo_phoenix">Leonardo Phoenix</option>
+                                <option value="dalle_3">DALL-E 3</option>
+                            </select>
+                            <span class="field-hint">Модель для генерації</span>
+                        </div>
+
+                        <div class="form-group">
+                            <label>Image Resolution</label>
+                            <select id="image_resolution">
+                                <option value="1920x1080">1920×1080 (16:9, YouTube)</option>
+                                <option value="1024x1024">1024×1024 (квадрат)</option>
+                                <option value="1080x1920">1080×1920 (9:16, Shorts)</option>
+                                <option value="1536x1024">1536×1024 (3:2)</option>
+                            </select>
+                            <span class="field-hint">Роздільна здатність зображень</span>
+                        </div>
+
+                        <div class="form-group full">
+                            <label>Negative Prompt (що прибрати)</label>
+                            <textarea id="negative_prompt" placeholder="blurry, low quality, distorted, text, watermark"></textarea>
+                            <span class="field-hint">Через кому: що НЕ повинно бути на картинці</span>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- SECTION 4: CONTENT & STYLE -->
+                <div class="form-section">
+                    <h3 class="section-title">📝 Контент & Стиль</h3>
+                    <div class="form-grid">
+                        <div class="form-group full">
+                            <label>Channel Theme</label>
+                            <textarea id="channel_theme"></textarea>
+                        </div>
+                        <div class="form-group"><label>Назва каналу</label><input type="text" id="channel_name"></div>
+                        <div class="form-group"><label>Жанр</label><input type="text" id="genre"></div>
+                        <div class="form-group full"><label>Core Idea</label><textarea id="core_idea"></textarea></div>
+                        <div class="form-group"><label>Тон</label><input type="text" id="tone"></div>
+                        <div class="form-group"><label>Narration Style</label><input type="text" id="narration_style"></div>
+                        <div class="form-group"><label>Цільова Аудиторія</label><input type="text" id="target_audience"></div>
+                        <div class="form-group"><label>Format</label><input type="text" id="format"></div>
+                        <div class="form-group"><label>Factual Mode</label><select id="factual_mode"><option>true</option><option>false</option></select></div>
+                        <div class="form-group"><label>Content Focus</label><input type="text" id="content_focus"></div>
+                        <div class="form-group"><label>Story Structure</label><input type="text" id="story_structure_pattern"></div>
+                        <div class="form-group full"><label>Visual Keywords</label><textarea id="visual_keywords"></textarea></div>
+                        <div class="form-group full"><label>Narrative Keywords</label><textarea id="narrative_keywords"></textarea></div>
+                        <div class="form-group"><label>Preferred Ending</label><input type="text" id="preferred_ending_tone"></div>
+                        <div class="form-group"><label>Emotional Temp</label><input type="text" id="emotional_temperature"></div>
+                        <div class="form-group full"><label>Music Variants</label><textarea id="recommended_music_variants"></textarea></div>
+                        <div class="form-group"><label>Image Style</label><input type="text" id="image_style_variants"></div>
+                        <div class="form-group"><label>Color Palettes</label><input type="text" id="color_palettes"></div>
+                        <div class="form-group"><label>Lighting</label><input type="text" id="lighting_variants"></div>
+                        <div class="form-group"><label>Composition</label><input type="text" id="composition_variants"></div>
+                        <div class="form-group"><label>Visual Reference</label><input type="text" id="visual_reference_type"></div>
+                        <div class="form-group"><label>Visual Atmosphere</label><input type="text" id="visual_atmosphere"></div>
+                        <div class="form-group"><label>Story Settings</label><input type="text" id="story_setting_variants"></div>
+                        <div class="form-group"><label>Character Types</label><input type="text" id="story_character_types"></div>
+                        <div class="form-group"><label>Point of View</label><input type="text" id="story_point_of_view_variants"></div>
+                        <div class="form-group"><label>Music Tempo</label><input type="text" id="music_tempo_variants"></div>
+                        <div class="form-group"><label>YouTube Keywords</label><input type="text" id="example_keywords_for_youtube"></div>
+                        <div class="form-group full"><label>Meta Theme</label><textarea id="meta_theme"></textarea></div>
+                        <div class="form-group full"><label>Variation Logic</label><textarea id="unique_variation_logic"></textarea></div>
+                    </div>
+                </div>
+
+                <!-- SECTION 5: CHANNEL INFO -->
+                <div class="form-section">
+                    <h3 class="section-title">ℹ️ Інформація про Канал</h3>
+                    <div class="form-grid">
+                        <div class="form-group full"><label>Опис каналу</label><textarea id="channel_description" style="min-height: 80px;"></textarea></div>
+                        <div class="form-group"><label>Thumbnail URL</label><input type="url" id="thumbnail_url" placeholder="https://..."></div>
+                        <div class="form-group"><label>Banner URL</label><input type="url" id="banner_url" placeholder="https://..."></div>
+                        <div class="form-group"><label>Watermark URL</label><input type="url" id="channel_watermark_url" placeholder="https://..."></div>
+                        <div class="form-group"><label>Featured Video ID</label><input type="text" id="featured_video_id"></div>
+                        <div class="form-group"><label>SEO Keywords</label><input type="text" id="seo_keywords"></div>
+                    </div>
+                </div>
+
+                <!-- SECTION 6: PUBLISHING SCHEDULE -->
+                <div class="form-section">
+                    <h3 class="section-title">📅 Графік Публікацій</h3>
+                    <div class="form-grid">
+                        <div class="form-group"><label>Час публікацій (через кому)</label><input type="text" id="publish_times" placeholder="10:05, 15:30, 20:15"></div>
+                        <div class="form-group"><label>Дні публікацій (через кому)</label><input type="text" id="publish_days" placeholder="Mon, Tue, Wed, Thu, Fri"></div>
+                        <div class="form-group"><label>Відео на день</label><input type="number" id="daily_upload_count" min="0" max="10" value="1"></div>
+                        <div class="form-group"><label>Часовий пояс</label><select id="timezone"><option>Europe/Kyiv</option><option>Europe/London</option><option>Europe/Berlin</option><option>UTC</option></select></div>
+                    </div>
+                </div>
+
+                <!-- SECTION 7: MONETIZATION -->
+                <div class="form-section">
+                    <h3 class="section-title">💰 Монетизація & Налаштування</h3>
+                    <div class="form-grid">
+                        <div class="form-group"><label>Монетизація</label><select id="monetization_enabled"><option value="true">Увімкнено</option><option value="false">Вимкнено</option></select></div>
+                        <div class="form-group"><label>AdSense</label><select id="adsense_enabled"><option value="true">Увімкнено</option><option value="false">Вимкнено</option></select></div>
+                        <div class="form-group"><label>AdSense Account ID</label><input type="text" id="adsense_account_id"></div>
+                        <div class="form-group"><label>Мова субтитрів</label><select id="auto_caption_language"><option value="uk">Українська</option><option value="en">Англійська</option><option value="ru">Російська</option></select></div>
+                        <div class="form-group"><label>Ліцензія</label><select id="default_license"><option>Standard YouTube License</option><option>Creative Commons - Attribution</option></select></div>
+                        <div class="form-group"><label>Дозволити вбудування</label><select id="allow_embedding"><option value="true">Так</option><option value="false">Ні</option></select></div>
+                    </div>
+                </div>
+
+                <button type="button" class="save-btn" onclick="saveModalConfig()">💾 Зберегти зміни</button>
+            </form>
+        </div>
+    </div>
+
+    <!-- Channels Unified JavaScript -->
+    <script src="js/channels-unified.js?v=1762224908"></script>
+</body>
+</html>
