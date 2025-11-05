@@ -3,10 +3,11 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Process Monitoring - YouTube Automation</title>
+    <title>Dashboard - YouTube Automation</title>
     <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
     <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.0/font/bootstrap-icons.css">
     <link rel="stylesheet" href="css/unified-navigation.css">
+    <link rel="stylesheet" href="css/workflow.css">
     <style>
         :root {
             --primary-color: #667eea;
@@ -27,37 +28,31 @@
             font-family: 'Inter', -apple-system, BlinkMacSystemFont, sans-serif;
         }
 
-        .navbar {
-            background: rgba(34, 38, 58, 0.95) !important;
-            backdrop-filter: blur(10px);
-            border-bottom: 1px solid rgba(102, 126, 234, 0.2);
-        }
-
-        .nav-menu {
-            background: var(--card-bg);
-            border-radius: 12px;
-            padding: 0.5rem;
+        /* Sub-tabs styling */
+        .nav-tabs {
+            border-bottom: 2px solid rgba(102, 126, 234, 0.3);
             margin-bottom: 2rem;
         }
 
-        .nav-menu a {
+        .nav-tabs .nav-link {
             color: var(--text-secondary);
-            text-decoration: none;
-            padding: 0.75rem 1.5rem;
-            border-radius: 8px;
+            border: none;
+            border-bottom: 3px solid transparent;
+            padding: 1rem 1.5rem;
             transition: all 0.3s ease;
-            display: inline-block;
-            margin: 0.25rem;
+            background: transparent;
         }
 
-        .nav-menu a:hover {
-            background: rgba(102, 126, 234, 0.2);
+        .nav-tabs .nav-link:hover {
             color: var(--text-primary);
+            border-bottom-color: rgba(102, 126, 234, 0.5);
         }
 
-        .nav-menu a.active {
-            background: linear-gradient(135deg, var(--primary-color), var(--secondary-color));
-            color: white;
+        .nav-tabs .nav-link.active {
+            color: var(--primary-color);
+            background: transparent;
+            border-bottom-color: var(--primary-color);
+            font-weight: 600;
         }
 
         .card {
@@ -202,96 +197,607 @@
             color: var(--text-secondary);
             font-size: 0.85rem;
         }
+
+        /* Debug Tab Styles */
+        .process-step {
+            background: var(--card-bg);
+            border: 2px solid rgba(102, 126, 234, 0.3);
+            border-radius: 12px;
+            padding: 1.5rem;
+            margin-bottom: 1rem;
+            transition: all 0.3s ease;
+            position: relative;
+        }
+
+        .process-step.pending {
+            border-color: #6b7280;
+            opacity: 0.6;
+        }
+
+        .process-step.running {
+            border-color: #3b82f6;
+            box-shadow: 0 0 20px rgba(59, 130, 246, 0.3);
+            animation: pulse 2s infinite;
+        }
+
+        .process-step.completed {
+            border-color: var(--success-color);
+        }
+
+        .process-step.failed {
+            border-color: var(--danger-color);
+        }
+
+        @keyframes pulse {
+            0%, 100% { box-shadow: 0 0 20px rgba(59, 130, 246, 0.3); }
+            50% { box-shadow: 0 0 30px rgba(59, 130, 246, 0.6); }
+        }
+
+        .step-header {
+            display: flex;
+            align-items: center;
+            gap: 1rem;
+            margin-bottom: 1rem;
+        }
+
+        .step-icon {
+            width: 48px;
+            height: 48px;
+            border-radius: 12px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 1.5rem;
+            background: linear-gradient(135deg, var(--primary-color), var(--secondary-color));
+        }
+
+        .step-icon.pending { background: #6b7280; }
+        .step-icon.running {
+            background: linear-gradient(135deg, #3b82f6, #2563eb);
+            animation: rotate 2s linear infinite;
+        }
+        .step-icon.completed { background: linear-gradient(135deg, var(--success-color), #059669); }
+        .step-icon.failed { background: linear-gradient(135deg, var(--danger-color), #dc2626); }
+
+        .step-title {
+            flex: 1;
+        }
+
+        .step-title h4 {
+            margin: 0;
+            font-size: 1.2rem;
+            color: var(--text-primary);
+        }
+
+        .step-title p {
+            margin: 0;
+            font-size: 0.85rem;
+            color: var(--text-secondary);
+        }
+
+        .step-status {
+            padding: 0.5rem 1rem;
+            border-radius: 8px;
+            font-size: 0.85rem;
+            font-weight: 600;
+        }
+
+        .step-status.pending { background: #374151; color: #9ca3af; }
+        .step-status.running { background: #1e40af; color: white; }
+        .step-status.completed { background: #065f46; color: white; }
+        .step-status.failed { background: #991b1b; color: white; }
+
+        .step-body {
+            padding: 1rem;
+            background: rgba(0, 0, 0, 0.3);
+            border-radius: 8px;
+            margin-top: 1rem;
+        }
+
+        .data-section {
+            margin-bottom: 1rem;
+        }
+
+        .data-section h6 {
+            font-size: 0.9rem;
+            color: var(--warning-color);
+            margin-bottom: 0.5rem;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+        }
+
+        .data-content {
+            background: #0d1117;
+            border: 1px solid rgba(102, 126, 234, 0.2);
+            border-radius: 6px;
+            padding: 0.75rem;
+            font-family: 'Monaco', 'Courier New', monospace;
+            font-size: 0.85rem;
+            color: #93c5fd;
+            max-height: 300px;
+            overflow-y: auto;
+            white-space: pre-wrap;
+            word-break: break-word;
+        }
+
+        .expand-toggle {
+            cursor: pointer;
+            color: var(--primary-color);
+            font-size: 0.85rem;
+            margin-top: 0.5rem;
+            display: inline-block;
+        }
+
+        .expand-toggle:hover {
+            color: var(--secondary-color);
+        }
+
+        .btn-test {
+            background: linear-gradient(135deg, var(--primary-color), var(--secondary-color));
+            border: none;
+            padding: 0.75rem 2rem;
+            font-weight: 600;
+            transition: all 0.3s ease;
+        }
+
+        .btn-test:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 4px 12px rgba(102, 126, 234, 0.4);
+        }
+
+        .test-controls {
+            background: var(--card-bg);
+            border: 1px solid rgba(102, 126, 234, 0.2);
+            border-radius: 12px;
+            padding: 1.5rem;
+            margin-bottom: 2rem;
+        }
+
+        .form-select, .form-control {
+            background: rgba(0, 0, 0, 0.3);
+            border: 1px solid rgba(102, 126, 234, 0.3);
+            color: var(--text-primary);
+        }
+
+        .form-select:focus, .form-control:focus {
+            background: rgba(0, 0, 0, 0.4);
+            border-color: var(--primary-color);
+            color: var(--text-primary);
+            box-shadow: 0 0 0 0.2rem rgba(102, 126, 234, 0.25);
+        }
+
+        .form-select option {
+            background: var(--card-bg);
+            color: var(--text-primary);
+        }
+
+        .form-label {
+            color: var(--text-secondary);
+            font-size: 0.9rem;
+            font-weight: 600;
+            margin-bottom: 0.5rem;
+        }
+
+        .duration-info {
+            font-size: 0.85rem;
+            color: var(--text-secondary);
+            margin-top: 0.5rem;
+        }
+
+        .arrow-down {
+            text-align: center;
+            color: var(--primary-color);
+            font-size: 2rem;
+            margin: 0.5rem 0;
+            animation: bounce 2s infinite;
+        }
+
+        @keyframes bounce {
+            0%, 100% { transform: translateY(0); }
+            50% { transform: translateY(-10px); }
+        }
     </style>
 </head>
 <body>
-    <!-- Unified Navigation -->
-    <nav class="nav-container">
-        <div class="nav-wrapper">
-            <div class="nav-bar">
-                <a href="index.html" class="nav-link">
-                    <i class="bi bi-house-door"></i> Home
-                </a>
-                <a href="dashboard.html" class="nav-link active">
-                    <i class="bi bi-speedometer2"></i> Dashboard
-                </a>
-                <a href="channels.html" class="nav-link">
-                    <i class="bi bi-collection"></i> Channels
-                </a>
-                <a href="content.html" class="nav-link">
-                    <i class="bi bi-file-earmark-text"></i> Content
-                </a>
-                <a href="costs.html" class="nav-link">
-                    <i class="bi bi-currency-dollar"></i> Costs
-                </a>
-                <a href="prompts-editor.html" class="nav-link">
-                    <i class="bi bi-pencil-square"></i> Prompts
-                </a>
-            </div>
-        </div>
-    </nav>
+    <!-- Unified Navigation (loaded from js/navigation.js) -->
+    <div id="navigation-placeholder"></div>
 
-    <div class="container mt-4">
-
-        <!-- Stats Row -->
-        <div class="row mb-4">
-            <div class="col-md-3">
-                <div class="stat-card">
-                    <div class="stat-value" id="runningExecutions">-</div>
-                    <div class="stat-label">Running</div>
-                </div>
-            </div>
-            <div class="col-md-3">
-                <div class="stat-card">
-                    <div class="stat-value text-success" id="succeededExecutions">-</div>
-                    <div class="stat-label">Succeeded Today</div>
-                </div>
-            </div>
-            <div class="col-md-3">
-                <div class="stat-card">
-                    <div class="stat-value text-danger" id="failedExecutions">-</div>
-                    <div class="stat-label">Failed Today</div>
-                </div>
-            </div>
-            <div class="col-md-3">
-                <div class="stat-card">
-                    <div class="stat-value" id="avgDuration">-</div>
-                    <div class="stat-label">Avg Duration (min)</div>
-                </div>
-            </div>
-        </div>
-
-        <!-- Step Functions Executions -->
-        <div class="card">
-            <div class="card-header d-flex justify-content-between align-items-center">
-                <span><i class="bi bi-diagram-3"></i> Step Functions Executions</span>
-                <button class="btn btn-sm btn-primary" onclick="refreshExecutions()">
-                    <i class="bi bi-arrow-clockwise" id="refreshIcon"></i> Refresh
+    <div class="container-fluid mt-4 px-4">
+        <!-- Dashboard Tabs -->
+        <ul class="nav nav-tabs" id="dashboardTabs" role="tablist">
+            <li class="nav-item" role="presentation">
+                <button class="nav-link active" id="monitoring-tab" data-bs-toggle="tab" data-bs-target="#monitoring" type="button" role="tab">
+                    <i class="bi bi-activity"></i> Monitoring
                 </button>
-            </div>
-            <div class="card-body">
-                <div id="executionsList">
-                    <div class="text-center text-secondary py-5">
-                        <i class="bi bi-hourglass-split" style="font-size: 3rem;"></i>
-                        <p class="mt-3">Loading executions...</p>
+            </li>
+            <li class="nav-item" role="presentation">
+                <button class="nav-link" id="debug-tab" data-bs-toggle="tab" data-bs-target="#debug" type="button" role="tab">
+                    <i class="bi bi-bug"></i> Debug & Test
+                </button>
+            </li>
+        </ul>
+
+        <!-- Tab Content -->
+        <div class="tab-content" id="dashboardTabContent">
+
+            <!-- MONITORING TAB -->
+            <div class="tab-pane fade show active" id="monitoring" role="tabpanel">
+                <!-- Stats Row -->
+                <div class="row mb-4">
+                    <div class="col-md-3">
+                        <div class="stat-card">
+                            <div class="stat-value" id="runningExecutions">-</div>
+                            <div class="stat-label">Running</div>
+                        </div>
+                    </div>
+                    <div class="col-md-3">
+                        <div class="stat-card">
+                            <div class="stat-value text-success" id="succeededExecutions">-</div>
+                            <div class="stat-label">Succeeded Today</div>
+                        </div>
+                    </div>
+                    <div class="col-md-3">
+                        <div class="stat-card">
+                            <div class="stat-value text-danger" id="failedExecutions">-</div>
+                            <div class="stat-label">Failed Today</div>
+                        </div>
+                    </div>
+                    <div class="col-md-3">
+                        <div class="stat-card">
+                            <div class="stat-value" id="avgDuration">-</div>
+                            <div class="stat-label">Avg Duration (min)</div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Workflow Visualization -->
+                <div class="card">
+                    <div class="card-header">
+                        <i class="bi bi-diagram-3-fill"></i> Content Generation Workflow
+                        <span class="float-end" style="font-size: 0.9rem; font-weight: normal;">
+                            <span id="workflow-status" class="status-badge status-pending">Idle</span>
+                        </span>
+                    </div>
+                    <div class="card-body" style="padding: 2rem;">
+                        <div class="workflow-container">
+
+                            <!-- Step 1: Get Active Channels -->
+                            <div class="workflow-node" id="node-get-channels" data-step="1">
+                                <div class="node-icon"><i class="bi bi-play-circle"></i></div>
+                                <div class="node-title">Get Active Channels</div>
+                                <div class="node-subtitle">Lambda: content-get-channels</div>
+                                <div class="node-db">
+                                    <i class="bi bi-database"></i> ChannelConfigs
+                                </div>
+                            </div>
+
+                            <div class="workflow-arrow" id="arrow-1">
+                                <i class="bi bi-arrow-down"></i>
+                            </div>
+
+                            <!-- Step 2: Generate Theme -->
+                            <div class="workflow-node" id="node-theme" data-step="2">
+                                <div class="node-icon"><i class="bi bi-lightbulb"></i></div>
+                                <div class="node-title">Generate Theme</div>
+                                <div class="node-subtitle">Lambda: content-theme-agent</div>
+                                <div class="node-db">
+                                    <i class="bi bi-database"></i> Read: ChannelConfigs<br>
+                                    <i class="bi bi-arrow-right-circle"></i> Write: GeneratedContent
+                                </div>
+                            </div>
+
+                            <div class="workflow-arrow" id="arrow-2">
+                                <i class="bi bi-arrow-down"></i>
+                            </div>
+
+                            <!-- Step 3: Generate Narrative -->
+                            <div class="workflow-node" id="node-narrative" data-step="3">
+                                <div class="node-icon"><i class="bi bi-file-text"></i></div>
+                                <div class="node-title">Generate Narrative</div>
+                                <div class="node-subtitle">Lambda: content-narrative</div>
+                                <div class="node-db">
+                                    <i class="bi bi-database"></i> Read: GeneratedContent, ChannelConfigs<br>
+                                    <i class="bi bi-arrow-right-circle"></i> Write: GeneratedContent (scenes)
+                                </div>
+                            </div>
+
+                            <div class="workflow-arrow" id="arrow-3">
+                                <i class="bi bi-arrow-down"></i>
+                            </div>
+
+                            <!-- Step 4: Generate Audio -->
+                            <div class="workflow-node" id="node-audio" data-step="4">
+                                <div class="node-icon"><i class="bi bi-mic"></i></div>
+                                <div class="node-title">Generate Audio (TTS)</div>
+                                <div class="node-subtitle">Lambda: content-audio-tts</div>
+                                <div class="node-db">
+                                    <i class="bi bi-database"></i> Read: GeneratedContent<br>
+                                    <i class="bi bi-arrow-right-circle"></i> Write: S3 (audio files)
+                                </div>
+                            </div>
+
+                            <div class="workflow-arrow" id="arrow-4">
+                                <i class="bi bi-arrow-down"></i>
+                            </div>
+
+                            <!-- Step 5: Save Result -->
+                            <div class="workflow-node" id="node-save" data-step="5">
+                                <div class="node-icon"><i class="bi bi-check-circle"></i></div>
+                                <div class="node-title">Save Result</div>
+                                <div class="node-subtitle">Lambda: content-save-result</div>
+                                <div class="node-db">
+                                    <i class="bi bi-database"></i> Read: S3, GeneratedContent<br>
+                                    <i class="bi bi-arrow-right-circle"></i> Write: GeneratedContent (final)
+                                </div>
+                            </div>
+
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Step Functions Executions -->
+                <div class="card">
+                    <div class="card-header d-flex justify-content-between align-items-center">
+                        <span><i class="bi bi-diagram-3"></i> Step Functions Executions</span>
+                        <button class="btn btn-sm btn-primary" onclick="refreshExecutions()">
+                            <i class="bi bi-arrow-clockwise" id="refreshIcon"></i> Refresh
+                        </button>
+                    </div>
+                    <div class="card-body">
+                        <div id="executionsList">
+                            <div class="text-center text-secondary py-5">
+                                <i class="bi bi-hourglass-split" style="font-size: 3rem;"></i>
+                                <p class="mt-3">Loading executions...</p>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- CloudWatch Logs -->
+                <div class="card">
+                    <div class="card-header d-flex justify-content-between align-items-center">
+                        <span><i class="bi bi-terminal"></i> CloudWatch Logs (Latest 50)</span>
+                        <button class="btn btn-sm btn-primary" onclick="refreshLogs()">
+                            <i class="bi bi-arrow-clockwise"></i> Refresh
+                        </button>
+                    </div>
+                    <div class="card-body">
+                        <div class="log-viewer" id="logsViewer">
+                            <div class="text-secondary">Loading logs...</div>
+                        </div>
                     </div>
                 </div>
             </div>
-        </div>
 
-        <!-- CloudWatch Logs -->
-        <div class="card">
-            <div class="card-header d-flex justify-content-between align-items-center">
-                <span><i class="bi bi-terminal"></i> CloudWatch Logs (Latest 50)</span>
-                <button class="btn btn-sm btn-primary" onclick="refreshLogs()">
-                    <i class="bi bi-arrow-clockwise"></i> Refresh
-                </button>
-            </div>
-            <div class="card-body">
-                <div class="log-viewer" id="logsViewer">
-                    <div class="text-secondary">Loading logs...</div>
+            <!-- DEBUG & TEST TAB -->
+            <div class="tab-pane fade" id="debug" role="tabpanel">
+                <div class="mb-4">
+                    <h2><i class="bi bi-bug-fill"></i> Debug & Test Dashboard</h2>
+                    <p class="text-secondary">
+                        Запустіть тестову генерацію контенту та відслідковуйте кожен крок процесу в реальному часі
+                    </p>
+                </div>
+
+                <!-- Test Controls -->
+                <div class="test-controls">
+                    <h4 class="mb-3"><i class="bi bi-sliders"></i> Налаштування тесту</h4>
+                    <div class="row">
+                        <div class="col-md-6 mb-3">
+                            <label class="form-label">Оберіть канал</label>
+                            <select class="form-select" id="channelSelect">
+                                <option value="">Завантаження каналів...</option>
+                            </select>
+                        </div>
+                        <div class="col-md-6 mb-3">
+                            <label class="form-label">Тема (опціонально)</label>
+                            <input type="text" class="form-control" id="topicInput" placeholder="Залиште порожнім для авто-генерації">
+                        </div>
+                    </div>
+                    <div class="d-flex gap-3 align-items-center">
+                        <button class="btn btn-primary btn-test" id="startTestBtn" onclick="startTest()">
+                            <i class="bi bi-play-circle-fill"></i> Запустити тест
+                        </button>
+                        <button class="btn btn-secondary" id="resetBtn" onclick="resetTest()" style="display: none;">
+                            <i class="bi bi-arrow-clockwise"></i> Скинути
+                        </button>
+                        <div id="totalDuration" class="duration-info" style="display: none;">
+                            Загальний час: <strong>0s</strong>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Process Steps -->
+                <div id="processSteps">
+
+                    <!-- Step 1: Get Channel Config -->
+                    <div class="process-step pending" id="step-get-channel">
+                        <div class="step-header">
+                            <div class="step-icon pending">
+                                <i class="bi bi-database"></i>
+                            </div>
+                            <div class="step-title">
+                                <h4>1. Отримання конфігурації каналу</h4>
+                                <p>Lambda: content-get-channels → ChannelConfigs</p>
+                            </div>
+                            <div class="step-status pending">Очікування</div>
+                        </div>
+                        <div class="step-body" id="step-get-channel-body" style="display: none;">
+                            <div class="data-section">
+                                <h6>📥 Input</h6>
+                                <div class="data-content" id="step-get-channel-input">-</div>
+                            </div>
+                            <div class="data-section">
+                                <h6>📤 Output</h6>
+                                <div class="data-content" id="step-get-channel-output">-</div>
+                                <span class="expand-toggle" onclick="toggleExpand('step-get-channel-output')">
+                                    <i class="bi bi-arrows-expand"></i> Розгорнути
+                                </span>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="arrow-down">
+                        <i class="bi bi-arrow-down-circle-fill"></i>
+                    </div>
+
+                    <!-- Step 2: Generate Theme -->
+                    <div class="process-step pending" id="step-theme">
+                        <div class="step-header">
+                            <div class="step-icon pending">
+                                <i class="bi bi-lightbulb"></i>
+                            </div>
+                            <div class="step-title">
+                                <h4>2. Генерація теми контенту</h4>
+                                <p>Lambda: content-theme-agent → OpenAI API</p>
+                            </div>
+                            <div class="step-status pending">Очікування</div>
+                        </div>
+                        <div class="step-body" id="step-theme-body" style="display: none;">
+                            <div class="data-section">
+                                <h6>📥 Input (Merged Config)</h6>
+                                <div class="data-content" id="step-theme-input">-</div>
+                            </div>
+                            <div class="data-section">
+                                <h6>📤 Output (Generated Theme)</h6>
+                                <div class="data-content" id="step-theme-output">-</div>
+                            </div>
+                            <div class="data-section">
+                                <h6>💰 Cost & Tokens</h6>
+                                <div class="data-content" id="step-theme-cost">-</div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="arrow-down">
+                        <i class="bi bi-arrow-down-circle-fill"></i>
+                    </div>
+
+                    <!-- Step 3: Generate Narrative -->
+                    <div class="process-step pending" id="step-narrative">
+                        <div class="step-header">
+                            <div class="step-icon pending">
+                                <i class="bi bi-file-text"></i>
+                            </div>
+                            <div class="step-title">
+                                <h4>3. Генерація наративу та сцен</h4>
+                                <p>Lambda: content-narrative → OpenAI API → GeneratedContent</p>
+                            </div>
+                            <div class="step-status pending">Очікування</div>
+                        </div>
+                        <div class="step-body" id="step-narrative-body" style="display: none;">
+                            <div class="data-section">
+                                <h6>📥 Input (Theme + Channel Config)</h6>
+                                <div class="data-content" id="step-narrative-input">-</div>
+                            </div>
+                            <div class="data-section">
+                                <h6>📤 Output (Scenes with SSML)</h6>
+                                <div class="data-content" id="step-narrative-output">-</div>
+                            </div>
+                            <div class="data-section">
+                                <h6>📊 Stats</h6>
+                                <div class="data-content" id="step-narrative-stats">-</div>
+                            </div>
+                            <div class="data-section">
+                                <h6>💰 Cost & Tokens</h6>
+                                <div class="data-content" id="step-narrative-cost">-</div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="arrow-down">
+                        <i class="bi bi-arrow-down-circle-fill"></i>
+                    </div>
+
+                    <!-- Step 4: Generate Audio -->
+                    <div class="process-step pending" id="step-audio">
+                        <div class="step-header">
+                            <div class="step-icon pending">
+                                <i class="bi bi-mic"></i>
+                            </div>
+                            <div class="step-title">
+                                <h4>4. Генерація аудіо (TTS)</h4>
+                                <p>Lambda: content-audio-tts → AWS Polly → S3</p>
+                            </div>
+                            <div class="step-status pending">Очікування</div>
+                        </div>
+                        <div class="step-body" id="step-audio-body" style="display: none;">
+                            <div class="data-section">
+                                <h6>📥 Input (Scenes with SSML)</h6>
+                                <div class="data-content" id="step-audio-input">-</div>
+                            </div>
+                            <div class="data-section">
+                                <h6>🎤 TTS Configuration</h6>
+                                <div class="data-content" id="step-audio-config">-</div>
+                            </div>
+                            <div class="data-section">
+                                <h6>📤 Output (Audio Files)</h6>
+                                <div class="data-content" id="step-audio-output">-</div>
+                            </div>
+                            <div class="data-section">
+                                <h6>💰 Cost</h6>
+                                <div class="data-content" id="step-audio-cost">-</div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="arrow-down">
+                        <i class="bi bi-arrow-down-circle-fill"></i>
+                    </div>
+
+                    <!-- Step 5: Save Result -->
+                    <div class="process-step pending" id="step-save">
+                        <div class="step-header">
+                            <div class="step-icon pending">
+                                <i class="bi bi-check-circle"></i>
+                            </div>
+                            <div class="step-title">
+                                <h4>5. Збереження результату</h4>
+                                <p>Lambda: content-save-result → GeneratedContent (final)</p>
+                            </div>
+                            <div class="step-status pending">Очікування</div>
+                        </div>
+                        <div class="step-body" id="step-save-body" style="display: none;">
+                            <div class="data-section">
+                                <h6>📥 Input (All Data)</h6>
+                                <div class="data-content" id="step-save-input">-</div>
+                            </div>
+                            <div class="data-section">
+                                <h6>📤 Output (Final Result)</h6>
+                                <div class="data-content" id="step-save-output">-</div>
+                            </div>
+                        </div>
+                    </div>
+
+                </div>
+
+                <!-- Summary -->
+                <div id="testSummary" class="card mt-4" style="display: none;">
+                    <div class="card-header">
+                        <i class="bi bi-clipboard-check"></i> Підсумок тесту
+                    </div>
+                    <div class="card-body">
+                        <div class="row">
+                            <div class="col-md-3">
+                                <h6 class="text-secondary">Статус</h6>
+                                <h4 id="summaryStatus">-</h4>
+                            </div>
+                            <div class="col-md-3">
+                                <h6 class="text-secondary">Загальний час</h6>
+                                <h4 id="summaryDuration">-</h4>
+                            </div>
+                            <div class="col-md-3">
+                                <h6 class="text-secondary">Загальна вартість</h6>
+                                <h4 id="summaryCost">-</h4>
+                            </div>
+                            <div class="col-md-3">
+                                <h6 class="text-secondary">Сцени</h6>
+                                <h4 id="summaryScenes">-</h4>
+                            </div>
+                        </div>
+                    </div>
                 </div>
             </div>
+
         </div>
     </div>
 
@@ -313,9 +819,20 @@
         </div>
     </div>
 
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+    <script src="js/navigation.js"></script>
     <script>
+        // API URLs
         const API_URL = 'https://e2c5y2h1qj.execute-api.eu-central-1.amazonaws.com/prod';
+        const CHANNELS_API_URL = 'https://lr555ui3ycne6lj7opvpqjigce0cvkzu.lambda-url.eu-central-1.on.aws/';
+        const DEBUG_API_URL = 'https://huooyve5uullyeh7safuexpawm0jidlu.lambda-url.eu-central-1.on.aws/';
+
         let currentExecutions = [];
+        let currentLogs = [];
+        let testStartTime = null;
+        let testData = {};
+
+        // ====== MONITORING TAB FUNCTIONS ======
 
         async function refreshExecutions() {
             const icon = document.getElementById('refreshIcon');
@@ -403,8 +920,6 @@
                 `;
             }
         }
-
-        let currentLogs = [];
 
         function displayLogs(logs) {
             currentLogs = logs;
@@ -578,6 +1093,280 @@
             document.getElementById('executionModal').style.display = 'none';
         }
 
+        // ====== DEBUG TAB FUNCTIONS ======
+
+        // Load channels on page load
+        async function loadChannels() {
+            try {
+                const response = await fetch(CHANNELS_API_URL, {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json'
+                    },
+                    body: JSON.stringify({ action: 'get_active' })
+                });
+                const data = await response.json();
+
+                const select = document.getElementById('channelSelect');
+                select.innerHTML = '<option value="">-- Оберіть канал --</option>';
+
+                data.channels.forEach(channel => {
+                    const option = document.createElement('option');
+                    option.value = channel.channel_id;
+                    option.textContent = channel.channel_name;
+                    select.appendChild(option);
+                });
+            } catch (error) {
+                console.error('Error loading channels:', error);
+                document.getElementById('channelSelect').innerHTML = '<option value="">Помилка завантаження</option>';
+            }
+        }
+
+        // Start test
+        async function startTest() {
+            const channelId = document.getElementById('channelSelect').value;
+            const topic = document.getElementById('topicInput').value.trim();
+
+            if (!channelId) {
+                alert('Будь ласка, оберіть канал');
+                return;
+            }
+
+            // Reset UI
+            resetTest(false);
+            testStartTime = Date.now();
+            document.getElementById('startTestBtn').disabled = true;
+            document.getElementById('resetBtn').style.display = 'inline-block';
+            document.getElementById('totalDuration').style.display = 'block';
+
+            // Update duration timer
+            const durationInterval = setInterval(() => {
+                const elapsed = Math.round((Date.now() - testStartTime) / 1000);
+                document.getElementById('totalDuration').innerHTML = `Загальний час: <strong>${elapsed}s</strong>`;
+            }, 1000);
+
+            testData = { channelId, topic, durationInterval };
+
+            try {
+                // Mark all steps as running
+                ['step-get-channel', 'step-theme', 'step-narrative', 'step-audio', 'step-save'].forEach(stepId => {
+                    updateStepStatus(stepId, 'running', 'Виконується...');
+                });
+
+                console.log('🚀 Calling debug-test-runner Lambda...');
+
+                // Call debug-test-runner Lambda function
+                const response = await fetch(DEBUG_API_URL, {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json'
+                    },
+                    body: JSON.stringify({
+                        channel_id: channelId,
+                        topic: topic || undefined
+                    })
+                });
+
+                const result = await response.json();
+                console.log('📦 Result:', result);
+
+                // Parse response (check if it's wrapped in 'body')
+                let testResult;
+                if (result.body) {
+                    testResult = typeof result.body === 'string' ? JSON.parse(result.body) : result.body;
+                } else {
+                    testResult = result;
+                }
+
+                if (!testResult.success) {
+                    throw new Error(testResult.error || 'Test failed');
+                }
+
+                // Display results for each step
+                displayStepResults(testResult.steps);
+
+                // Store final data
+                testData = {
+                    ...testData,
+                    result: testResult
+                };
+
+                // Show summary
+                showSummaryFromResult(testResult);
+
+            } catch (error) {
+                console.error('Test failed:', error);
+
+                // Mark all running steps as failed
+                ['step-get-channel', 'step-theme', 'step-narrative', 'step-audio', 'step-save'].forEach(stepId => {
+                    const step = document.getElementById(stepId);
+                    if (step.classList.contains('running')) {
+                        updateStepStatus(stepId, 'failed', 'Помилка');
+                    }
+                });
+
+                showSummary('failed', error.message);
+            } finally {
+                clearInterval(durationInterval);
+                document.getElementById('startTestBtn').disabled = false;
+            }
+        }
+
+        // Display results from debug-test-runner response
+        function displayStepResults(steps) {
+            const stepMapping = {
+                'get-channel-config': 'step-get-channel',
+                'generate-theme': 'step-theme',
+                'generate-narrative': 'step-narrative',
+                'generate-audio': 'step-audio',
+                'save-result': 'step-save'
+            };
+
+            steps.forEach(step => {
+                const stepId = stepMapping[step.step_name];
+                if (!stepId) return;
+
+                // Update status
+                updateStepStatus(
+                    stepId,
+                    step.status,
+                    step.status === 'completed' ? `Завершено (${step.duration_ms}ms)` : 'Помилка'
+                );
+
+                // Show body
+                document.getElementById(stepId + '-body').style.display = 'block';
+
+                // Display input
+                const inputEl = document.getElementById(stepId + '-input');
+                if (inputEl) {
+                    inputEl.textContent = JSON.stringify(step.input, null, 2);
+                }
+
+                // Display output
+                const outputEl = document.getElementById(stepId + '-output');
+                if (outputEl && step.output) {
+                    outputEl.textContent = JSON.stringify(step.output, null, 2);
+                }
+
+                // Display stats and cost if available
+                if (step.output) {
+                    // For narrative step
+                    if (stepId === 'step-narrative') {
+                        const statsEl = document.getElementById('step-narrative-stats');
+                        if (statsEl && step.output.scene_count !== undefined) {
+                            statsEl.textContent = `Scenes: ${step.output.scene_count}\nCharacters: ${step.output.character_count || 0}`;
+                        }
+                        const costEl = document.getElementById('step-narrative-cost');
+                        if (costEl && step.output.cost_usd !== undefined) {
+                            costEl.textContent = `Cost: $${step.output.cost_usd}\nTokens: ${step.output.tokens_used || 0}`;
+                        }
+                    }
+
+                    // For theme step
+                    if (stepId === 'step-theme') {
+                        const costEl = document.getElementById('step-theme-cost');
+                        if (costEl && step.output.cost_usd !== undefined) {
+                            costEl.textContent = `Cost: $${step.output.cost_usd}\nTokens: ${step.output.tokens_used || 0}`;
+                        }
+                    }
+
+                    // For audio step
+                    if (stepId === 'step-audio') {
+                        const configEl = document.getElementById('step-audio-config');
+                        if (configEl && step.output.voice_id) {
+                            configEl.textContent = `Voice: ${step.output.voice_id}\nService: ${step.output.tts_service || 'AWS Polly Neural'}`;
+                        }
+                        const costEl = document.getElementById('step-audio-cost');
+                        if (costEl && step.output.cost_usd !== undefined) {
+                            costEl.textContent = `Cost: $${step.output.cost_usd}\nDuration: ${step.output.total_duration_sec || 0}s`;
+                        }
+                    }
+                }
+            });
+        }
+
+        // Show summary from test result
+        function showSummaryFromResult(testResult) {
+            const summary = document.getElementById('testSummary');
+            summary.style.display = 'block';
+
+            const summ = testResult.summary;
+
+            document.getElementById('summaryStatus').textContent = '✅ Успішно';
+            document.getElementById('summaryStatus').style.color = 'var(--success-color)';
+            document.getElementById('summaryDuration').textContent = `${summ.total_duration_sec}s`;
+            document.getElementById('summaryCost').textContent = `$${summ.total_cost_usd.toFixed(6)}`;
+            document.getElementById('summaryScenes').textContent = summ.scene_count || 0;
+
+            // Scroll to summary
+            summary.scrollIntoView({ behavior: 'smooth' });
+        }
+
+        function updateStepStatus(stepId, status, statusText) {
+            const step = document.getElementById(stepId);
+            const icon = step.querySelector('.step-icon');
+            const statusBadge = step.querySelector('.step-status');
+
+            // Remove all status classes
+            step.classList.remove('pending', 'running', 'completed', 'failed');
+            icon.classList.remove('pending', 'running', 'completed', 'failed');
+            statusBadge.classList.remove('pending', 'running', 'completed', 'failed');
+
+            // Add new status
+            step.classList.add(status);
+            icon.classList.add(status);
+            statusBadge.classList.add(status);
+            statusBadge.textContent = statusText;
+        }
+
+        function showSummary(status, errorMessage) {
+            const summary = document.getElementById('testSummary');
+            summary.style.display = 'block';
+
+            const totalDuration = Math.round((Date.now() - testStartTime) / 1000);
+            const totalCost = (testData.theme?.cost_usd || 0) + (testData.narrative?.cost_usd || 0) + (testData.audio?.cost_usd || 0);
+
+            document.getElementById('summaryStatus').textContent = status === 'success' ? '✅ Успішно' : '❌ Помилка';
+            document.getElementById('summaryStatus').style.color = status === 'success' ? 'var(--success-color)' : 'var(--danger-color)';
+            document.getElementById('summaryDuration').textContent = `${totalDuration}s`;
+            document.getElementById('summaryCost').textContent = `$${totalCost.toFixed(6)}`;
+            document.getElementById('summaryScenes').textContent = testData.narrative?.scene_count || 0;
+
+            if (errorMessage) {
+                document.getElementById('summaryStatus').innerHTML += `<br><small>${errorMessage}</small>`;
+            }
+
+            // Scroll to summary
+            summary.scrollIntoView({ behavior: 'smooth' });
+        }
+
+        function resetTest(fullReset = true) {
+            if (fullReset) {
+                testData = {};
+                testStartTime = null;
+                document.getElementById('totalDuration').style.display = 'none';
+                document.getElementById('testSummary').style.display = 'none';
+                document.getElementById('resetBtn').style.display = 'none';
+            }
+
+            // Reset all steps
+            ['step-get-channel', 'step-theme', 'step-narrative', 'step-audio', 'step-save'].forEach(stepId => {
+                updateStepStatus(stepId, 'pending', 'Очікування');
+                document.getElementById(stepId + '-body').style.display = 'none';
+            });
+        }
+
+        function toggleExpand(elementId) {
+            const element = document.getElementById(elementId);
+            if (element.style.maxHeight === 'none') {
+                element.style.maxHeight = '300px';
+            } else {
+                element.style.maxHeight = 'none';
+            }
+        }
+
+        // ====== INITIALIZATION ======
+
         // Close modal when clicking outside
         document.getElementById('executionModal').addEventListener('click', function(e) {
             if (e.target === this) {
@@ -585,17 +1374,33 @@
             }
         });
 
-        // Auto-refresh every 30 seconds
+        // Auto-refresh monitoring tab every 30 seconds
         setInterval(() => {
-            refreshExecutions();
-            refreshLogs();
+            const activeTab = document.querySelector('.nav-link.active');
+            if (activeTab && activeTab.id === 'monitoring-tab') {
+                refreshExecutions();
+                refreshLogs();
+            }
         }, 30000);
 
-        // Initial load
+        // Load initial data for monitoring tab
         refreshExecutions();
         refreshLogs();
-    </script>
 
-    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+        // Load channels for debug tab
+        loadChannels();
+
+        // Listen to tab changes to load data when switching
+        document.querySelectorAll('button[data-bs-toggle="tab"]').forEach(tab => {
+            tab.addEventListener('shown.bs.tab', (event) => {
+                if (event.target.id === 'monitoring-tab') {
+                    refreshExecutions();
+                    refreshLogs();
+                } else if (event.target.id === 'debug-tab') {
+                    loadChannels();
+                }
+            });
+        });
+    </script>
 </body>
 </html>

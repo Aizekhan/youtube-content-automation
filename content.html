@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Content Browser - YouTube Automation</title>
+    <title>Content Pipeline - YouTube Automation</title>
     <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
     <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.0/font/bootstrap-icons.css">
     <link rel="stylesheet" href="css/unified-navigation.css">
@@ -27,62 +27,6 @@
             font-family: 'Inter', -apple-system, BlinkMacSystemFont, sans-serif;
         }
 
-        .navbar {
-            background: rgba(34, 38, 58, 0.95) !important;
-            backdrop-filter: blur(10px);
-            border-bottom: 1px solid rgba(102, 126, 234, 0.2);
-        }
-
-        .nav-menu {
-            background: var(--card-bg);
-            border-radius: 12px;
-            padding: 0.5rem;
-            margin-bottom: 2rem;
-        }
-
-        .nav-menu a {
-            color: var(--text-secondary);
-            text-decoration: none;
-            padding: 0.75rem 1.5rem;
-            border-radius: 8px;
-            transition: all 0.3s ease;
-            display: inline-block;
-            margin: 0.25rem;
-        }
-
-        .nav-menu a:hover {
-            background: rgba(102, 126, 234, 0.2);
-            color: var(--text-primary);
-        }
-
-        .nav-menu a.active {
-            background: linear-gradient(135deg, var(--primary-color), var(--secondary-color));
-            color: white;
-        }
-
-        .card {
-            background: var(--card-bg);
-            border: 1px solid rgba(102, 126, 234, 0.2);
-            border-radius: 16px;
-            margin-bottom: 1.5rem;
-        }
-
-        .card-header {
-            background: transparent;
-            border-bottom: 1px solid rgba(102, 126, 234, 0.2);
-            padding: 1.25rem;
-            font-weight: 600;
-            font-size: 1.1rem;
-        }
-
-        .filters-bar {
-            background: var(--card-bg);
-            border: 1px solid rgba(102, 126, 234, 0.2);
-            border-radius: 12px;
-            padding: 1.5rem;
-            margin-bottom: 1.5rem;
-        }
-
         .content-item {
             background: var(--card-bg);
             border: 1px solid rgba(102, 126, 234, 0.2);
@@ -99,64 +43,232 @@
             box-shadow: 0 4px 12px rgba(102, 126, 234, 0.2);
         }
 
-        .content-title {
-            font-size: 1.2rem;
-            font-weight: 600;
-            margin-bottom: 0.5rem;
-            color: var(--text-primary);
+        /* Pipeline Modal */
+        .pipeline-modal .modal-dialog {
+            max-width: 1200px;
         }
 
-        .content-meta {
-            color: var(--text-secondary);
-            font-size: 0.85rem;
-            margin-bottom: 1rem;
+        .pipeline-modal .modal-content {
+            background: var(--card-bg);
+            border: 1px solid rgba(102, 126, 234, 0.3);
         }
 
-        .content-preview {
-            color: var(--text-secondary);
-            line-height: 1.6;
-            max-height: 100px;
-            overflow: hidden;
-            position: relative;
+        /* Progress Bar */
+        .pipeline-progress {
+            margin-bottom: 2rem;
         }
 
-        .content-preview::after {
-            content: '';
-            position: absolute;
-            bottom: 0;
-            left: 0;
-            right: 0;
-            height: 30px;
-            background: linear-gradient(transparent, var(--card-bg));
+        .progress {
+            height: 8px;
+            background: rgba(102, 126, 234, 0.2);
+            border-radius: 10px;
         }
 
-        .type-badge {
-            padding: 0.25rem 0.75rem;
-            border-radius: 8px;
+        .progress-bar {
+            background: linear-gradient(90deg, var(--primary-color), var(--secondary-color));
+            transition: width 0.6s ease;
+        }
+
+        .stages-indicator {
+            display: flex;
+            justify-content: space-between;
+            margin-top: 1rem;
+        }
+
+        .stage-dot {
+            width: 32px;
+            height: 32px;
+            border-radius: 50%;
+            background: rgba(102, 126, 234, 0.2);
+            border: 2px solid rgba(102, 126, 234, 0.3);
+            display: flex;
+            align-items: center;
+            justify-content: center;
             font-size: 0.75rem;
-            font-weight: 600;
-            margin-right: 0.5rem;
-        }
-
-        .type-theme {
-            background: linear-gradient(135deg, #3b82f6, #2563eb);
-            color: white;
-        }
-
-        .type-narrative {
-            background: linear-gradient(135deg, var(--success-color), #059669);
-            color: white;
-        }
-
-        .btn-primary {
-            background: linear-gradient(135deg, var(--primary-color), var(--secondary-color));
-            border: none;
             transition: all 0.3s ease;
         }
 
-        .btn-primary:hover {
+        .stage-dot.completed {
+            background: var(--success-color);
+            border-color: var(--success-color);
+            color: white;
+        }
+
+        .stage-dot.in-progress {
+            background: var(--warning-color);
+            border-color: var(--warning-color);
+            color: white;
+            animation: pulse 1.5s ease-in-out infinite;
+        }
+
+        @keyframes pulse {
+            0%, 100% { transform: scale(1); }
+            50% { transform: scale(1.1); }
+        }
+
+        /* Pipeline Tabs */
+        .pipeline-tabs .nav-pills {
+            background: rgba(30, 34, 50, 0.5);
+            border-radius: 12px;
+            padding: 0.5rem;
+            margin-bottom: 1.5rem;
+        }
+
+        .pipeline-tabs .nav-link {
+            color: var(--text-secondary);
+            border-radius: 8px;
+            padding: 0.75rem 1rem;
+            margin: 0.25rem;
+            transition: all 0.3s ease;
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
+        }
+
+        .pipeline-tabs .nav-link:hover {
+            background: rgba(102, 126, 234, 0.2);
+            color: var(--text-primary);
+        }
+
+        .pipeline-tabs .nav-link.active {
+            background: linear-gradient(135deg, var(--primary-color), var(--secondary-color));
+            color: white;
+        }
+
+        .pipeline-tabs .stage-status {
+            width: 16px;
+            height: 16px;
+            border-radius: 50%;
+            border: 2px solid currentColor;
+        }
+
+        .pipeline-tabs .stage-status.completed {
+            background: var(--success-color);
+            border-color: var(--success-color);
+        }
+
+        .pipeline-tabs .stage-status.pending {
+            background: transparent;
+            border-color: var(--text-secondary);
+        }
+
+        /* Content Sections */
+        .content-section {
+            background: rgba(30, 34, 50, 0.5);
+            border: 1px solid rgba(102, 126, 234, 0.2);
+            border-radius: 12px;
+            padding: 1.5rem;
+            margin-bottom: 1rem;
+        }
+
+        .section-header {
+            display: flex;
+            justify-content: between;
+            align-items: center;
+            margin-bottom: 1rem;
+            padding-bottom: 0.75rem;
+            border-bottom: 1px solid rgba(102, 126, 234, 0.2);
+        }
+
+        .section-title {
+            font-size: 1.125rem;
+            font-weight: 600;
+            color: var(--text-primary);
+            margin: 0;
+        }
+
+        .status-badge {
+            padding: 0.25rem 0.75rem;
+            border-radius: 12px;
+            font-size: 0.75rem;
+            font-weight: 600;
+            text-transform: uppercase;
+        }
+
+        .status-completed {
+            background: rgba(16, 185, 129, 0.2);
+            color: var(--success-color);
+        }
+
+        .status-pending {
+            background: rgba(148, 163, 184, 0.2);
+            color: var(--text-secondary);
+        }
+
+        .status-in-progress {
+            background: rgba(245, 158, 11, 0.2);
+            color: var(--warning-color);
+        }
+
+        /* Image Preview */
+        .image-preview {
+            max-width: 100%;
+            border-radius: 8px;
+            border: 1px solid rgba(102, 126, 234, 0.2);
+        }
+
+        .image-placeholder {
+            background: rgba(0, 0, 0, 0.3);
+            border: 2px dashed rgba(102, 126, 234, 0.3);
+            border-radius: 8px;
+            min-height: 300px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            flex-direction: column;
+            color: var(--text-secondary);
+        }
+
+        /* Audio Player */
+        .audio-player {
+            background: rgba(102, 126, 234, 0.1);
+            padding: 1rem;
+            border-radius: 8px;
+            margin-bottom: 1rem;
+        }
+
+        audio {
+            width: 100%;
+            margin-top: 0.5rem;
+        }
+
+        /* Scene Card */
+        .scene-card {
+            background: rgba(15, 23, 42, 0.5);
+            border: 1px solid rgba(102, 126, 234, 0.2);
+            border-radius: 8px;
+            padding: 1rem;
+            margin-bottom: 1rem;
+        }
+
+        .scene-header {
+            color: var(--primary-color);
+            font-weight: 600;
+            margin-bottom: 0.75rem;
+        }
+
+        /* Upload Button */
+        .upload-btn {
+            background: linear-gradient(135deg, var(--primary-color), var(--secondary-color));
+            border: none;
+            color: white;
+            padding: 0.75rem 1.5rem;
+            border-radius: 8px;
+            transition: all 0.3s ease;
+        }
+
+        .upload-btn:hover {
             transform: translateY(-2px);
             box-shadow: 0 4px 12px rgba(102, 126, 234, 0.4);
+        }
+
+        /* Filters */
+        .filters-bar {
+            background: var(--card-bg);
+            border: 1px solid rgba(102, 126, 234, 0.2);
+            border-radius: 12px;
+            padding: 1.5rem;
+            margin-bottom: 1.5rem;
         }
 
         .form-control, .form-select {
@@ -170,39 +282,6 @@
             border-color: var(--primary-color);
             color: var(--text-primary);
             box-shadow: 0 0 0 0.2rem rgba(102, 126, 234, 0.25);
-        }
-
-        .modal-content {
-            background: var(--card-bg);
-            border: 1px solid rgba(102, 126, 234, 0.3);
-            color: var(--text-primary);
-        }
-
-        .modal-header {
-            border-bottom-color: rgba(102, 126, 234, 0.2);
-        }
-
-        .modal-footer {
-            border-top-color: rgba(102, 126, 234, 0.2);
-        }
-
-        .narrative-text {
-            background: rgba(30, 34, 50, 0.8);
-            border: 1px solid rgba(102, 126, 234, 0.2);
-            border-radius: 8px;
-            padding: 1rem;
-            line-height: 1.8;
-            white-space: pre-wrap;
-            max-height: 400px;
-            overflow-y: auto;
-        }
-
-        .scene-item {
-            background: rgba(30, 34, 50, 0.5);
-            border-left: 3px solid var(--primary-color);
-            padding: 1rem;
-            margin-bottom: 1rem;
-            border-radius: 4px;
         }
 
         .stat-card {
@@ -227,99 +306,13 @@
             font-size: 0.85rem;
             margin-top: 0.5rem;
         }
-
-        .scene-card {
-            background: rgba(30, 41, 59, 0.5);
-            border: 1px solid rgba(102, 126, 234, 0.2);
-            border-radius: 12px;
-            padding: 1.5rem;
-        }
-
-        .scene-header {
-            color: var(--primary-color);
-            margin-bottom: 1rem;
-            padding-bottom: 0.5rem;
-            border-bottom: 1px solid rgba(102, 126, 234, 0.2);
-        }
-
-        .scene-body {
-            display: grid;
-            gap: 1rem;
-        }
-
-        .scene-image-placeholder {
-            background: rgba(0, 0, 0, 0.3);
-            border: 2px dashed rgba(102, 126, 234, 0.3);
-            border-radius: 8px;
-            min-height: 200px;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            text-align: center;
-        }
-
-        .scene-image {
-            width: 100%;
-            border-radius: 8px;
-        }
-
-        .image-placeholder-text {
-            color: var(--text-secondary);
-        }
-
-        .scene-text {
-            color: var(--text-secondary);
-            line-height: 1.6;
-        }
-
-        .scene-audio {
-            background: rgba(102, 126, 234, 0.1);
-            padding: 1rem;
-            border-radius: 8px;
-        }
-
-        .scene-audio-placeholder {
-            background: rgba(148, 163, 184, 0.1);
-            padding: 1rem;
-            border-radius: 8px;
-            text-align: center;
-            color: var(--text-secondary);
-        }
-
-        audio::-webkit-media-controls-panel {
-            background-color: rgba(30, 41, 59, 0.9);
-        }
     </style>
 </head>
 <body>
-    <!-- Unified Navigation -->
-    <nav class="nav-container">
-        <div class="nav-wrapper">
-            <div class="nav-bar">
-                <a href="index.html" class="nav-link">
-                    <i class="bi bi-house-door"></i> Home
-                </a>
-                <a href="dashboard.html" class="nav-link">
-                    <i class="bi bi-speedometer2"></i> Dashboard
-                </a>
-                <a href="channels.html" class="nav-link">
-                    <i class="bi bi-collection"></i> Channels
-                </a>
-                <a href="content.html" class="nav-link active">
-                    <i class="bi bi-file-earmark-text"></i> Content
-                </a>
-                <a href="costs.html" class="nav-link">
-                    <i class="bi bi-currency-dollar"></i> Costs
-                </a>
-                <a href="prompts-editor.html" class="nav-link">
-                    <i class="bi bi-pencil-square"></i> Prompts
-                </a>
-            </div>
-        </div>
-    </nav>
+    <!-- Unified Navigation (loaded from js/navigation.js) -->
+    <div id="navigation-placeholder"></div>
 
     <div class="container mt-4">
-
         <!-- Stats Row -->
         <div class="row mb-4">
             <div class="col-md-3">
@@ -331,7 +324,7 @@
             <div class="col-md-3">
                 <div class="stat-card">
                     <div class="stat-value text-info" id="themesCount">-</div>
-                    <div class="stat-label">Theme Generations</div>
+                    <div class="stat-label">Themes</div>
                 </div>
             </div>
             <div class="col-md-3">
@@ -352,17 +345,18 @@
         <div class="filters-bar">
             <div class="row g-3">
                 <div class="col-md-3">
-                    <label class="form-label">Type</label>
-                    <select class="form-select" id="filterType" onchange="applyFilters()">
-                        <option value="">All Types</option>
-                        <option value="theme_generation">Theme Generation</option>
-                        <option value="narrative_generation">Narrative</option>
-                    </select>
-                </div>
-                <div class="col-md-3">
                     <label class="form-label">Channel</label>
                     <select class="form-select" id="filterChannel" onchange="applyFilters()">
                         <option value="">All Channels</option>
+                    </select>
+                </div>
+                <div class="col-md-3">
+                    <label class="form-label">Status</label>
+                    <select class="form-select" id="filterStatus" onchange="applyFilters()">
+                        <option value="">All Status</option>
+                        <option value="completed">Completed</option>
+                        <option value="in_progress">In Progress</option>
+                        <option value="pending">Pending</option>
                     </select>
                 </div>
                 <div class="col-md-3">
@@ -383,9 +377,6 @@
                 <button class="btn btn-primary btn-sm" onclick="refreshContent()">
                     <i class="bi bi-arrow-clockwise"></i> Refresh
                 </button>
-                <button class="btn btn-success btn-sm" onclick="exportData()">
-                    <i class="bi bi-download"></i> Export JSON
-                </button>
             </div>
         </div>
 
@@ -396,26 +387,229 @@
                 <p class="mt-3">Loading content...</p>
             </div>
         </div>
-
-        <!-- Pagination -->
-        <nav id="pagination" class="d-none">
-            <ul class="pagination justify-content-center">
-            </ul>
-        </nav>
     </div>
 
-    <!-- Content Details Modal -->
-    <div class="modal fade" id="contentModal" tabindex="-1">
-        <div class="modal-dialog modal-lg modal-dialog-scrollable">
+    <!-- Pipeline Modal -->
+    <div class="modal fade pipeline-modal" id="pipelineModal" tabindex="-1">
+        <div class="modal-dialog modal-xl modal-dialog-scrollable">
             <div class="modal-content">
                 <div class="modal-header">
-                    <h5 class="modal-title" id="modalTitle">Content Details</h5>
+                    <h5 class="modal-title" id="modalTitle">Production Pipeline</h5>
                     <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal"></button>
                 </div>
-                <div class="modal-body" id="modalBody">
-                    <!-- Content will be loaded here -->
+                <div class="modal-body">
+                    <!-- Progress Bar -->
+                    <div class="pipeline-progress">
+                        <div class="progress">
+                            <div class="progress-bar" id="progressBar" role="progressbar" style="width: 0%"></div>
+                        </div>
+                        <div class="stages-indicator mt-3">
+                            <div class="text-center">
+                                <div class="stage-dot" id="dot-1" data-stage="1">1</div>
+                                <small class="d-block mt-1 text-muted">Overview</small>
+                            </div>
+                            <div class="text-center">
+                                <div class="stage-dot" id="dot-2" data-stage="2">2</div>
+                                <small class="d-block mt-1 text-muted">Thumbnail</small>
+                            </div>
+                            <div class="text-center">
+                                <div class="stage-dot" id="dot-3" data-stage="3">3</div>
+                                <small class="d-block mt-1 text-muted">Story</small>
+                            </div>
+                            <div class="text-center">
+                                <div class="stage-dot" id="dot-4" data-stage="4">4</div>
+                                <small class="d-block mt-1 text-muted">Voice</small>
+                            </div>
+                            <div class="text-center">
+                                <div class="stage-dot" id="dot-5" data-stage="5">5</div>
+                                <small class="d-block mt-1 text-muted">CTA</small>
+                            </div>
+                            <div class="text-center">
+                                <div class="stage-dot" id="dot-6" data-stage="6">6</div>
+                                <small class="d-block mt-1 text-muted">Audio</small>
+                            </div>
+                            <div class="text-center">
+                                <div class="stage-dot" id="dot-7" data-stage="7">7</div>
+                                <small class="d-block mt-1 text-muted">Visuals</small>
+                            </div>
+                            <div class="text-center">
+                                <div class="stage-dot" id="dot-8" data-stage="8">8</div>
+                                <small class="d-block mt-1 text-muted">Video</small>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Pipeline Tabs -->
+                    <div class="pipeline-tabs">
+                        <ul class="nav nav-pills" id="pipelineTabs" role="tablist">
+                            <li class="nav-item" role="presentation">
+                                <button class="nav-link active" id="overview-tab" data-bs-toggle="pill" data-bs-target="#overview" type="button">
+                                    <span class="stage-status" id="status-1"></span>
+                                    <span>📋 Overview</span>
+                                </button>
+                            </li>
+                            <li class="nav-item" role="presentation">
+                                <button class="nav-link" id="thumbnail-tab" data-bs-toggle="pill" data-bs-target="#thumbnail" type="button">
+                                    <span class="stage-status" id="status-2"></span>
+                                    <span>🎨 Thumbnail</span>
+                                </button>
+                            </li>
+                            <li class="nav-item" role="presentation">
+                                <button class="nav-link" id="story-tab" data-bs-toggle="pill" data-bs-target="#story" type="button">
+                                    <span class="stage-status" id="status-3"></span>
+                                    <span>📝 Story</span>
+                                </button>
+                            </li>
+                            <li class="nav-item" role="presentation">
+                                <button class="nav-link" id="voice-tab" data-bs-toggle="pill" data-bs-target="#voice" type="button">
+                                    <span class="stage-status" id="status-4"></span>
+                                    <span>🎙️ Voice</span>
+                                </button>
+                            </li>
+                            <li class="nav-item" role="presentation">
+                                <button class="nav-link" id="cta-tab" data-bs-toggle="pill" data-bs-target="#cta" type="button">
+                                    <span class="stage-status" id="status-5"></span>
+                                    <span>📢 CTA</span>
+                                </button>
+                            </li>
+                            <li class="nav-item" role="presentation">
+                                <button class="nav-link" id="audio-tab" data-bs-toggle="pill" data-bs-target="#audio" type="button">
+                                    <span class="stage-status" id="status-6"></span>
+                                    <span>🎵 Audio</span>
+                                </button>
+                            </li>
+                            <li class="nav-item" role="presentation">
+                                <button class="nav-link" id="visuals-tab" data-bs-toggle="pill" data-bs-target="#visuals" type="button">
+                                    <span class="stage-status" id="status-7"></span>
+                                    <span>🖼️ Visuals</span>
+                                </button>
+                            </li>
+                            <li class="nav-item" role="presentation">
+                                <button class="nav-link" id="video-tab" data-bs-toggle="pill" data-bs-target="#video" type="button">
+                                    <span class="stage-status" id="status-8"></span>
+                                    <span>🎬 Video</span>
+                                </button>
+                            </li>
+                        </ul>
+
+                        <!-- Tab Content -->
+                        <div class="tab-content" id="pipelineTabContent">
+                            <!-- Overview Tab -->
+                            <div class="tab-pane fade show active" id="overview" role="tabpanel">
+                                <div class="content-section">
+                                    <div class="section-header">
+                                        <h5 class="section-title">📋 Content Overview</h5>
+                                    </div>
+                                    <div id="overviewContent"></div>
+                                </div>
+                            </div>
+
+                            <!-- Thumbnail Tab -->
+                            <div class="tab-pane fade" id="thumbnail" role="tabpanel">
+                                <div class="content-section">
+                                    <div class="section-header">
+                                        <h5 class="section-title">🎨 YouTube Thumbnail</h5>
+                                        <span class="status-badge" id="thumbnail-status">pending</span>
+                                    </div>
+                                    <div id="thumbnailContent">
+                                        <div class="image-placeholder">
+                                            <i class="bi bi-image" style="font-size: 3rem; opacity: 0.3;"></i>
+                                            <p class="mt-2">No thumbnail generated yet</p>
+                                            <button class="btn upload-btn mt-3">
+                                                <i class="bi bi-cloud-upload"></i> Generate Thumbnail
+                                            </button>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+
+                            <!-- Story Tab -->
+                            <div class="tab-pane fade" id="story" role="tabpanel">
+                                <div class="content-section">
+                                    <div class="section-header">
+                                        <h5 class="section-title">📝 Story & Narrative</h5>
+                                        <span class="status-badge" id="story-status">pending</span>
+                                    </div>
+                                    <div id="storyContent"></div>
+                                </div>
+                            </div>
+
+                            <!-- Voice Tab -->
+                            <div class="tab-pane fade" id="voice" role="tabpanel">
+                                <div class="content-section">
+                                    <div class="section-header">
+                                        <h5 class="section-title">🎙️ Voice Over (TTS)</h5>
+                                        <span class="status-badge" id="voice-status">pending</span>
+                                    </div>
+                                    <div id="voiceContent"></div>
+                                </div>
+                            </div>
+
+                            <!-- CTA Tab -->
+                            <div class="tab-pane fade" id="cta" role="tabpanel">
+                                <div class="content-section">
+                                    <div class="section-header">
+                                        <h5 class="section-title">📢 Call to Action</h5>
+                                        <span class="status-badge" id="cta-status">pending</span>
+                                    </div>
+                                    <div id="ctaContent">
+                                        <div class="alert alert-info">
+                                            <i class="bi bi-info-circle"></i>
+                                            Call to action audio (e.g., "Subscribe and hit the bell!")
+                                        </div>
+                                        <button class="btn upload-btn">
+                                            <i class="bi bi-mic"></i> Generate CTA
+                                        </button>
+                                    </div>
+                                </div>
+                            </div>
+
+                            <!-- Audio Tab -->
+                            <div class="tab-pane fade" id="audio" role="tabpanel">
+                                <div class="content-section">
+                                    <div class="section-header">
+                                        <h5 class="section-title">🎵 Background Music & SFX</h5>
+                                        <span class="status-badge" id="audio-status">pending</span>
+                                    </div>
+                                    <div id="audioContent">
+                                        <p class="text-muted">No background music added yet</p>
+                                        <button class="btn upload-btn">
+                                            <i class="bi bi-music-note-beamed"></i> Add Music
+                                        </button>
+                                    </div>
+                                </div>
+                            </div>
+
+                            <!-- Visuals Tab -->
+                            <div class="tab-pane fade" id="visuals" role="tabpanel">
+                                <div class="content-section">
+                                    <div class="section-header">
+                                        <h5 class="section-title">🖼️ Scene Images</h5>
+                                        <span class="status-badge" id="visuals-status">pending</span>
+                                    </div>
+                                    <div id="visualsContent"></div>
+                                </div>
+                            </div>
+
+                            <!-- Video Tab -->
+                            <div class="tab-pane fade" id="video" role="tabpanel">
+                                <div class="content-section">
+                                    <div class="section-header">
+                                        <h5 class="section-title">🎬 Final Video & Publishing</h5>
+                                        <span class="status-badge" id="video-status">pending</span>
+                                    </div>
+                                    <div id="videoContent">
+                                        <p class="text-muted">Video not rendered yet</p>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
                 </div>
                 <div class="modal-footer">
+                    <button type="button" class="btn btn-danger" onclick="deleteContent()">
+                        <i class="bi bi-trash"></i> Delete
+                    </button>
                     <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Close</button>
                     <button type="button" class="btn btn-primary" onclick="copyToClipboard()">
                         <i class="bi bi-clipboard"></i> Copy JSON
@@ -428,25 +622,26 @@
     <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
     <script>
         const API_URL = 'https://e2c5y2h1qj.execute-api.eu-central-1.amazonaws.com/prod';
+        const DELETE_API = 'https://z26amx2vfqpze53gryf745hv740durry.lambda-url.eu-central-1.on.aws';
         let allContent = [];
         let filteredContent = [];
         let currentContent = null;
         let channelsMap = {};
 
-        // Load channels to map IDs to names
+        // Load channels
         async function loadChannels() {
             try {
                 const response = await fetch('/api/channels.php');
                 const data = await response.json();
                 const channels = Array.isArray(data) ? data : (data.channels || []);
-                
+
                 channels.forEach(ch => {
                     channelsMap[ch.channel_id] = {
                         name: ch.channel_title || ch.channel_name || ch.channel_id,
                         title: ch.channel_title
                     };
                 });
-                
+
                 console.log('Loaded', Object.keys(channelsMap).length, 'channels');
             } catch (error) {
                 console.error('Failed to load channels:', error);
@@ -455,17 +650,15 @@
 
         async function refreshContent() {
             try {
-                // Load channels first if not loaded
                 if (Object.keys(channelsMap).length === 0) {
                     await loadChannels();
                 }
-                
+
                 const response = await fetch(`${API_URL}/content/list`);
                 const data = await response.json();
 
                 allContent = data.content || [];
-                
-                // Add channel_name to each content item
+
                 allContent.forEach(item => {
                     if (item.channel_id && channelsMap[item.channel_id]) {
                         item.channel_name = channelsMap[item.channel_id].name;
@@ -473,19 +666,9 @@
                         item.channel_name = item.channel_id || 'Unknown Channel';
                     }
                 });
-                
+
                 updateStats(data.stats || {});
                 populateChannelFilter();
-                
-                // Check for channel parameter in URL
-                const urlParams = new URLSearchParams(window.location.search);
-                const channelParam = urlParams.get('channel');
-                if (channelParam && channelsMap[channelParam]) {
-                    const channelSelect = document.getElementById('filterChannel');
-                    const channelName = channelsMap[channelParam].name;
-                    channelSelect.value = channelName;
-                }
-                
                 applyFilters();
             } catch (error) {
                 console.error('Error loading content:', error);
@@ -496,6 +679,7 @@
                 `;
             }
         }
+
         function updateStats(stats) {
             document.getElementById('totalContent').textContent = stats.total || 0;
             document.getElementById('themesCount').textContent = stats.themes || 0;
@@ -504,80 +688,21 @@
         }
 
         function populateChannelFilter() {
-            // Use channelsMap to show ALL channels, not just those with content
             const channelsList = Object.values(channelsMap).map(ch => ch.name);
             const select = document.getElementById("filterChannel");
             select.innerHTML = '<option value="">All Channels</option>' +
                 channelsList.sort().map(ch => `<option value="${ch}">${ch}</option>`).join("");
         }
 
-        function updateFilteredStats() {
-
-
-            // Calculate stats from filtered content
-
-
-            const stats = {
-
-
-                total: filteredContent.length,
-
-
-                themes: filteredContent.filter(c => c.type === 'theme_generation').length,
-
-
-                narratives: filteredContent.filter(c => c.type === 'narrative_generation').length,
-
-
-                today: filteredContent.filter(c => {
-
-
-                    const itemDate = new Date(c.created_at);
-
-
-                    const now = new Date();
-
-
-                    return itemDate.toDateString() === now.toDateString();
-
-
-                }).length
-
-
-            };
-
-
-            
-
-
-            // Update the stats display
-
-
-            document.getElementById('totalContent').textContent = stats.total;
-
-
-            document.getElementById('themesCount').textContent = stats.themes;
-
-
-            document.getElementById('narrativesCount').textContent = stats.narratives;
-
-
-            document.getElementById('todayCount').textContent = stats.today;
-
-
-        }
-
-
-
         function applyFilters() {
-            const type = document.getElementById('filterType').value;
             const channel = document.getElementById('filterChannel').value;
+            const status = document.getElementById('filterStatus').value;
             const date = document.getElementById('filterDate').value;
             const search = document.getElementById('filterSearch').value.toLowerCase();
 
             filteredContent = allContent.filter(item => {
-                if (type && item.type !== type) return false;
                 if (channel && item.channel_name !== channel) return false;
+                if (status && item.pipeline_status?.overall_status !== status) return false;
                 if (search && !JSON.stringify(item).toLowerCase().includes(search)) return false;
                 if (date) {
                     const itemDate = new Date(item.created_at);
@@ -590,9 +715,6 @@
             });
 
             displayContent();
-
-
-            updateFilteredStats();
         }
 
         function displayContent() {
@@ -607,36 +729,25 @@
             }
 
             const html = filteredContent.map(item => {
-                const typeBadge = item.type === 'theme_generation' ? 'type-theme' : 'type-narrative';
-                const typeLabel = item.type === 'theme_generation' ? 'THEME' : 'NARRATIVE';
-                const preview = item.type === 'narrative_generation'
-                    ? (item.narrative_text || '').substring(0, 200)
-                    : (item.generated_titles || []).join(', ');
+                const progress = item.pipeline_status?.progress_percentage || 0;
+                const status = item.pipeline_status?.overall_status || 'pending';
 
                 return `
-                    <div class="content-item" onclick="showDetails('${item.channel_id}_${item.created_at}')">
+                    <div class="content-item" onclick="showPipeline('${item.channel_id}_${item.created_at}')">
                         <div class="d-flex justify-content-between align-items-start mb-2">
                             <div>
-                                <span class="type-badge ${typeBadge}">${typeLabel}</span>
-                                <span class="text-secondary small">
-                                    <i class="bi bi-calendar"></i> ${formatDate(item.created_at)}
-                                </span>
+                                <h5 class="mb-1">${item.story_title || item.channel_name || 'Untitled'}</h5>
+                                <small class="text-secondary">
+                                    <i class="bi bi-calendar"></i> ${formatDate(item.created_at)} |
+                                    <i class="bi bi-collection-play"></i> ${item.channel_name}
+                                </small>
                             </div>
+                            <span class="status-badge status-${status}">${status}</span>
                         </div>
-                        <div class="content-title">
-                            ${item.story_title || item.channel_name || 'Untitled'}
+                        <div class="progress mb-2" style="height: 6px;">
+                            <div class="progress-bar" role="progressbar" style="width: ${progress}%"></div>
                         </div>
-                        <div class="content-meta">
-                            <i class="bi bi-collection-play"></i> ${item.channel_name || 'Unknown Channel'}
-                            ${item.genre ? ` | <i class="bi bi-tag"></i> ${item.genre}` : ''}
-                            ${item.character_count ? ` | <i class="bi bi-file-text"></i> ${item.character_count} chars` : ''}
-                            ${item.scene_count ? ` | <i class="bi bi-camera-video"></i> ${item.scene_count} scenes` : ''}
-                            ${item.has_audio ? ` | <i class="bi bi-volume-up text-success"></i> Audio` : ''}
-                            ${item.cost_usd ? ` | <i class="bi bi-cash-coin text-warning"></i> $${parseFloat(item.cost_usd).toFixed(4)}` : ''}
-                        </div>
-                        <div class="content-preview">
-                            ${preview}...
-                        </div>
+                        <small class="text-muted">Progress: ${progress}%</small>
                     </div>
                 `;
             }).join('');
@@ -644,104 +755,119 @@
             document.getElementById('contentList').innerHTML = html;
         }
 
-        function showDetails(id) {
+        function showPipeline(id) {
             const item = allContent.find(c => `${c.channel_id}_${c.created_at}` === id);
             if (!item) return;
 
             currentContent = item;
-            document.getElementById('modalTitle').textContent = item.story_title || item.channel_name || 'Content Details';
+            document.getElementById('modalTitle').textContent = item.story_title || 'Production Pipeline';
 
-            let body = `
+            // Update progress bar
+            const progress = item.pipeline_status?.progress_percentage || 0;
+            document.getElementById('progressBar').style.width = progress + '%';
+
+            // Update stage dots
+            const stages = item.pipeline_status?.stages || {};
+            for (let i = 1; i <= 8; i++) {
+                const dot = document.getElementById(`dot-${i}`);
+                const statusIndicator = document.getElementById(`status-${i}`);
+                const stageKey = `${i}_${['overview', 'thumbnail', 'story', 'voice', 'cta', 'audio', 'visuals', 'video'][i-1]}`;
+                const stageStatus = stages[stageKey]?.status || 'pending';
+
+                dot.className = 'stage-dot ' + stageStatus;
+                if (statusIndicator) {
+                    statusIndicator.className = 'stage-status ' + stageStatus;
+                }
+            }
+
+            // Populate overview
+            populateOverview(item);
+            populateStory(item);
+            populateVoice(item);
+
+            new bootstrap.Modal(document.getElementById('pipelineModal')).show();
+        }
+
+        function populateOverview(item) {
+            const html = `
+                <div class="row">
+                    <div class="col-md-6">
+                        <p><strong>Channel:</strong> ${item.channel_name}</p>
+                        <p><strong>Genre:</strong> ${item.metadata?.genre || 'N/A'}</p>
+                        <p><strong>Created:</strong> ${formatDate(item.created_at)}</p>
+                        <p><strong>Model:</strong> ${item.model || 'N/A'}</p>
+                    </div>
+                    <div class="col-md-6">
+                        <p><strong>Character Count:</strong> ${item.character_count || 0}</p>
+                        <p><strong>Scene Count:</strong> ${item.scene_count || 0}</p>
+                        <p><strong>Has Audio:</strong> ${item.has_audio ? '✅ Yes' : '❌ No'}</p>
+                        <p><strong>API Version:</strong> ${item.api_version || 'v1'}</p>
+                    </div>
+                </div>
+            `;
+            document.getElementById('overviewContent').innerHTML = html;
+        }
+
+        function populateStory(item) {
+            if (!item.narrative_text) {
+                document.getElementById('storyContent').innerHTML = '<p class="text-muted">No story content</p>';
+                return;
+            }
+
+            let html = `
                 <div class="mb-3">
-                    <strong>Type:</strong> ${item.type}<br>
-                    <strong>Channel:</strong> ${item.channel_name}<br>
-                    <strong>Genre:</strong> ${item.genre || 'N/A'}<br>
-                    <strong>Created:</strong> ${formatDate(item.created_at)}<br>
-                    <strong>Model:</strong> ${item.model || 'N/A'}
+                    <h6>Story Title:</h6>
+                    <p>${item.story_title || 'Untitled'}</p>
+                </div>
+                <div class="mb-3">
+                    <h6>Full Narrative:</h6>
+                    <div style="background: rgba(0,0,0,0.3); padding: 1rem; border-radius: 8px; max-height: 300px; overflow-y: auto; white-space: pre-wrap;">
+                        ${item.narrative_text}
+                    </div>
                 </div>
             `;
 
-            if (item.type === 'narrative_generation') {
-                body += `
-                    <h6>Narrative Text:</h6>
-                    <div class="narrative-text">${item.narrative_text || 'No text available'}</div>
-                `;
-
-                if (item.scenes && item.scenes.length > 0) {
-                    body += `<h6 class="mt-4">Scenes (${item.scenes.length}):</h6>`;
-                    item.scenes.forEach((scene, i) => {
-                        // Find corresponding audio file
-                        const audioFile = (item.audio_files || []).find(af => af.scene_id === scene.id);
-                        const imageFile = (item.image_files || []).find(img => img.scene_id === scene.id);
-
-                        body += `
-                            <div class="scene-card mb-3">
-                                <div class="scene-header">
-                                    <strong><i class="bi bi-camera-video"></i> Scene ${scene.id || (i + 1)}</strong>
-                                </div>
-                                <div class="scene-body">
-                                    <!-- Image placeholder -->
-                                    <div class="scene-image-placeholder">
-                                        ${imageFile
-                                            ? `<img src="${imageFile.s3_url}" alt="Scene ${scene.id}" class="scene-image">`
-                                            : `<div class="image-placeholder-text">
-                                                <i class="bi bi-image" style="font-size: 3rem; opacity: 0.3;"></i>
-                                                <div style="opacity: 0.5; margin-top: 0.5rem;">Image will appear here</div>
-                                            </div>`
-                                        }
-                                    </div>
-
-                                    <!-- Scene text -->
-                                    <div class="scene-text">
-                                        <p>${scene.paragraph_text || 'No text available'}</p>
-                                    </div>
-
-                                    <!-- Audio player -->
-                                    ${audioFile ? `
-                                        <div class="scene-audio">
-                                            <i class="bi bi-volume-up"></i>
-                                            <audio controls class="w-100 mt-2">
-                                                <source src="${audioFile.s3_url.replace('s3://', 'https://s3.eu-central-1.amazonaws.com/')}" type="audio/mpeg">
-                                                Your browser does not support the audio element.
-                                            </audio>
-                                            <small class="text-muted">Duration: ${(audioFile.duration_ms / 1000).toFixed(1)}s</small>
-                                        </div>
-                                    ` : `
-                                        <div class="scene-audio-placeholder">
-                                            <i class="bi bi-music-note-beamed"></i> Audio not available
-                                        </div>
-                                    `}
-                                </div>
-                            </div>
-                        `;
-                    });
-                }
-            } else if (item.type === 'theme_generation') {
-                body += `<h6>Generated Titles:</h6><ul>`;
-                (item.generated_titles || []).forEach(title => {
-                    body += `<li>${title}</li>`;
+            if (item.scenes && item.scenes.length > 0) {
+                html += `<h6 class="mt-4">Scenes (${item.scenes.length}):</h6>`;
+                item.scenes.forEach((scene, i) => {
+                    html += `
+                        <div class="scene-card">
+                            <div class="scene-header">Scene ${scene.id || i+1}</div>
+                            <p style="color: var(--text-secondary); line-height: 1.6;">${scene.paragraph_text || 'No text'}</p>
+                        </div>
+                    `;
                 });
-                body += `</ul>`;
             }
 
-            document.getElementById('modalBody').innerHTML = body;
-            new bootstrap.Modal(document.getElementById('contentModal')).show();
+            document.getElementById('storyContent').innerHTML = html;
+            document.getElementById('story-status').textContent = 'completed';
+            document.getElementById('story-status').className = 'status-badge status-completed';
         }
 
-        function copyToClipboard() {
-            if (!currentContent) return;
-            navigator.clipboard.writeText(JSON.stringify(currentContent, null, 2));
-            alert('Copied to clipboard!');
-        }
+        function populateVoice(item) {
+            if (!item.audio_files || item.audio_files.length === 0) {
+                document.getElementById('voiceContent').innerHTML = '<p class="text-muted">No audio files</p>';
+                return;
+            }
 
-        function exportData() {
-            const dataStr = JSON.stringify(filteredContent, null, 2);
-            const dataBlob = new Blob([dataStr], {type: 'application/json'});
-            const url = URL.createObjectURL(dataBlob);
-            const link = document.createElement('a');
-            link.href = url;
-            link.download = `youtube-content-${new Date().toISOString().split('T')[0]}.json`;
-            link.click();
+            let html = '<h6>Audio Files:</h6>';
+            item.audio_files.forEach((audio, i) => {
+                html += `
+                    <div class="audio-player">
+                        <div class="d-flex justify-content-between align-items-center mb-2">
+                            <span><i class="bi bi-volume-up"></i> Scene ${audio.scene_id || i+1}</span>
+                            <small class="text-muted">${(audio.duration_ms / 1000).toFixed(1)}s</small>
+                        </div>
+                        <audio controls>
+                            <source src="${audio.s3_url.replace('s3://', 'https://s3.eu-central-1.amazonaws.com/')}" type="audio/mpeg">
+                        </audio>
+                    </div>
+                `;
+            });
+
+            document.getElementById('voiceContent').innerHTML = html;
+            document.getElementById('voice-status').textContent = 'completed';
+            document.getElementById('voice-status').className = 'status-badge status-completed';
         }
 
         function formatDate(dateString) {
@@ -749,10 +875,69 @@
             return date.toLocaleString('uk-UA');
         }
 
+        async function deleteContent() {
+            if (!currentContent) {
+                alert('No content selected');
+                return;
+            }
+
+            const confirmMsg = `Are you sure you want to delete "${currentContent.story_title || 'this content'}"?\n\nThis action cannot be undone.`;
+            if (!confirm(confirmMsg)) {
+                return;
+            }
+
+            try {
+                const response = await fetch(DELETE_API, {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json'
+                    },
+                    body: JSON.stringify({
+                        channel_id: currentContent.channel_id,
+                        created_at: currentContent.created_at
+                    })
+                });
+
+                const data = await response.json();
+
+                if (data.success) {
+                    alert('Content deleted successfully!');
+
+                    // Close modal
+                    const modal = bootstrap.Modal.getInstance(document.getElementById('pipelineModal'));
+                    if (modal) modal.hide();
+
+                    // Refresh content list
+                    await refreshContent();
+                } else {
+                    alert('Error deleting content: ' + (data.error || 'Unknown error'));
+                }
+            } catch (error) {
+                console.error('Error deleting content:', error);
+                alert('Failed to delete content: ' + error.message);
+            }
+        }
+
+        function copyToClipboard() {
+            if (!currentContent) {
+                alert('No content selected');
+                return;
+            }
+
+            const jsonStr = JSON.stringify(currentContent, null, 2);
+            navigator.clipboard.writeText(jsonStr).then(() => {
+                alert('Content JSON copied to clipboard!');
+            }).catch(err => {
+                console.error('Failed to copy:', err);
+                alert('Failed to copy to clipboard');
+            });
+        }
+
         // Initial load
         refreshContent();
     </script>
 
-    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+    <!-- Unified Navigation Script -->
+    <script src="js/navigation.js"></script>
 </body>
 </html>
