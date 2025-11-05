@@ -5,6 +5,13 @@ import os
 from datetime import datetime
 from decimal import Decimal
 from io import BytesIO
+from boto3.dynamodb.conditions import Key
+import sys
+
+# Add shared directory to path
+sys.path.insert(0, os.path.join(os.path.dirname(__file__), '..', 'shared'))
+from config_merger import merge_configuration, map_voice_profile_to_actual_voice
+from ssml_validator import validate_and_fix_ssml
 
 polly = boto3.client('polly', region_name='eu-central-1')
 s3 = boto3.client('s3', region_name='eu-central-1')
@@ -69,7 +76,7 @@ def log_polly_cost(channel_id, content_id, total_characters, engine='neural'):
 
 def lambda_handler(event, context):
     """
-    Generate audio files for narrative using AWS Polly
+    Generate audio files for narrative using AWS Polly - Config Merger Version 2.0
 
     Input:
     {
@@ -99,6 +106,7 @@ def lambda_handler(event, context):
     }
     """
 
+    print(f"🎤 Audio TTS - Config Merger Version 2.0")
     print(f"Event: {json.dumps(event, default=str)}")
 
     try:
@@ -128,9 +136,44 @@ def lambda_handler(event, context):
                 'message': 'No scenes to process'
             }
 
-        # Get voice from ChannelConfig
-        voice_id = get_voice_for_channel(channel_id)
-        print(f"Using voice: {voice_id} for channel {channel_id}")
+        # 1. Get channel config
+        channel_table = dynamodb.Table(CHANNEL_CONFIGS_TABLE)
+        channel_response = channel_table.query(
+            IndexName='channel_id-index',
+            KeyConditionExpression=Key('channel_id').eq(channel_id)
+        )
+
+        if not channel_response.get('Items'):
+            print(f"Warning: No config found for channel {channel_id}, using defaults")
+            # Use defaults
+            merged_config = {
+                'tts_service': 'aws_polly_neural',
+                'tts_voice_profile': 'neutral_male'
+            }
+        else:
+            channel_config = channel_response['Items'][0]
+            print(f"✅ Channel config loaded: {channel_config.get('channel_name', 'Unknown')}")
+
+            # For audio-tts, we primarily need channel config (TTS settings)
+            # Template would be used if we need SSML rules, but SSML is already in scenes
+            # So we'll do a simplified merge - just extract TTS settings from channel
+            merged_config = {
+                'tts_service': channel_config.get('tts_service', 'aws_polly_neural'),
+                'tts_voice_profile': channel_config.get('tts_voice_profile', 'neutral_male'),
+                'tts_mood_variants': channel_config.get('tts_mood_variants', ''),
+                'channel_name': channel_config.get('channel_name', 'Unknown')
+            }
+
+        print(f"✅ Using TTS config:")
+        print(f"   Service: {merged_config['tts_service']}")
+        print(f"   Voice Profile: {merged_config['tts_voice_profile']}")
+
+        # 2. Map voice profile to actual Polly voice using config_merger helper
+        voice_id = map_voice_profile_to_actual_voice(
+            merged_config['tts_voice_profile'],
+            merged_config['tts_service']
+        )
+        print(f"✅ Mapped to Polly voice: {voice_id}")
 
         # Generate audio for each scene
         audio_files = []
@@ -190,12 +233,15 @@ def lambda_handler(event, context):
             'channel_id': channel_id,
             'story_title': story_title,
             'voice_id': voice_id,
+            'voice_profile': merged_config['tts_voice_profile'],  # NEW: track voice profile used
+            'tts_service': merged_config['tts_service'],  # NEW: track TTS service used
             'audio_files': audio_files,
             'total_duration_ms': total_duration_ms,
             'total_duration_sec': round(total_duration_sec, 2),
             'scene_count': len(audio_files),
             'cost_usd': cost_usd,
-            'total_characters': total_characters
+            'total_characters': total_characters,
+            'api_version': 'config_merger_v2'  # NEW: mark as v2
         }
 
     except Exception as e:
@@ -213,49 +259,37 @@ def lambda_handler(event, context):
         }
 
 
-def get_voice_for_channel(channel_id):
-    """Get voice ID from ChannelConfig"""
-    try:
-        table = dynamodb.Table(CHANNEL_CONFIGS_TABLE)
-
-        # Query using GSI
-        response = table.query(
-            IndexName='channel_id-index',
-            KeyConditionExpression='channel_id = :cid',
-            ExpressionAttributeValues={':cid': channel_id}
-        )
-
-        items = response.get('Items', [])
-        if not items:
-            print(f"Warning: No config found for channel {channel_id}, using default voice")
-            return 'Brian'  # Default
-
-        config = items[0]
-
-        # Get voice profile - може бути реальне ім'я (наприклад "Matthew") або старий профіль ("deep_male")
-        voice_profile = config.get('tts_voice_profile', 'Brian')
-
-        # List of valid AWS Polly voice names
-        valid_polly_voices = [
-            'Matthew', 'Joey', 'Justin', 'Kevin', 'Stephen', 'Russell', 'Brian',
-            'Joanna', 'Kendra', 'Kimberly', 'Salli', 'Ruth', 'Danielle', 'Ivy',
-            'Nicole', 'Emma', 'Amy'
-        ]
-
-        # Check if it's already a valid Polly voice name (new format)
-        if voice_profile in valid_polly_voices:
-            print(f"Using direct voice: {voice_profile}")
-            return voice_profile
-
-        # Otherwise, try to map from old profile format (backward compatibility)
-        voice_id = VOICE_MAPPING.get(voice_profile, 'Brian')
-        print(f"Mapped profile '{voice_profile}' to voice: {voice_id}")
-
-        return voice_id
-
-    except Exception as e:
-        print(f"Error getting voice for channel: {str(e)}")
-        return 'Brian'  # Fallback
+# DEPRECATED: Old voice mapping function - replaced by config_merger.map_voice_profile_to_actual_voice()
+# Kept for reference only
+# def get_voice_for_channel(channel_id):
+#     """Get voice ID from ChannelConfig"""
+#     try:
+#         table = dynamodb.Table(CHANNEL_CONFIGS_TABLE)
+#         response = table.query(
+#             IndexName='channel_id-index',
+#             KeyConditionExpression='channel_id = :cid',
+#             ExpressionAttributeValues={':cid': channel_id}
+#         )
+#         items = response.get('Items', [])
+#         if not items:
+#             print(f"Warning: No config found for channel {channel_id}, using default voice")
+#             return 'Brian'
+#         config = items[0]
+#         voice_profile = config.get('tts_voice_profile', 'Brian')
+#         valid_polly_voices = [
+#             'Matthew', 'Joey', 'Justin', 'Kevin', 'Stephen', 'Russell', 'Brian',
+#             'Joanna', 'Kendra', 'Kimberly', 'Salli', 'Ruth', 'Danielle', 'Ivy',
+#             'Nicole', 'Emma', 'Amy'
+#         ]
+#         if voice_profile in valid_polly_voices:
+#             print(f"Using direct voice: {voice_profile}")
+#             return voice_profile
+#         voice_id = VOICE_MAPPING.get(voice_profile, 'Brian')
+#         print(f"Mapped profile '{voice_profile}' to voice: {voice_id}")
+#         return voice_id
+#     except Exception as e:
+#         print(f"Error getting voice for channel: {str(e)}")
+#         return 'Brian'
 
 
 def synthesize_speech(ssml_text, voice_id):
@@ -263,10 +297,20 @@ def synthesize_speech(ssml_text, voice_id):
     Generate audio from SSML text using AWS Polly
     Returns: (audio_stream, duration_ms, characters, engine)
     """
-    # Fix SSML: replace single quotes with double quotes
-    ssml_text = ssml_text.replace("rate='", 'rate="').replace("pitch='", 'pitch="')
-    ssml_text = ssml_text.replace("time='", 'time="').replace("level='", 'level="')
-    ssml_text = ssml_text.replace("'", '"')  # Replace all remaining single quotes
+    # Validate and fix SSML using comprehensive validator
+    fixed_ssml, is_valid, warnings, errors = validate_and_fix_ssml(ssml_text)
+
+    if warnings:
+        print(f"⚠️  SSML warnings: {', '.join(warnings)}")
+
+    if errors:
+        print(f"❌ SSML errors: {', '.join(errors)}")
+        # Use fixed version anyway - validator auto-fixes most issues
+
+    if fixed_ssml != ssml_text:
+        print(f"✅ SSML was auto-fixed")
+
+    ssml_text = fixed_ssml
 
     try:
         # Try Neural engine first
