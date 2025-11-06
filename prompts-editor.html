@@ -3,326 +3,898 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>AI Prompts Editor - YouTube Content Automation</title>
-    <!-- Auto-deployed via GitHub Actions -->
+    <title>AI Prompts - n8n Creator Space</title>
     <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
     <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.0/font/bootstrap-icons.css">
     <link rel="stylesheet" href="css/unified-navigation.css">
     <style>
         :root {
             --primary-color: #667eea;
-            --secondary-color: #764ba2;
             --success-color: #10b981;
             --danger-color: #ef4444;
+            --warning-color: #f59e0b;
             --dark-bg: #1a1d2e;
             --card-bg: #22263a;
-            --text-primary: #e5e7eb;
-            --text-secondary: #9ca3af;
         }
+
+        * { margin: 0; padding: 0; box-sizing: border-box; }
 
         body {
-            background: linear-gradient(135deg, var(--dark-bg) 0%, #16213e 100%);
-            color: var(--text-primary);
+            background: linear-gradient(135deg, #0f172a 0%, #1e293b 100%);
             min-height: 100vh;
-            font-family: 'Inter', -apple-system, BlinkMacSystemFont, sans-serif;
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+            color: #e5e7eb;
+            padding-bottom: 2rem;
         }
 
-        .navbar {
-            background: rgba(34, 38, 58, 0.95) !important;
-            backdrop-filter: blur(10px);
-            border-bottom: 1px solid rgba(102, 126, 234, 0.2);
+        .main-container {
+            padding: 30px 0;
         }
 
-        .card {
+        .header-section {
             background: var(--card-bg);
+            border-radius: 12px;
+            padding: 30px;
+            margin-bottom: 30px;
+            box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.3);
             border: 1px solid rgba(102, 126, 234, 0.2);
-            border-radius: 16px;
-            transition: all 0.3s ease;
         }
 
-        .card:hover {
-            transform: translateY(-2px);
-            box-shadow: 0 8px 24px rgba(102, 126, 234, 0.2);
+        .header-section h1 {
+            font-size: 2rem;
+            font-weight: 700;
+            color: #e5e7eb;
+            margin-bottom: 8px;
         }
 
-        .agent-card {
+        .header-section p {
+            color: rgba(226, 232, 240, 0.6);
+            margin: 0;
+        }
+
+        .view-tabs {
+            background: var(--card-bg);
+            border-radius: 12px;
+            padding: 20px 20px 0 20px;
+            margin-bottom: 30px;
+            box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.3);
+            border: 1px solid rgba(102, 126, 234, 0.2);
+        }
+
+        .nav-pills .nav-link {
+            border-radius: 12px;
+            padding: 12px 24px;
+            color: rgba(226, 232, 240, 0.7);
+            font-weight: 500;
+            transition: all 0.3s;
+            border: 1px solid transparent;
+        }
+
+        .nav-pills .nav-link:hover {
+            background: rgba(102, 126, 234, 0.15);
+            color: #e5e7eb;
+            border-color: rgba(102, 126, 234, 0.3);
+        }
+
+        .nav-pills .nav-link.active {
+            background: linear-gradient(135deg, #667eea, #764ba2);
+            color: white;
+            font-weight: 600;
+            box-shadow: 0 2px 8px rgba(102, 126, 234, 0.3);
+        }
+
+        /* Template Type Panes */
+        .template-type-pane {
+            display: none;
+        }
+        .template-type-pane.active {
+            display: block;
+        }
+
+        .content-area {
+            background: var(--card-bg);
+            border-radius: 12px;
+            padding: 30px;
+            box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.3);
+            border: 1px solid rgba(102, 126, 234, 0.2);
+            min-height: 600px;
+        }
+
+        /* Template Cards (Library View) */
+        .template-card {
+            background: rgba(34, 38, 58, 0.6);
+            border: 2px solid rgba(102, 126, 234, 0.3);
+            border-radius: 12px;
+            padding: 24px;
+            transition: all 0.3s;
             cursor: pointer;
-            position: relative;
-            overflow: hidden;
+            height: 100%;
         }
 
-        .agent-card::before {
+        .template-card:hover {
+            border-color: var(--primary-color);
+            box-shadow: 0 10px 15px -3px rgba(102, 126, 234, 0.4);
+            transform: translateY(-2px);
+            background: rgba(34, 38, 58, 0.8);
+        }
+
+        .template-card.active {
+            border-color: var(--success-color);
+            background: rgba(16, 185, 129, 0.15);
+        }
+
+        .template-card.inactive {
+            opacity: 0.5;
+            background: rgba(34, 38, 58, 0.4);
+        }
+
+        .template-badge {
+            display: inline-block;
+            padding: 4px 12px;
+            border-radius: 20px;
+            font-size: 0.75rem;
+            font-weight: 600;
+            text-transform: uppercase;
+        }
+
+        .badge-active {
+            background: rgba(16, 185, 129, 0.2);
+            color: #10b981;
+            border: 1px solid rgba(16, 185, 129, 0.3);
+        }
+
+        .badge-draft {
+            background: rgba(245, 158, 11, 0.2);
+            color: #f59e0b;
+            border: 1px solid rgba(245, 158, 11, 0.3);
+        }
+
+        .badge-inactive {
+            background: rgba(239, 68, 68, 0.2);
+            color: #ef4444;
+            border: 1px solid rgba(239, 68, 68, 0.3);
+        }
+
+        /* Editor Form */
+        .section-card {
+            background: rgba(34, 38, 58, 0.4);
+            border: 1px solid rgba(102, 126, 234, 0.3);
+            border-radius: 12px;
+            padding: 20px;
+            margin-bottom: 20px;
+        }
+
+        .section-header {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            margin-bottom: 16px;
+        }
+
+        .section-title {
+            font-size: 1.125rem;
+            font-weight: 600;
+            color: #e5e7eb;
+            margin: 0;
+        }
+
+        .rule-item {
+            display: flex;
+            align-items: center;
+            gap: 12px;
+            margin-bottom: 12px;
+            padding: 12px;
+            background: rgba(15, 23, 42, 0.5);
+            border-radius: 8px;
+            border: 1px solid rgba(102, 126, 234, 0.2);
+        }
+
+        .rule-item input {
+            flex: 1;
+        }
+
+        .btn-remove-rule {
+            background: rgba(239, 68, 68, 0.2);
+            color: #ef4444;
+            border: 1px solid rgba(239, 68, 68, 0.3);
+            padding: 6px 12px;
+            border-radius: 6px;
+            transition: all 0.2s;
+        }
+
+        .btn-remove-rule:hover {
+            background: rgba(239, 68, 68, 0.3);
+        }
+
+        .btn-add-rule {
+            width: 100%;
+            padding: 12px;
+            border: 2px dashed rgba(102, 126, 234, 0.3);
+            background: transparent;
+            color: rgba(226, 232, 240, 0.7);
+            border-radius: 8px;
+            transition: all 0.3s;
+        }
+
+        .btn-add-rule:hover {
+            border-color: var(--primary-color);
+            color: var(--primary-color);
+            background: rgba(102, 126, 234, 0.1);
+        }
+
+        /* Preview Tab */
+        .preview-container {
+            background: #1f2937;
+            color: #f9fafb;
+            padding: 24px;
+            border-radius: 12px;
+            font-family: 'Monaco', 'Menlo', monospace;
+            font-size: 0.875rem;
+            line-height: 1.6;
+            max-height: 600px;
+            overflow-y: auto;
+        }
+
+        .preview-section {
+            margin-bottom: 24px;
+        }
+
+        .preview-label {
+            color: #60a5fa;
+            font-weight: 600;
+            margin-bottom: 8px;
+        }
+
+        .preview-content {
+            background: #111827;
+            padding: 16px;
+            border-radius: 8px;
+            white-space: pre-wrap;
+            word-wrap: break-word;
+        }
+
+        /* Version History */
+        .version-item {
+            border-left: 3px solid rgba(102, 126, 234, 0.3);
+            padding-left: 20px;
+            margin-bottom: 24px;
+            position: relative;
+        }
+
+        .version-item.current {
+            border-left-color: var(--success-color);
+        }
+
+        .version-item::before {
             content: '';
             position: absolute;
-            top: 0;
-            left: 0;
-            width: 100%;
-            height: 4px;
-            background: linear-gradient(90deg, var(--primary-color), var(--secondary-color));
+            left: -8px;
+            top: 6px;
+            width: 12px;
+            height: 12px;
+            border-radius: 50%;
+            background: rgba(102, 126, 234, 0.5);
         }
 
-        .btn-primary {
-            background: linear-gradient(135deg, var(--primary-color), var(--secondary-color));
-            border: none;
-            transition: all 0.3s ease;
+        .version-item.current::before {
+            background: var(--success-color);
         }
 
-        .btn-primary:hover {
-            transform: translateY(-2px);
-            box-shadow: 0 4px 12px rgba(102, 126, 234, 0.4);
+        .version-number {
+            font-weight: 700;
+            color: #e5e7eb;
+            font-size: 1.125rem;
         }
 
-        .form-control, .form-select, textarea {
-            background: rgba(30, 34, 50, 0.8);
-            border: 1px solid rgba(102, 126, 234, 0.3);
-            color: var(--text-primary);
-            transition: all 0.3s ease;
+        .version-meta {
+            color: rgba(226, 232, 240, 0.6);
+            font-size: 0.875rem;
+            margin: 4px 0;
         }
 
-        .form-control:focus, .form-select:focus, textarea:focus {
-            background: rgba(30, 34, 50, 0.95);
-            border-color: var(--primary-color);
-            box-shadow: 0 0 0 0.2rem rgba(102, 126, 234, 0.25);
-            color: var(--text-primary);
-        }
-
-        textarea {
-            font-family: 'Monaco', 'Courier New', monospace;
-            font-size: 13px;
-            line-height: 1.6;
-        }
-
-        .badge {
-            padding: 0.5em 1em;
+        .version-changes {
+            background: rgba(15, 23, 42, 0.5);
+            border: 1px solid rgba(102, 126, 234, 0.2);
+            padding: 12px;
             border-radius: 8px;
-            font-weight: 500;
+            margin-top: 8px;
+            color: rgba(226, 232, 240, 0.8);
         }
 
+        /* Stats cards */
         .stat-card {
-            background: linear-gradient(135deg, rgba(102, 126, 234, 0.1), rgba(118, 75, 162, 0.1));
-            border-left: 4px solid var(--primary-color);
+            text-align: center;
+            padding: 16px;
+            background: rgba(34, 38, 58, 0.6);
+            border: 1px solid rgba(102, 126, 234, 0.3);
+            border-radius: 12px;
         }
 
-        #loadingSpinner {
+        .stat-value {
+            font-size: 2rem;
+            font-weight: 700;
+            color: #e5e7eb;
+        }
+
+        .stat-label {
+            color: rgba(226, 232, 240, 0.6);
+            font-size: 0.875rem;
+            margin-top: 4px;
+        }
+
+        /* Loading spinner */
+        .loading-spinner {
+            display: inline-block;
+            width: 20px;
+            height: 20px;
+            border: 3px solid #f3f4f6;
+            border-radius: 50%;
+            border-top-color: var(--primary-color);
+            animation: spin 0.8s linear infinite;
+        }
+
+        @keyframes spin {
+            to { transform: rotate(360deg); }
+        }
+
+        /* Toast notifications */
+        .toast-container {
             position: fixed;
-            top: 50%;
-            left: 50%;
-            transform: translate(-50%, -50%);
+            top: 20px;
+            right: 20px;
             z-index: 9999;
         }
 
+        /* Modal Window Styles - Dark text on white background */
         .modal-content {
-            background: var(--card-bg);
-            border: 1px solid rgba(102, 126, 234, 0.3);
+            background-color: #ffffff;
+            color: #1a1d2e;
         }
 
         .modal-header {
-            border-bottom: 1px solid rgba(102, 126, 234, 0.2);
+            background-color: #f8f9fa;
+            border-bottom: 1px solid #dee2e6;
         }
 
-        .char-counter {
-            font-size: 0.875rem;
-            color: var(--text-secondary);
+        .modal-title {
+            color: #1a1d2e;
+            font-weight: 600;
         }
 
-        .version-badge {
-            background: rgba(16, 185, 129, 0.2);
-            color: var(--success-color);
-            border: 1px solid var(--success-color);
+        .modal-body {
+            background-color: #ffffff;
+            color: #1a1d2e;
         }
 
-        .toast {
-            background: var(--card-bg);
-            border: 1px solid rgba(102, 126, 234, 0.3);
-            color: var(--text-primary);
+        .modal-footer {
+            background-color: #f8f9fa;
+            border-top: 1px solid #dee2e6;
         }
 
-        .nav-menu {
-            background: var(--card-bg);
-            border-radius: 12px;
-            padding: 0.5rem;
-            margin-bottom: 2rem;
+        /* Form elements in modal - dark text */
+        .modal .form-label {
+            color: #1a1d2e;
+            font-weight: 500;
         }
 
-        .nav-menu a {
-            color: var(--text-secondary);
-            text-decoration: none;
-            padding: 0.75rem 1.5rem;
-            border-radius: 8px;
-            transition: all 0.3s ease;
-            display: inline-block;
-            margin: 0.25rem;
+        .modal .form-control,
+        .modal .form-select {
+            background-color: #ffffff;
+            color: #1a1d2e;
+            border: 1px solid #ced4da;
         }
 
-        .nav-menu a:hover {
-            background: rgba(102, 126, 234, 0.2);
-            color: var(--text-primary);
+        .modal .form-control:focus,
+        .modal .form-select:focus {
+            background-color: #ffffff;
+            color: #1a1d2e;
+            border-color: #667eea;
+            box-shadow: 0 0 0 0.2rem rgba(102, 126, 234, 0.25);
         }
 
-        .nav-menu a.active {
-            background: linear-gradient(135deg, var(--primary-color), var(--secondary-color));
-            color: white;
+        .modal .form-control::placeholder {
+            color: #6c757d;
+        }
+
+        .modal textarea.form-control {
+            background-color: #ffffff;
+            color: #1a1d2e;
+        }
+
+        /* Section cards in modal */
+        .modal .section-card {
+            background: #f8f9fa;
+            border: 1px solid #dee2e6;
+        }
+
+        .modal .section-title {
+            color: #1a1d2e;
+        }
+
+        .modal .rule-item {
+            background: #ffffff;
+            border: 1px solid #dee2e6;
+        }
+
+        .modal .rule-item input {
+            background-color: #ffffff;
+            color: #1a1d2e;
+        }
+
+        /* Better readability for template card descriptions */
+        .template-card .text-muted {
+            color: rgba(226, 232, 240, 0.85) !important;
+            font-size: 0.95rem !important;
+        }
+
+        .template-card .small {
+            font-size: 0.9rem !important;
+        }
+
+        .template-card h5 {
+            color: #e5e7eb;
+            font-weight: 600;
+        }
+
+        /* Make all text-muted more readable on dark background */
+        .text-muted {
+            color: rgba(226, 232, 240, 0.75) !important;
+        }
+
+        /* Headings in modal */
+        .modal h3, .modal h4, .modal h5, .modal h6 {
+            color: #1a1d2e;
+        }
+
+        /* Hide editor buttons when form is inside modal */
+        .modal .editor-header-buttons,
+        .modal .editor-footer-buttons {
+            display: none !important;
+        }
+
+        /* Also hide the editorTitle when in modal (we have modal title) */
+        .modal #editorTitle {
+            display: none !important;
         }
     </style>
 </head>
 <body>
-    <!-- Unified Navigation -->
-    <nav class="nav-container">
-        <div class="nav-wrapper">
-            <div class="nav-bar">
-                <a href="index.html" class="nav-link">
-                    <i class="bi bi-house-door"></i> Home
-                </a>
-                <a href="dashboard.html" class="nav-link">
-                    <i class="bi bi-speedometer2"></i> Dashboard
-                </a>
-                <a href="channels.html" class="nav-link">
-                    <i class="bi bi-collection"></i> Channels
-                </a>
-                <a href="content.html" class="nav-link">
-                    <i class="bi bi-file-earmark-text"></i> Content
-                </a>
-                <a href="costs.html" class="nav-link">
-                    <i class="bi bi-currency-dollar"></i> Costs
-                </a>
-                <a href="prompts-editor.html" class="nav-link active">
-                    <i class="bi bi-pencil-square"></i> Prompts
-                </a>
-            </div>
-        </div>
-    </nav>
+    <!-- Navigation -->
+    <!-- Unified Navigation (loaded from js/navigation.js) -->
+    <div id="navigation-placeholder"></div>
 
-    <!-- Loading Spinner -->
-    <div id="loadingSpinner" class="d-none">
-        <div class="spinner-border text-primary" role="status" style="width: 3rem; height: 3rem;">
-            <span class="visually-hidden">Loading...</span>
-        </div>
-    </div>
-
-    <!-- Main Content -->
-    <div class="container-fluid py-4">
+    <div class="container main-container">
         <!-- Header -->
-        <div class="row mb-4">
-            <div class="col-12">
-                <h1 class="display-5 fw-bold mb-2">
-                    <i class="bi bi-magic"></i> AI Prompts Configuration
-                </h1>
-                <p class="text-secondary mb-0">
-                    Manage system instructions and parameters for AI agents
-                </p>
-            </div>
-        </div>
-
-        <!-- Stats Cards -->
-        <div class="row mb-4" id="statsCards">
-            <div class="col-md-3">
-                <div class="card stat-card">
-                    <div class="card-body">
-                        <h6 class="text-secondary mb-2">Total Agents</h6>
-                        <h3 class="mb-0" id="totalAgents">-</h3>
-                    </div>
-                </div>
-            </div>
-            <div class="col-md-3">
-                <div class="card stat-card">
-                    <div class="card-body">
-                        <h6 class="text-secondary mb-2">Theme Agent</h6>
-                        <span class="badge version-badge" id="themeVersion">-</span>
-                    </div>
-                </div>
-            </div>
-            <div class="col-md-3">
-                <div class="card stat-card">
-                    <div class="card-body">
-                        <h6 class="text-secondary mb-2">Narrative Agent</h6>
-                        <span class="badge version-badge" id="narrativeVersion">-</span>
-                    </div>
-                </div>
-            </div>
-            <div class="col-md-3">
-                <div class="card stat-card">
-                    <div class="card-body">
-                        <h6 class="text-secondary mb-2">Last Updated</h6>
-                        <small class="text-secondary" id="lastUpdated">-</small>
-                    </div>
+        <div class="header-section">
+            <div>
+                <h1><i class="bi bi-brain"></i> AI Prompts Template System v2</h1>
+                <p>Manage prompt templates with version control and structured editing</p>
+                <div class="alert alert-info mt-3" style="background: rgba(59, 130, 246, 0.1); border: 1px solid rgba(59, 130, 246, 0.3); color: #93c5fd;">
+                    <i class="bi bi-info-circle"></i> <strong>Що таке шаблон?</strong><br>
+                    Шаблон визначає <strong>ЯК</strong> AI думає і генерує контент (поведінка, структура відповіді, правила).
+                    <strong>ПРО ЩО</strong> генерувати контент (тема, жанр, тон, стиль) визначається в налаштуваннях каналу.
+                    Один шаблон може використовуватись багатьма каналами.
                 </div>
             </div>
         </div>
 
-        <!-- Agents List -->
-        <div class="row" id="agentsList">
-            <!-- Agents will be loaded here -->
-        </div>
-    </div>
+        <!-- Navigation Tabs -->
+        <!-- Navigation tabs removed - each template type has its own section -->
 
-    <!-- Edit Modal -->
-    <div class="modal fade" id="editModal" tabindex="-1">
-        <div class="modal-dialog modal-xl modal-dialog-scrollable">
-            <div class="modal-content">
-                <div class="modal-header">
-                    <h5 class="modal-title">
-                        <i class="bi bi-pencil-square"></i> Edit Agent: <span id="modalAgentName"></span>
-                    </h5>
-                    <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal"></button>
-                </div>
-                <div class="modal-body">
-                    <form id="editForm">
-                        <input type="hidden" id="editAgentId">
+        <!-- Content Area -->
+        <div class="content-area">
+            <div class="tab-content" id="mainTabContent">
 
-                        <!-- Basic Info -->
-                        <div class="row mb-3">
-                            <div class="col-md-6">
-                                <label class="form-label">Agent Name</label>
-                                <input type="text" class="form-control" id="editAgentNameInput" readonly>
+                <!-- Template Library View -->
+                <div class="tab-pane fade show active" id="library" role="tabpanel">
+                    <h3 class="mb-4">Template Library</h3>
+
+                    <!-- Template Type Sub-tabs -->
+                    <ul class="nav nav-pills mb-4" id="templateTypeTabs" role="tablist">
+                        <li class="nav-item" role="presentation">
+                            <button class="nav-link active" id="theme-templates-tab" onclick="switchTemplateType('theme')" type="button">
+                                <i class="bi bi-lightbulb"></i> Theme Templates
+                            </button>
+                        </li>
+                        <li class="nav-item" role="presentation">
+                            <button class="nav-link" id="narrative-templates-tab" onclick="switchTemplateType('narrative')" type="button">
+                                <i class="bi bi-file-text"></i> Narrative Templates
+                            </button>
+                        </li>
+                        <li class="nav-item" role="presentation">
+                            <button class="nav-link" id="image-templates-tab" onclick="switchTemplateType('image')" type="button">
+                                <i class="bi bi-image"></i> Image Generation
+                            </button>
+                        </li>
+                        <li class="nav-item" role="presentation">
+                            <button class="nav-link" id="video-templates-tab" onclick="switchTemplateType('video')" type="button">
+                                <i class="bi bi-film"></i> Video Editing
+                            </button>
+                        </li>
+                        <li class="nav-item" role="presentation">
+                            <button class="nav-link" id="cta-templates-tab" onclick="switchTemplateType('cta')" type="button">
+                                <i class="bi bi-megaphone"></i> CTA Templates
+                            </button>
+                        </li>
+                        <li class="nav-item" role="presentation">
+                            <button class="nav-link" id="tts-templates-tab" onclick="switchTemplateType('tts')" type="button">
+                                <i class="bi bi-mic"></i> TTS/Voice
+                            </button>
+                        </li>
+                    </ul>
+
+                    <!-- Template Type Content Areas -->
+                    <div id="templateTypeContent">
+
+                        <!-- Theme Templates -->
+                        <div class="template-type-pane active" id="theme-templates-pane">
+                            <div class="d-flex justify-content-between align-items-center mb-4">
+                                <div>
+                                    <h5 class="mb-1">Theme Templates</h5>
+                                    <p class="text-muted small mb-0">Generate video topic ideas and themes</p>
+                                </div>
+                                <button class="btn btn-primary" onclick="createNewTemplate('theme')">
+                                    <i class="bi bi-plus-circle"></i> New Theme Template
+                                </button>
                             </div>
-                            <div class="col-md-6">
-                                <label class="form-label">Version</label>
-                                <input type="text" class="form-control" id="editVersion" placeholder="1.0">
+                            <div id="themeTemplatesGrid" class="row g-4">
+                                <div class="col-12 text-center py-5">
+                                    <div class="loading-spinner"></div>
+                                    <p class="text-muted mt-3">Loading theme templates...</p>
+                                </div>
                             </div>
                         </div>
 
-                        <!-- Model Settings -->
-                        <div class="row mb-3">
-                            <div class="col-md-4">
-                                <label class="form-label">OpenAI Model</label>
-                                <select class="form-select" id="editModel">
-                                    <option value="gpt-4o">GPT-4o (Recommended)</option>
-                                    <option value="gpt-4o-mini">GPT-4o Mini (Fast)</option>
-                                    <option value="gpt-4-turbo">GPT-4 Turbo</option>
-                                    <option value="gpt-3.5-turbo">GPT-3.5 Turbo</option>
-                                </select>
+                        <!-- Narrative Templates -->
+                        <div class="template-type-pane" id="narrative-templates-pane" style="display: none;">
+                            <div class="d-flex justify-content-between align-items-center mb-4">
+                                <div>
+                                    <h5 class="mb-1">Narrative Templates</h5>
+                                    <p class="text-muted small mb-0">Structure and write video scripts with SSML</p>
+                                </div>
+                                <button class="btn btn-primary" onclick="createNewTemplate('narrative')">
+                                    <i class="bi bi-plus-circle"></i> New Narrative Template
+                                </button>
                             </div>
-                            <div class="col-md-4">
-                                <label class="form-label">Temperature (0.0 - 2.0)</label>
-                                <input type="number" class="form-control" id="editTemperature"
-                                       min="0" max="2" step="0.1" placeholder="0.8">
-                            </div>
-                            <div class="col-md-4">
-                                <label class="form-label">Max Tokens</label>
-                                <input type="number" class="form-control" id="editMaxTokens"
-                                       min="100" max="16000" step="100" placeholder="4000">
+                            <div id="narrativeTemplatesGrid" class="row g-4">
+                                <div class="col-12 text-center py-5">
+                                    <div class="loading-spinner"></div>
+                                    <p class="text-muted mt-3">Loading narrative templates...</p>
+                                </div>
                             </div>
                         </div>
 
-                        <!-- System Instructions -->
-                        <div class="mb-3">
-                            <div class="d-flex justify-content-between align-items-center mb-2">
-                                <label class="form-label mb-0">System Instructions</label>
-                                <span class="char-counter" id="charCounter">0 characters</span>
+                        <!-- Image Generation Templates -->
+                        <div class="template-type-pane" id="image-templates-pane" style="display: none;">
+                            <div class="d-flex justify-content-between align-items-center mb-4">
+                                <div>
+                                    <h5 class="mb-1">Image Generation Templates</h5>
+                                    <p class="text-muted small mb-0">AI prompts for generating visuals (DALL-E, Midjourney, Stable Diffusion)</p>
+                                </div>
+                                <button class="btn btn-primary" onclick="createNewTemplate('image')">
+                                    <i class="bi bi-plus-circle"></i> New Image Template
+                                </button>
                             </div>
-                            <textarea class="form-control" id="editInstructions"
-                                      rows="20" placeholder="Enter system instructions..."></textarea>
-                            <small class="text-secondary">
-                                <i class="bi bi-info-circle"></i>
-                                These instructions define how the AI agent behaves. Be specific and detailed.
-                            </small>
+                            <div id="imageTemplatesGrid" class="row g-4">
+                                <div class="col-12 text-center py-5">
+                                    <i class="bi bi-stars" style="font-size: 3rem; color: rgba(102, 126, 234, 0.3);"></i>
+                                    <p class="text-muted mt-3">No image generation templates yet</p>
+                                    <button class="btn btn-outline-primary mt-2" onclick="createNewTemplate('image')">
+                                        Create First Template
+                                    </button>
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- Video Editing Templates -->
+                        <div class="template-type-pane" id="video-templates-pane" style="display: none;">
+                            <div class="d-flex justify-content-between align-items-center mb-4">
+                                <div>
+                                    <h5 class="mb-1">Video Editing Templates</h5>
+                                    <p class="text-muted small mb-0">Transitions, effects, pacing, and editing parameters</p>
+                                </div>
+                                <button class="btn btn-primary" onclick="createNewTemplate('video')">
+                                    <i class="bi bi-plus-circle"></i> New Video Template
+                                </button>
+                            </div>
+                            <div id="videoTemplatesGrid" class="row g-4">
+                                <div class="col-12 text-center py-5">
+                                    <i class="bi bi-film" style="font-size: 3rem; color: rgba(102, 126, 234, 0.3);"></i>
+                                    <p class="text-muted mt-3">No video editing templates yet</p>
+                                    <button class="btn btn-outline-primary mt-2" onclick="createNewTemplate('video')">
+                                        Create First Template
+                                    </button>
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- CTA Templates -->
+                        <div class="template-type-pane" id="cta-templates-pane" style="display: none;">
+                            <div class="d-flex justify-content-between align-items-center mb-4">
+                                <div>
+                                    <h5 class="mb-1">CTA Templates</h5>
+                                    <p class="text-muted small mb-0">Call-to-action overlays and end screens</p>
+                                </div>
+                                <button class="btn btn-primary" onclick="createNewTemplate('cta')">
+                                    <i class="bi bi-plus-circle"></i> New CTA Template
+                                </button>
+                            </div>
+                            <div id="ctaTemplatesGrid" class="row g-4">
+                                <div class="col-12 text-center py-5">
+                                    <i class="bi bi-megaphone" style="font-size: 3rem; color: rgba(102, 126, 234, 0.3);"></i>
+                                    <p class="text-muted mt-3">No CTA templates yet</p>
+                                    <button class="btn btn-outline-primary mt-2" onclick="createNewTemplate('cta')">
+                                        Create First Template
+                                    </button>
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- TTS/Voice Templates -->
+                        <div class="template-type-pane" id="tts-templates-pane" style="display: none;">
+                            <div class="d-flex justify-content-between align-items-center mb-4">
+                                <div>
+                                    <h5 class="mb-1">TTS/Voice Templates</h5>
+                                    <p class="text-muted small mb-0">Text-to-speech voice selection and service configuration</p>
+                                </div>
+                                <button class="btn btn-primary" onclick="createNewTemplate('tts')">
+                                    <i class="bi bi-plus-circle"></i> New TTS/Voice Template
+                                </button>
+                            </div>
+                            <div id="ttsTemplatesGrid" class="row g-4">
+                                <div class="col-12 text-center py-5">
+                                    <div class="loading-spinner"></div>
+                                    <p class="text-muted mt-3">Loading TTS templates...</p>
+                                </div>
+                            </div>
+                        </div>
+
+                    </div>
+                </div>
+
+                <!-- Editor View -->
+                <div class="tab-pane fade" id="editor" role="tabpanel">
+                    <div class="d-flex justify-content-between align-items-center mb-4 editor-header-buttons">
+                        <h3 id="editorTitle">Edit Template</h3>
+                        <div>
+                            <button class="btn btn-outline-secondary me-2" onclick="backToLibrary()">
+                                <i class="bi bi-arrow-left"></i> Back
+                            </button>
+                            <button class="btn btn-success" onclick="saveTemplate()">
+                                <i class="bi bi-save"></i> Save Changes
+                            </button>
+                        </div>
+                    </div>
+
+                    <form id="templateForm">
+                        <!-- Basic Info Section -->
+                        <div class="section-card">
+                            <div class="section-header">
+                                <h5 class="section-title"><i class="bi bi-info-circle"></i> Basic Information</h5>
+                            </div>
+                            <div class="row g-3">
+                                <div class="col-md-6">
+                                    <label class="form-label">Template Name *</label>
+                                    <input type="text" class="form-control" id="template_name" required>
+                                </div>
+                                <div class="col-md-3">
+                                    <label class="form-label">Agent Type *</label>
+                                    <select class="form-select" id="agent_type" required>
+                                        <option value="narrative_architect">Narrative Architect</option>
+                                        <option value="theme_agent">Theme Agent</option>
+                                        <option value="custom">Custom</option>
+                                    </select>
+                                </div>
+                                <div class="col-md-3">
+                                    <label class="form-label">Status</label>
+                                    <select class="form-select" id="is_active">
+                                        <option value="1">Active</option>
+                                        <option value="0">Draft</option>
+                                    </select>
+                                </div>
+                                <div class="col-12">
+                                    <label class="form-label">Description</label>
+                                    <textarea class="form-control" id="description" rows="2"></textarea>
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- Model Configuration -->
+                        <div class="section-card">
+                            <div class="section-header">
+                                <h5 class="section-title"><i class="bi bi-cpu"></i> Model Configuration</h5>
+                            </div>
+                            <div class="row g-3">
+                                <div class="col-md-4">
+                                    <label class="form-label">Model</label>
+                                    <select class="form-select" id="model">
+                                        <option value="gpt-4o">GPT-4o</option>
+                                        <option value="gpt-4o-mini">GPT-4o Mini</option>
+                                        <option value="gpt-4-turbo">GPT-4 Turbo</option>
+                                    </select>
+                                </div>
+                                <div class="col-md-4">
+                                    <label class="form-label">Temperature</label>
+                                    <input type="number" class="form-control" id="temperature" min="0" max="2" step="0.1" value="0.8">
+                                </div>
+                                <div class="col-md-4">
+                                    <label class="form-label">Max Tokens</label>
+                                    <input type="number" class="form-control" id="max_tokens" min="100" max="16000" step="100" value="4000">
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- Role Definition -->
+                        <div class="section-card">
+                            <div class="section-header">
+                                <h5 class="section-title"><i class="bi bi-person-badge"></i> Role Definition</h5>
+                            </div>
+                            <textarea class="form-control" id="role_definition" rows="4" placeholder="You are Narrative Architect..."></textarea>
+                        </div>
+
+                        <!-- Core Rules -->
+                        <div class="section-card">
+                            <div class="section-header">
+                                <h5 class="section-title"><i class="bi bi-list-check"></i> Core Rules</h5>
+                            </div>
+                            <div id="coreRulesList">
+                                <!-- Rules will be added here dynamically -->
+                            </div>
+                            <button type="button" class="btn-add-rule" onclick="addCoreRule()">
+                                <i class="bi bi-plus-circle"></i> Add Rule
+                            </button>
+                        </div>
+
+                        <!-- Hook Rules -->
+                        <div class="section-card" id="hookRulesSection">
+                            <div class="section-header">
+                                <h5 class="section-title"><i class="bi bi-megaphone"></i> Hook Rules</h5>
+                                <div class="form-check form-switch">
+                                    <input class="form-check-input" type="checkbox" id="hook_enabled" checked>
+                                    <label class="form-check-label" for="hook_enabled">Enable Hooks</label>
+                                </div>
+                            </div>
+                            <div class="row g-3">
+                                <div class="col-md-4">
+                                    <label class="form-label">Style</label>
+                                    <input type="text" class="form-control" id="hook_style" placeholder="Question-based or shock">
+                                </div>
+                                <div class="col-md-4">
+                                    <label class="form-label">Length</label>
+                                    <input type="text" class="form-control" id="hook_length" placeholder="50-120 characters">
+                                </div>
+                                <div class="col-md-4">
+                                    <label class="form-label">Placement</label>
+                                    <input type="text" class="form-control" id="hook_placement" placeholder="first_15_seconds">
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- SSML Settings (for Narrative Templates only) -->
+                        <div class="section-card" id="ssmlSettingsSection" style="display: none;">
+                            <div class="section-header">
+                                <h5 class="section-title"><i class="bi bi-soundwave"></i> SSML Settings</h5>
+                                <div class="form-check form-switch">
+                                    <input class="form-check-input" type="checkbox" id="use_ssml" checked onchange="toggleSSMLOptions()">
+                                    <label class="form-check-label" for="use_ssml">Generate SSML Markup</label>
+                                </div>
+                            </div>
+                            <div id="ssmlOptionsContent">
+                                <div class="row g-3 mb-3">
+                                    <div class="col-md-6">
+                                        <label class="form-label">SSML Style</label>
+                                        <select class="form-select" id="ssml_style">
+                                            <option value="emotional">Emotional (pauses + emphasis)</option>
+                                            <option value="neutral">Neutral (minimal markup)</option>
+                                            <option value="dramatic">Dramatic (maximum effect)</option>
+                                            <option value="conversational">Conversational</option>
+                                            <option value="documentary">Documentary</option>
+                                        </select>
+                                    </div>
+                                    <div class="col-md-6">
+                                        <label class="form-label">Default Pace</label>
+                                        <select class="form-select" id="ssml_default_pace">
+                                            <option value="slow">Slow</option>
+                                            <option value="medium" selected>Medium</option>
+                                            <option value="fast">Fast</option>
+                                        </select>
+                                    </div>
+                                </div>
+                                <div class="mb-3">
+                                    <label class="form-label">SSML Guidelines (for AI)</label>
+                                    <textarea class="form-control" id="ssml_guidelines" rows="4" placeholder="Add emotional pauses after important moments.
+Use emphasis on key words and character names.
+Vary prosody rate for dramatic effect.">Add emotional pauses after important moments.
+Use &lt;emphasis level='strong'&gt; on key words.
+Slow down during tense moments.</textarea>
+                                    <small class="text-muted">Instructions for OpenAI on how to generate SSML markup</small>
+                                </div>
+                                <div class="row g-3">
+                                    <div class="col-md-6">
+                                        <label class="form-label">Pause After Scene Intro</label>
+                                        <input type="text" class="form-control" id="pause_after_intro" value="800ms">
+                                    </div>
+                                    <div class="col-md-6">
+                                        <label class="form-label">Pause After Dramatic Moment</label>
+                                        <input type="text" class="form-control" id="pause_dramatic" value="1500ms">
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- Save Button (Bottom) -->
+                        <div class="d-flex justify-content-end gap-2 mt-4 editor-footer-buttons">
+                            <button type="button" class="btn btn-outline-secondary" onclick="backToLibrary()">Cancel</button>
+                            <button type="button" id="deleteBtn" class="btn btn-danger" onclick="deleteTemplate()" style="display: none;">
+                                <i class="bi bi-trash"></i> Delete Template
+                            </button>
+                            <button type="button" class="btn btn-success btn-lg" onclick="saveTemplate()">
+                                <i class="bi bi-save"></i> Save Template
+                            </button>
                         </div>
                     </form>
                 </div>
+
+                <!-- Preview View -->
+                <div class="tab-pane fade" id="preview" role="tabpanel">
+                    <div class="d-flex justify-content-between align-items-center mb-4">
+                        <h3>Preview Compiled Prompt</h3>
+                        <div>
+                            <select class="form-select d-inline-block w-auto me-2" id="previewChannelSelect">
+                                <option value="">Select Channel...</option>
+                            </select>
+                            <button class="btn btn-primary" onclick="generatePreview()">
+                                <i class="bi bi-arrow-clockwise"></i> Generate Preview
+                            </button>
+                        </div>
+                    </div>
+
+                    <div id="previewContainer">
+                        <div class="alert alert-info">
+                            <i class="bi bi-info-circle"></i> Select a channel and click "Generate Preview" to see the compiled prompt
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Version History View -->
+                <div class="tab-pane fade" id="history" role="tabpanel">
+                    <div class="d-flex justify-content-between align-items-center mb-4">
+                        <h3>Version History</h3>
+                    </div>
+
+                    <div id="versionHistoryContainer">
+                        <!-- Version history will be loaded here -->
+                        <div class="text-center py-5">
+                            <div class="loading-spinner"></div>
+                            <p class="text-muted mt-3">Loading version history...</p>
+                        </div>
+                    </div>
+                </div>
+
+            </div>
+        </div>
+    </div>
+
+    <!-- Template Editor Modal -->
+    <div class="modal fade" id="editorModal" tabindex="-1" aria-labelledby="editorModalTitle" aria-hidden="true" data-bs-backdrop="static">
+        <div class="modal-dialog modal-xl modal-dialog-scrollable modal-fullscreen-lg-down">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h5 class="modal-title" id="editorModalTitle">Edit Template</h5>
+                    <button type="button" class="btn-close" onclick="closeEditorModal()" aria-label="Close"></button>
+                </div>
+                <div class="modal-body" id="editorModalBody">
+                    <!-- Form from editor tab will be moved here via JavaScript -->
+                </div>
                 <div class="modal-footer">
-                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancel</button>
-                    <button type="button" class="btn btn-primary" onclick="saveAgent()">
-                        <i class="bi bi-save"></i> Save Changes
+                    <button type="button" class="btn btn-outline-secondary" onclick="closeEditorModal()">
+                        <i class="bi bi-x"></i> Cancel
+                    </button>
+                    <button type="button" id="deleteBtnModal" class="btn btn-danger" onclick="deleteTemplate()" style="display: none;">
+                        <i class="bi bi-trash"></i> Delete Template
+                    </button>
+                    <button type="button" class="btn btn-success btn-lg" onclick="saveTemplate()">
+                        <i class="bi bi-save"></i> Save Template
                     </button>
                 </div>
             </div>
@@ -330,265 +902,849 @@
     </div>
 
     <!-- Toast Container -->
-    <div class="toast-container position-fixed bottom-0 end-0 p-3">
-        <div id="successToast" class="toast" role="alert">
-            <div class="toast-header">
-                <i class="bi bi-check-circle-fill text-success me-2"></i>
-                <strong class="me-auto">Success</strong>
-                <button type="button" class="btn-close btn-close-white" data-bs-dismiss="toast"></button>
-            </div>
-            <div class="toast-body" id="toastMessage">
-                Changes saved successfully!
-            </div>
-        </div>
-    </div>
+    <div class="toast-container"></div>
 
+    <!-- Bootstrap JS -->
     <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+
     <script>
-        // API Configuration
-        // Try API Gateway first, fallback to Lambda Function URL
-        const API_URLS = [
-            'https://e2c5y2h1qj.execute-api.eu-central-1.amazonaws.com/prod',
-            'https://nipe5nhmptrgg2rpik7hgip4vm0euxqr.lambda-url.eu-central-1.on.aws'
-        ];
-        let API_URL = API_URLS[0]; // Start with API Gateway
+        // Global state
+        let currentTemplate = null;
+        let allTemplates = [];
+        let allChannels = [];
 
-        let currentAgents = [];
+        const API_BASE = 'https://djpb4ue6wv2ohfjey32lfnhcre0zppqd.lambda-url.eu-central-1.on.aws';
 
-        // Load all agents
-        async function loadAgents() {
-            showLoading(true);
-            let lastError = null;
+        // Initialize
+        document.addEventListener('DOMContentLoaded', () => {
+            loadTemplates();
+            loadChannels();
+        });
 
-            // Try each API URL in order
-            for (let i = 0; i < API_URLS.length; i++) {
-                try {
-                    API_URL = API_URLS[i];
-                    console.log(`Trying API: ${API_URL}`);
+        // ====================================================================
+        // LIBRARY FUNCTIONS
+        // ====================================================================
 
-                    const response = await fetch(`${API_URL}/prompts`, {
-                        method: 'GET',
-                        headers: {
-                            'Content-Type': 'application/json'
-                        },
-                        mode: 'cors',
-                        credentials: 'omit'
-                    });
-
-                    if (!response.ok) {
-                        throw new Error(`HTTP ${response.status}: ${response.statusText}`);
-                    }
-
-                    const data = await response.json();
-                    currentAgents = data.agents || [];
-
-                    renderAgents(currentAgents);
-                    updateStats(currentAgents);
-
-                    showLoading(false);
-                    console.log(`✅ Successfully loaded from: ${API_URL}`);
-                    return; // Success!
-
-                } catch (error) {
-                    console.error(`Failed with ${API_URL}:`, error);
-                    lastError = error;
-                    // Try next URL
-                }
-            }
-
-            // All URLs failed
-            showLoading(false);
-            alert(`❌ Failed to load AI agents.\n\nError: ${lastError.message}\n\nPlease check:\n1. Network connection\n2. Browser console for details\n3. CORS settings`);
+        async function loadTemplates() {
+            // Load current template type (default to theme)
+            loadTemplatesByType(currentTemplateType || 'theme');
         }
 
-        // Render agents cards
-        function renderAgents(agents) {
-            const container = document.getElementById('agentsList');
+        // Current template type
+        let currentTemplateType = 'theme';
+        let isCreatingNew = false;  // Track if we're creating a new template
 
-            if (agents.length === 0) {
-                container.innerHTML = `
-                    <div class="col-12">
-                        <div class="card text-center py-5">
-                            <div class="card-body">
-                                <i class="bi bi-inbox display-1 text-secondary"></i>
-                                <h4 class="mt-3">No agents found</h4>
-                                <p class="text-secondary">Start by creating your first AI agent configuration.</p>
-                            </div>
-                        </div>
-                    </div>
-                `;
+        function switchTemplateType(type) {
+            console.log('Switching to template type:', type);
+            currentTemplateType = type;
+
+            // Hide all template type panes
+            document.querySelectorAll('.template-type-pane').forEach(pane => {
+                pane.classList.remove('active');
+                pane.style.display = 'none';
+            });
+
+            // Remove active class from all tabs
+            document.querySelectorAll('#templateTypeTabs .nav-link').forEach(tab => {
+                tab.classList.remove('active');
+            });
+
+            // Show selected template type pane
+            const selectedPane = document.getElementById(`${type}-templates-pane`);
+            if (selectedPane) {
+                selectedPane.classList.add('active');
+                selectedPane.style.display = 'block';
+            }
+
+            // Add active class to selected tab
+            const selectedTab = document.getElementById(`${type}-templates-tab`);
+            if (selectedTab) {
+                selectedTab.classList.add('active');
+            }
+
+            // Load templates for this type
+            loadTemplatesByType(type);
+        }
+
+        async function loadTemplatesByType(type) {
+            const gridId = `${type}TemplatesGrid`;
+            const grid = document.getElementById(gridId);
+
+            if (!grid) {
+                console.error(`Grid not found: ${gridId}`);
                 return;
             }
 
-            container.innerHTML = agents.map(agent => `
-                <div class="col-md-6 mb-4">
-                    <div class="card agent-card" onclick="editAgent('${agent.agent_id}')">
-                        <div class="card-body">
-                            <div class="d-flex justify-content-between align-items-start mb-3">
-                                <div>
-                                    <h5 class="card-title mb-1">
-                                        <i class="bi bi-robot"></i> ${agent.agent_name || agent.agent_id}
-                                    </h5>
-                                    <small class="text-secondary">ID: ${agent.agent_id}</small>
-                                </div>
-                                <span class="badge version-badge">v${agent.version || '1.0'}</span>
-                            </div>
+            // Show loading
+            grid.innerHTML = `
+                <div class="col-12 text-center py-5">
+                    <div class="loading-spinner"></div>
+                    <p class="text-muted mt-3">Loading ${type} templates...</p>
+                </div>
+            `;
 
-                            <div class="row g-3 mb-3">
-                                <div class="col-4">
-                                    <small class="text-secondary d-block">Model</small>
-                                    <strong>${agent.model || 'N/A'}</strong>
-                                </div>
-                                <div class="col-4">
-                                    <small class="text-secondary d-block">Temperature</small>
-                                    <strong>${agent.temperature || 'N/A'}</strong>
-                                </div>
-                                <div class="col-4">
-                                    <small class="text-secondary d-block">Max Tokens</small>
-                                    <strong>${agent.max_tokens || 'N/A'}</strong>
-                                </div>
-                            </div>
+            try {
+                const response = await fetch(`${API_BASE}/?type=${type}`);
+                const data = await response.json();
 
-                            <div class="mb-2">
-                                <small class="text-secondary">Instructions Preview:</small>
-                                <p class="mb-0 text-truncate" style="max-width: 100%;">
-                                    ${(agent.system_instructions || '').substring(0, 100)}...
-                                </p>
-                            </div>
+                if (data.success) {
+                    // Templates are already filtered by type in the backend
+                    const templates = data.data.templates;
 
-                            <div class="text-center mt-3">
-                                <small class="text-secondary">
-                                    <i class="bi bi-cursor"></i> Click to edit
-                                </small>
+                    if (templates.length === 0) {
+                        // Show empty state
+                        const typeNames = {
+                            'theme': 'theme',
+                            'narrative': 'narrative',
+                            'image': 'image generation',
+                            'video': 'video editing',
+                            'cta': 'CTA',
+                            'tts': 'TTS/voice'
+                        };
+                        const icons = {
+                            'theme': 'lightbulb',
+                            'narrative': 'file-text',
+                            'image': 'stars',
+                            'video': 'film',
+                            'cta': 'megaphone',
+                            'tts': 'mic'
+                        };
+                        grid.innerHTML = `
+                            <div class="col-12 text-center py-5">
+                                <i class="bi bi-${icons[type]}" style="font-size: 3rem; color: rgba(102, 126, 234, 0.3);"></i>
+                                <p class="text-muted mt-3">No ${typeNames[type]} templates yet</p>
+                                <button class="btn btn-outline-primary mt-2" onclick="createNewTemplate('${type}')">
+                                    Create First Template
+                                </button>
                             </div>
+                        `;
+                    } else {
+                        // Render templates
+                        renderTemplateGridByType(templates, grid);
+                    }
+                } else {
+                    throw new Error(data.error || 'Failed to load templates');
+                }
+            } catch (error) {
+                console.error('Error loading templates:', error);
+                grid.innerHTML = `
+                    <div class="col-12">
+                        <div class="alert alert-danger">
+                            <i class="bi bi-exclamation-triangle"></i>
+                            Failed to load templates: ${error.message}
+                        </div>
+                    </div>
+                `;
+            }
+        }
+
+        function renderTemplateGridByType(templates, grid) {
+            grid.innerHTML = templates.map(template => `
+                <div class="col-md-6 col-lg-4">
+                    <div class="template-card ${template.is_active ? 'active' : 'inactive'}">
+                        <div class="d-flex justify-content-between align-items-start mb-3">
+                            <div class="d-flex gap-2">
+                                <span class="template-badge ${template.is_active ? 'badge-active' : 'badge-draft'}">
+                                    ${template.is_active ? 'Active' : 'Draft'}
+                                </span>
+                                ${template.is_default ? '<span class="template-badge" style="background: rgba(16, 185, 129, 0.2); color: #10b981; border: 1px solid rgba(16, 185, 129, 0.3);"><i class="bi bi-shield-check"></i> Default</span>' : ''}
+                            </div>
+                            <span class="text-muted">v${template.version || 1}</span>
+                        </div>
+                        <h5 class="mb-2">${template.template_name}</h5>
+                        <p class="text-muted small mb-3">${template.description || 'No description'}</p>
+                        <div class="d-flex justify-content-between text-muted small mb-3">
+                            <span><i class="bi bi-tag"></i> ${template.template_type}</span>
+                            <span><i class="bi bi-clock"></i> ${new Date(template.updated_at || Date.now()).toLocaleDateString()}</span>
+                        </div>
+                        <div class="d-flex gap-2">
+                            <button class="btn btn-sm btn-primary flex-fill" onclick="editTemplate('${template.template_id}')">
+                                <i class="bi bi-pencil"></i> Edit
+                            </button>
+                            <button class="btn btn-sm btn-outline-secondary" onclick="event.stopPropagation(); cloneTemplate('${template.template_id}')">
+                                <i class="bi bi-files"></i> Clone
+                            </button>
                         </div>
                     </div>
                 </div>
             `).join('');
         }
 
-        // Update stats cards
-        function updateStats(agents) {
-            document.getElementById('totalAgents').textContent = agents.length;
+        function createNewTemplate(type) {
+            console.log('Creating new template of type:', type);
 
-            const themeAgent = agents.find(a => a.agent_id === 'theme_agent');
-            const narrativeAgent = agents.find(a => a.agent_id === 'narrative_architect');
+            isCreatingNew = true;
+            currentTemplateType = type;
 
-            document.getElementById('themeVersion').textContent = themeAgent ? `v${themeAgent.version || '1.0'}` : 'Not Found';
-            document.getElementById('narrativeVersion').textContent = narrativeAgent ? `v${narrativeAgent.version || '1.0'}` : 'Not Found';
+            // Create empty template with default values based on type
+            const defaultTemplates = {
+                'theme': {
+                    template_type: 'theme',
+                    template_name: 'New Theme Template',
+                    agent_type: 'theme_agent',
+                    description: '',
+                    model: 'gpt-4o',
+                    temperature: 0.8,
+                    max_tokens: 4000,
+                    is_active: true,
+                    sections: {
+                        role_definition: 'You are a creative theme generator for YouTube videos.',
+                        core_rules: ['Generate engaging themes', 'Focus on trending topics', 'Be original'],
+                        hook_rules: { enabled: false, style: '', length: '', placement: '' }
+                    }
+                },
+                'narrative': {
+                    template_type: 'narrative',
+                    template_name: 'New Narrative Template',
+                    agent_type: 'narrative_architect',
+                    description: '',
+                    model: 'gpt-4o',
+                    temperature: 0.8,
+                    max_tokens: 8000,
+                    is_active: true,
+                    sections: {
+                        role_definition: 'You are a narrative architect creating compelling video scripts.',
+                        core_rules: ['Structure scenes logically', 'Maintain engagement', 'Build suspense'],
+                        hook_rules: {
+                            enabled: true,
+                            style: 'Question-based or shock',
+                            length: '50-120 characters',
+                            placement: 'first_15_seconds'
+                        },
+                        ssml_settings: {
+                            enabled: true,
+                            style: 'emotional',
+                            default_pace: 'medium',
+                            guidelines: 'Add emotional pauses after important moments.\nUse <emphasis level=\'strong\'> on key words.\nSlow down during tense moments.',
+                            pause_after_intro: '800ms',
+                            pause_dramatic: '1500ms'
+                        }
+                    }
+                },
+                'image': {
+                    template_type: 'image',
+                    template_name: 'New Image Template',
+                    description: '',
+                    is_active: true,
+                    genre: 'General',
+                    image_generation_service: 'stability-ai',
+                    model: 'stable-diffusion-xl',
+                    prompt_structure: {
+                        style: 'Cinematic, high quality',
+                        composition: 'Balanced, rule of thirds',
+                        lighting: 'Dramatic lighting',
+                        atmosphere: 'Mysterious, engaging'
+                    },
+                    negative_prompt: 'blurry, low quality, distorted, text, watermark'
+                },
+                'video': {
+                    template_type: 'video',
+                    template_name: 'New Video Template',
+                    description: '',
+                    is_active: true,
+                    genre: 'General',
+                    editing_params: {
+                        transition_style: 'smooth',
+                        transition_duration: 0.5,
+                        scene_duration_min: 5,
+                        scene_duration_max: 15,
+                        pacing: 'medium',
+                        effects: ['fade', 'dissolve']
+                    }
+                },
+                'cta': {
+                    template_type: 'cta',
+                    template_name: 'New CTA Template',
+                    description: '',
+                    is_active: true,
+                    genre: 'General',
+                    cta_type: 'subscribe',
+                    position: 'end',
+                    duration: 5,
+                    layout: {
+                        background: { type: 'gradient', colors: ['#667eea', '#764ba2'] },
+                        text_alignment: 'center'
+                    },
+                    elements: [
+                        { type: 'text', content: 'Thanks for watching!', style: { font_size: 'large', color: '#ffffff' } },
+                        { type: 'button', content: 'SUBSCRIBE', action: 'subscribe', style: { background: '#ff0000', color: '#ffffff' } }
+                    ],
+                    animation: {
+                        entrance: 'fade-in',
+                        entrance_duration: 0.5,
+                        exit: 'fade-out',
+                        exit_duration: 0.5
+                    }
+                },
+                'tts': {
+                    template_type: 'tts',
+                    template_name: 'New TTS/Voice Template',
+                    description: '',
+                    is_active: true,
+                    genre: 'General',
+                    tts_config: {
+                        service: 'aws-polly',
+                        voice_id: 'Matthew',
+                        voice_engine: 'neural',
+                        voice_language: 'en-US',
+                        voice_gender: 'male'
+                    }
+                }
+            };
 
-            const now = new Date().toLocaleString();
-            document.getElementById('lastUpdated').textContent = now;
+            currentTemplate = defaultTemplates[type] || defaultTemplates['theme'];
+
+            // Populate form with default values
+            populateEditor(currentTemplate);
+
+            // Update UI to show "Create" mode
+            document.getElementById('editorTitle').textContent = `Create New ${type.charAt(0).toUpperCase() + type.slice(1)} Template`;
+
+            // Hide delete buttons for new templates
+            document.getElementById('deleteBtn').style.display = 'none';
+            const deleteBtnModal = document.getElementById('deleteBtnModal');
+            if (deleteBtnModal) deleteBtnModal.style.display = 'none';
+
+            // Open modal editor
+            openEditorModal();
+
+            showToast(`Creating new ${type} template. Fill in the details and click Save.`, 'info');
         }
 
-        // Edit agent
-        function editAgent(agentId) {
-            const agent = currentAgents.find(a => a.agent_id === agentId);
-            if (!agent) return;
+        // ====================================================================
+        // EDITOR FUNCTIONS
+        // ====================================================================
 
-            document.getElementById('editAgentId').value = agent.agent_id;
-            document.getElementById('editAgentNameInput').value = agent.agent_name || agent.agent_id;
-            document.getElementById('modalAgentName').textContent = agent.agent_name || agent.agent_id;
-            document.getElementById('editVersion').value = agent.version || '1.0';
-            document.getElementById('editModel').value = agent.model || 'gpt-4o';
-            document.getElementById('editTemperature').value = agent.temperature || '0.8';
-            document.getElementById('editMaxTokens').value = agent.max_tokens || '4000';
-            document.getElementById('editInstructions').value = agent.system_instructions || '';
+        async function editTemplate(templateId) {
+            try {
+                const response = await fetch(`${API_BASE}/template/${templateId}?type=${currentTemplateType}`);
+                const data = await response.json();
 
-            updateCharCounter();
+                if (data.success) {
+                    currentTemplate = data.data.template;
+                    isCreatingNew = false;  // Reset creation mode when editing existing template
 
-            const modal = new bootstrap.Modal(document.getElementById('editModal'));
+                    // Populate form
+                    populateEditor(currentTemplate);
+
+                    // Open modal editor
+                    openEditorModal();
+                } else {
+                    showToast('Error loading template: ' + data.error, 'danger');
+                }
+            } catch (error) {
+                console.error('Error:', error);
+                showToast('Failed to load template: ' + error.message, 'danger');
+            }
+        }
+
+        function openEditorModal() {
+            // Move form from editor tab to modal
+            const form = document.getElementById('templateForm');
+            const modalBody = document.getElementById('editorModalBody');
+
+            if (form && modalBody) {
+                modalBody.innerHTML = '';
+                modalBody.appendChild(form);
+            }
+
+            // Update modal title (use editorTitle which is already set by populateEditor or createNewTemplate)
+            const modalTitle = document.getElementById('editorModalTitle');
+            const editorTitle = document.getElementById('editorTitle');
+            if (modalTitle && editorTitle) {
+                modalTitle.textContent = editorTitle.textContent;
+            } else if (modalTitle && currentTemplate) {
+                modalTitle.textContent = currentTemplate.template_name || 'Edit Template';
+            }
+
+            // Show modal
+            const modal = new bootstrap.Modal(document.getElementById('editorModal'));
             modal.show();
         }
 
-        // Save agent
-        async function saveAgent() {
-            const agentId = document.getElementById('editAgentId').value;
-            const version = document.getElementById('editVersion').value;
-            const model = document.getElementById('editModel').value;
-            const temperature = document.getElementById('editTemperature').value;
-            const maxTokens = document.getElementById('editMaxTokens').value;
-            const instructions = document.getElementById('editInstructions').value;
+        function closeEditorModal() {
+            // Close modal
+            const modalElement = document.getElementById('editorModal');
+            const modal = bootstrap.Modal.getInstance(modalElement);
+            if (modal) {
+                modal.hide();
+            }
 
-            if (!instructions.trim()) {
-                alert('System instructions cannot be empty!');
+            // Reset state
+            isCreatingNew = false;
+            currentTemplate = null;
+
+            // Refresh template list
+            loadTemplatesByType(currentTemplateType);
+        }
+
+        function populateEditor(template) {
+            console.log('Populating editor with template:', template);
+
+            try {
+                document.getElementById('editorTitle').textContent = template.template_name;
+                document.getElementById('template_name').value = template.template_name || '';
+                document.getElementById('agent_type').value = template.agent_type || '';
+                document.getElementById('is_active').value = template.is_active !== undefined ? template.is_active : 1;
+                document.getElementById('description').value = template.description || '';
+                document.getElementById('model').value = template.model || 'gpt-4o';
+                document.getElementById('temperature').value = template.temperature || 0.8;
+                document.getElementById('max_tokens').value = template.max_tokens || 4000;
+
+                // Sections
+                const sections = template.sections || {};
+                document.getElementById('role_definition').value = sections.role_definition || '';
+
+                // Core rules
+                renderCoreRules(sections.core_rules || []);
+
+                // Hook rules
+                if (sections.hook_rules) {
+                    document.getElementById('hook_enabled').checked = sections.hook_rules.enabled !== false;
+                    document.getElementById('hook_style').value = sections.hook_rules.style || '';
+                    document.getElementById('hook_length').value = sections.hook_rules.length || '';
+                    document.getElementById('hook_placement').value = sections.hook_rules.placement || '';
+                }
+
+                // Show/hide delete buttons based on whether template is default
+                const deleteBtn = document.getElementById('deleteBtn');
+                const deleteBtnModal = document.getElementById('deleteBtnModal');
+
+                if (template.is_default === true) {
+                    // Hide for default templates
+                    deleteBtn.style.display = 'none';
+                    if (deleteBtnModal) deleteBtnModal.style.display = 'none';
+                } else {
+                    // Show for custom templates
+                    deleteBtn.style.display = 'inline-block';
+                    if (deleteBtnModal) deleteBtnModal.style.display = 'inline-block';
+                }
+
+                // Show/hide Hook Rules section based on template type
+                const hookRulesSection = document.getElementById('hookRulesSection');
+
+                // Hook Rules: visible for Narrative templates only (removed from TTS)
+                if (template.template_type === 'narrative') {
+                    hookRulesSection.style.display = 'block';
+                } else {
+                    hookRulesSection.style.display = 'none';
+                }
+
+                // SSML Settings: visible ONLY for Narrative templates
+                const ssmlSettingsSection = document.getElementById('ssmlSettingsSection');
+                if (template.template_type === 'narrative') {
+                    ssmlSettingsSection.style.display = 'block';
+
+                    // Populate SSML settings from template
+                    if (sections.ssml_settings) {
+                        document.getElementById('use_ssml').checked = sections.ssml_settings.enabled !== false;
+                        document.getElementById('ssml_style').value = sections.ssml_settings.style || 'emotional';
+                        document.getElementById('ssml_default_pace').value = sections.ssml_settings.default_pace || 'medium';
+                        document.getElementById('ssml_guidelines').value = sections.ssml_settings.guidelines || 'Add emotional pauses after important moments.\nUse <emphasis level=\'strong\'> on key words.\nSlow down during tense moments.';
+                        document.getElementById('pause_after_intro').value = sections.ssml_settings.pause_after_intro || '800ms';
+                        document.getElementById('pause_dramatic').value = sections.ssml_settings.pause_dramatic || '1500ms';
+                    }
+
+                    // Update toggle visibility
+                    toggleSSMLOptions();
+                } else {
+                    ssmlSettingsSection.style.display = 'none';
+                }
+
+                console.log('Editor populated successfully');
+            } catch (error) {
+                console.error('Error populating editor:', error);
+                showToast('Error loading template data: ' + error.message, 'danger');
+            }
+        }
+
+        function renderCoreRules(rules) {
+            const container = document.getElementById('coreRulesList');
+            container.innerHTML = rules.map((rule, index) => `
+                <div class="rule-item">
+                    <input type="text" class="form-control" value="${rule}" data-rule-index="${index}">
+                    <button type="button" class="btn-remove-rule" onclick="removeCoreRule(${index})">
+                        <i class="bi bi-trash"></i>
+                    </button>
+                </div>
+            `).join('');
+        }
+
+        function addCoreRule() {
+            const container = document.getElementById('coreRulesList');
+            const index = container.children.length;
+            const ruleHtml = `
+                <div class="rule-item">
+                    <input type="text" class="form-control" placeholder="Enter rule..." data-rule-index="${index}">
+                    <button type="button" class="btn-remove-rule" onclick="removeCoreRule(${index})">
+                        <i class="bi bi-trash"></i>
+                    </button>
+                </div>
+            `;
+            container.insertAdjacentHTML('beforeend', ruleHtml);
+        }
+
+        function removeCoreRule(index) {
+            const container = document.getElementById('coreRulesList');
+            container.children[index].remove();
+        }
+
+        function getCoreRules() {
+            const inputs = document.querySelectorAll('#coreRulesList input');
+            return Array.from(inputs)
+                .map(input => input.value.trim())
+                .filter(value => value.length > 0);
+        }
+
+        function toggleSSMLOptions() {
+            const enabled = document.getElementById('use_ssml').checked;
+            const optionsContent = document.getElementById('ssmlOptionsContent');
+            optionsContent.style.display = enabled ? 'block' : 'none';
+        }
+
+        async function saveTemplate() {
+            if (!currentTemplate) {
+                showToast('No template loaded', 'warning');
                 return;
             }
 
-            showLoading(true);
+            // Validate required fields
+            const templateName = document.getElementById('template_name').value.trim();
+            if (!templateName) {
+                showToast('Template name is required', 'warning');
+                return;
+            }
 
-            try {
-                const payload = {
-                    version: version,
-                    model: model,
-                    temperature: temperature,
-                    max_tokens: maxTokens,
-                    system_instructions: instructions
+            // Build template data based on template type
+            let templateData = {
+                template_type: currentTemplateType,
+                template_name: templateName,
+                is_active: parseInt(document.getElementById('is_active').value),
+                description: document.getElementById('description').value
+            };
+
+            // Add type-specific fields
+            if (currentTemplateType === 'theme' || currentTemplateType === 'narrative') {
+                templateData.agent_type = document.getElementById('agent_type').value;
+                templateData.model = document.getElementById('model').value;
+                templateData.temperature = parseFloat(document.getElementById('temperature').value);
+                templateData.max_tokens = parseInt(document.getElementById('max_tokens').value);
+                templateData.sections = {
+                    role_definition: document.getElementById('role_definition').value,
+                    core_rules: getCoreRules(),
+                    hook_rules: {
+                        enabled: document.getElementById('hook_enabled').checked,
+                        style: document.getElementById('hook_style').value,
+                        length: document.getElementById('hook_length').value,
+                        placement: document.getElementById('hook_placement').value
+                    }
                 };
 
-                const response = await fetch(`${API_URL}/prompts/${agentId}`, {
-                    method: 'PUT',
-                    headers: {
-                        'Content-Type': 'application/json'
-                    },
-                    body: JSON.stringify(payload)
+                // Add SSML Settings for narrative templates
+                if (currentTemplateType === 'narrative') {
+                    templateData.sections.ssml_settings = {
+                        enabled: document.getElementById('use_ssml').checked,
+                        style: document.getElementById('ssml_style').value,
+                        default_pace: document.getElementById('ssml_default_pace').value,
+                        guidelines: document.getElementById('ssml_guidelines').value,
+                        pause_after_intro: document.getElementById('pause_after_intro').value,
+                        pause_dramatic: document.getElementById('pause_dramatic').value
+                    };
+                }
+            } else {
+                // For other types (image, video, cta, tts), keep their existing structure
+                templateData = { ...currentTemplate, ...templateData };
+            }
+
+            // Determine if creating new or updating existing
+            const isNewTemplate = isCreatingNew || !currentTemplate.template_id;
+            const method = isNewTemplate ? 'POST' : 'PUT';
+            const url = isNewTemplate
+                ? `${API_BASE}/`
+                : `${API_BASE}/template/${currentTemplate.template_id}`;
+
+            console.log(`${method} ${isNewTemplate ? 'new' : 'existing'} template:`, templateData);
+
+            try {
+                const response = await fetch(url, {
+                    method: method,
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify(templateData)
                 });
 
-                if (!response.ok) {
-                    throw new Error(`HTTP error! status: ${response.status}`);
+                const data = await response.json();
+                console.log('Save response:', data);
+
+                if (data.success) {
+                    showToast(
+                        isNewTemplate ? 'Template created successfully!' : 'Template saved successfully!',
+                        'success'
+                    );
+
+                    // Close modal and refresh
+                    closeEditorModal();
+                } else {
+                    showToast('Error saving template: ' + (data.error || 'Unknown error'), 'danger');
+                }
+            } catch (error) {
+                console.error('Error saving template:', error);
+                showToast('Failed to save template: ' + error.message, 'danger');
+            }
+        }
+
+        async function deleteTemplate() {
+            if (!currentTemplate || !currentTemplate.template_id) {
+                showToast('No template selected', 'warning');
+                return;
+            }
+
+            // Prevent deletion of base templates
+            const protectedTemplates = ['theme_agent', 'narrative_architect'];
+            if (protectedTemplates.includes(currentTemplate.template_id)) {
+                showToast('Cannot delete base template', 'danger');
+                return;
+            }
+
+            // Confirmation dialog
+            const confirmMsg = `Are you sure you want to delete template "${currentTemplate.template_name}"?\n\nThis action cannot be undone.`;
+            if (!confirm(confirmMsg)) {
+                return;
+            }
+
+            console.log('Deleting template:', currentTemplate.template_id);
+
+            try {
+                const url = `${API_BASE}/template/${currentTemplate.template_id}?type=${currentTemplateType}`;
+                console.log('DELETE to:', url);
+
+                const response = await fetch(url, {
+                    method: 'DELETE',
+                    headers: { 'Content-Type': 'application/json' }
+                });
+
+                const data = await response.json();
+                console.log('Delete response:', data);
+
+                if (data.success) {
+                    showToast('Template deleted successfully!', 'success');
+                    backToLibrary();
+                    loadTemplates();  // Refresh the template list
+                } else {
+                    showToast('Error deleting template: ' + (data.error || 'Unknown error'), 'danger');
+                }
+            } catch (error) {
+                console.error('Error deleting template:', error);
+                showToast('Failed to delete template: ' + error.message, 'danger');
+            }
+        }
+
+        async function cloneTemplate(templateId) {
+            const newName = prompt('Enter name for cloned template:');
+            if (!newName) return;
+
+            try {
+                // Get the original template
+                const getResponse = await fetch(`${API_BASE}/template/${templateId}?type=${currentTemplateType}`);
+                const getData = await getResponse.json();
+
+                if (!getData.success) {
+                    showToast('Error loading template to clone', 'danger');
+                    return;
                 }
 
-                const result = await response.json();
+                const original = getData.data.template;
 
-                // Close modal
-                const modal = bootstrap.Modal.getInstance(document.getElementById('editModal'));
-                modal.hide();
+                // Create new template with cloned data
+                const newTemplate = {
+                    ...original,
+                    template_name: newName,
+                    template_type: currentTemplateType,
+                    created_at: Date.now(),
+                    updated_at: Date.now()
+                };
+                delete newTemplate.template_id; // Let backend generate new ID
+                delete newTemplate.version; // Reset version
 
-                // Show success toast
-                showToast('Agent updated successfully!');
+                const response = await fetch(API_BASE, {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify(newTemplate)
+                });
 
-                // Reload agents
-                await loadAgents();
+                const data = await response.json();
 
+                if (data.success) {
+                    showToast('Template cloned successfully!', 'success');
+                    loadTemplatesByType(currentTemplateType);
+                } else {
+                    showToast('Error cloning template: ' + (data.error || 'Unknown error'), 'danger');
+                }
             } catch (error) {
-                console.error('Error saving agent:', error);
-                alert('Error saving agent: ' + error.message);
-            } finally {
-                showLoading(false);
+                console.error('Error:', error);
+                showToast('Failed to clone template', 'danger');
             }
         }
 
-        // Character counter
-        function updateCharCounter() {
-            const instructions = document.getElementById('editInstructions').value;
-            document.getElementById('charCounter').textContent = `${instructions.length} characters`;
+        // ====================================================================
+        // PREVIEW FUNCTIONS
+        // ====================================================================
+
+        async function loadChannels() {
+            // TODO: Load channels from API
+            // For now, mock data
+            allChannels = [
+                { channelId: 'channel1', channel_name: 'Horror Stories' },
+                { channelId: 'channel2', channel_name: 'Mystery Tales' }
+            ];
+
+            const select = document.getElementById('previewChannelSelect');
+            select.innerHTML = '<option value="">Select Channel...</option>' +
+                allChannels.map(c => `<option value="${c.channelId}">${c.channel_name}</option>`).join('');
         }
 
-        document.getElementById('editInstructions')?.addEventListener('input', updateCharCounter);
+        async function generatePreview() {
+            const channelId = document.getElementById('previewChannelSelect').value;
+            if (!channelId) {
+                showToast('Please select a channel', 'warning');
+                return;
+            }
 
-        // Show/hide loading
-        function showLoading(show) {
-            const spinner = document.getElementById('loadingSpinner');
-            if (show) {
-                spinner.classList.remove('d-none');
-            } else {
-                spinner.classList.add('d-none');
+            const container = document.getElementById('previewContainer');
+            container.innerHTML = '<div class="text-center py-5"><div class="loading-spinner"></div></div>';
+
+            try {
+                const response = await fetch(`${API_BASE}/${currentTemplate.template_id}/preview?channel_id=${channelId}&topic=Sample Topic`);
+                const data = await response.json();
+
+                if (data.success) {
+                    renderPreview(data.data.preview);
+                } else {
+                    showToast('Error generating preview', 'danger');
+                }
+            } catch (error) {
+                console.error('Error:', error);
+                showToast('Failed to generate preview', 'danger');
             }
         }
 
-        // Show toast notification
-        function showToast(message) {
-            document.getElementById('toastMessage').textContent = message;
-            const toast = new bootstrap.Toast(document.getElementById('successToast'));
-            toast.show();
+        function renderPreview(preview) {
+            document.getElementById('previewContainer').innerHTML = `
+                <div class="preview-container">
+                    <div class="preview-section">
+                        <div class="preview-label">SYSTEM PROMPT:</div>
+                        <div class="preview-content">${escapeHtml(preview.system_prompt)}</div>
+                    </div>
+                    <div class="preview-section">
+                        <div class="preview-label">USER MESSAGE:</div>
+                        <div class="preview-content">${escapeHtml(preview.user_message)}</div>
+                    </div>
+                    <div class="preview-section">
+                        <div class="preview-label">MODEL CONFIG:</div>
+                        <div class="preview-content">${JSON.stringify(preview.model_config, null, 2)}</div>
+                    </div>
+                </div>
+            `;
         }
 
-        // Initialize
-        document.addEventListener('DOMContentLoaded', () => {
-            loadAgents();
-        });
+        // ====================================================================
+        // UTILITY FUNCTIONS
+        // ====================================================================
+
+        // showTab and hideTab functions removed - tabs no longer exist
+
+        function backToLibrary() {
+            closeEditorModal();
+        }
+
+        function showToast(message, type = 'info') {
+            const toast = document.createElement('div');
+            toast.className = `alert alert-${type} alert-dismissible fade show`;
+            toast.innerHTML = `
+                ${message}
+                <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
+            `;
+            document.querySelector('.toast-container').appendChild(toast);
+
+            setTimeout(() => toast.remove(), 5000);
+        }
+
+        async function showCreateModal() {
+            createNewTemplate(currentTemplateType);
+        }
+
+        async function showCreateModal_OLD() {
+            const templateName = prompt('Enter template name:', 'My Custom Template');
+            if (!templateName) return;
+
+            const agentType = prompt('Enter agent type (narrative_architect, theme_agent, or custom):', 'custom');
+            if (!agentType) return;
+
+            const description = prompt('Enter description:', 'Custom template for specific use case');
+
+            // Generate unique agent_id
+            const agentId = agentType === 'custom'
+                ? `custom_${Date.now()}`
+                : `${agentType}_custom_${Date.now()}`;
+
+            const newTemplate = {
+                template_type: currentTemplateType,
+                template_name: templateName,
+                agent_type: agentType,
+                description: description || '',
+                version: 1,
+                is_active: true,
+                model: 'gpt-4o',
+                temperature: 0.8,
+                max_tokens: 4000,
+                sections: {
+                    role_definition: 'You are an AI assistant...',
+                    core_rules: [],
+                    hook_rules: {
+                        enabled: true,
+                        style: 'engaging',
+                        length: '50-120 characters',
+                        placement: 'first_15_seconds'
+                    },
+                    ssml_rules: {
+                        pauses: {
+                            after_hook: '1500ms',
+                            between_scenes: '1000ms'
+                        }
+                    },
+                    variation_logic: {},
+                    output_schema: {}
+                },
+                created_by: 'admin',
+                genre: 'General'
+            };
+
+            try {
+                const response = await fetch(API_BASE, {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify(newTemplate)
+                });
+
+                const data = await response.json();
+
+                if (data.success) {
+                    showToast('Template created successfully!', 'success');
+                    loadTemplatesByType(currentTemplateType);
+                } else {
+                    showToast('Error creating template: ' + (data.error || 'Unknown error'), 'danger');
+                }
+            } catch (error) {
+                console.error('Error:', error);
+                showToast('Failed to create template', 'danger');
+            }
+        }
+
+        function escapeHtml(text) {
+            const div = document.createElement('div');
+            div.textContent = text;
+            return div.innerHTML;
+        }
     </script>
-
-    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+    <script src="js/navigation.js"></script>
 </body>
 </html>

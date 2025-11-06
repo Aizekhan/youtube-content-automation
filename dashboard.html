@@ -28,6 +28,14 @@
             font-family: 'Inter', -apple-system, BlinkMacSystemFont, sans-serif;
         }
 
+        /* Dashboard tab panes */
+        .dashboard-tab-pane {
+            display: none;
+        }
+        .dashboard-tab-pane.active {
+            display: block;
+        }
+
         /* Sub-tabs styling */
         .nav-tabs {
             border-bottom: 2px solid rgba(102, 126, 234, 0.3);
@@ -406,22 +414,22 @@
         <!-- Dashboard Tabs -->
         <ul class="nav nav-tabs" id="dashboardTabs" role="tablist">
             <li class="nav-item" role="presentation">
-                <button class="nav-link active" id="monitoring-tab" data-bs-toggle="tab" data-bs-target="#monitoring" type="button" role="tab">
+                <button class="nav-link active" id="monitoring-tab" onclick="switchTab('monitoring')" type="button">
                     <i class="bi bi-activity"></i> Monitoring
                 </button>
             </li>
             <li class="nav-item" role="presentation">
-                <button class="nav-link" id="debug-tab" data-bs-toggle="tab" data-bs-target="#debug" type="button" role="tab">
+                <button class="nav-link" id="debug-tab" onclick="switchTab('debug')" type="button">
                     <i class="bi bi-bug"></i> Debug & Test
                 </button>
             </li>
         </ul>
 
         <!-- Tab Content -->
-        <div class="tab-content" id="dashboardTabContent">
+        <div class="tab-content" id="dashboardTabContent" style="display: block !important;">
 
             <!-- MONITORING TAB -->
-            <div class="tab-pane fade show active" id="monitoring" role="tabpanel">
+            <div class="dashboard-tab-pane active" id="monitoring">
                 <!-- Stats Row -->
                 <div class="row mb-4">
                     <div class="col-md-3">
@@ -462,73 +470,73 @@
                         <div class="workflow-container">
 
                             <!-- Step 1: Get Active Channels -->
-                            <div class="workflow-node" id="node-get-channels" data-step="1">
+                            <div class="workflow-node clickable" id="node-get-channels" data-step="GetActiveChannels" onclick="showStepDetails('GetActiveChannels')">
                                 <div class="node-icon"><i class="bi bi-play-circle"></i></div>
                                 <div class="node-title">Get Active Channels</div>
-                                <div class="node-subtitle">Lambda: content-get-channels</div>
-                                <div class="node-db">
-                                    <i class="bi bi-database"></i> ChannelConfigs
-                                </div>
+                                <div class="node-subtitle">content-get-channels</div>
+                                <div class="node-db">Output: channel_id, config_id, genre</div>
+                                <div class="node-status" id="status-GetActiveChannels"></div>
                             </div>
 
-                            <div class="workflow-arrow" id="arrow-1">
-                                <i class="bi bi-arrow-down"></i>
+                            <div class="workflow-arrow"><i class="bi bi-arrow-down"></i></div>
+
+                            <!-- Step 2: Query Titles -->
+                            <div class="workflow-node clickable" id="node-query-titles" data-step="QueryTitles" onclick="showStepDetails('QueryTitles')">
+                                <div class="node-icon"><i class="bi bi-search"></i></div>
+                                <div class="node-title">Query Titles</div>
+                                <div class="node-subtitle">content-query-titles</div>
+                                <div class="node-status" id="status-QueryTitles"></div>
                             </div>
 
-                            <!-- Step 2: Generate Theme -->
-                            <div class="workflow-node" id="node-theme" data-step="2">
+                            <div class="workflow-arrow"><i class="bi bi-arrow-down"></i></div>
+
+                            <!-- Step 3: Theme Agent -->
+                            <div class="workflow-node clickable" id="node-theme" data-step="ThemeAgent" onclick="showStepDetails('ThemeAgent')">
                                 <div class="node-icon"><i class="bi bi-lightbulb"></i></div>
                                 <div class="node-title">Generate Theme</div>
-                                <div class="node-subtitle">Lambda: content-theme-agent</div>
-                                <div class="node-db">
-                                    <i class="bi bi-database"></i> Read: ChannelConfigs<br>
-                                    <i class="bi bi-arrow-right-circle"></i> Write: GeneratedContent
-                                </div>
+                                <div class="node-subtitle">content-theme-agent</div>
+                                <div class="node-status" id="status-ThemeAgent"></div>
                             </div>
 
-                            <div class="workflow-arrow" id="arrow-2">
-                                <i class="bi bi-arrow-down"></i>
+                            <div class="workflow-arrow"><i class="bi bi-arrow-down"></i></div>
+
+                            <!-- Step 4: Select Topic -->
+                            <div class="workflow-node clickable" id="node-select-topic" data-step="SelectTopic" onclick="showStepDetails('SelectTopic')">
+                                <div class="node-icon"><i class="bi bi-check2-square"></i></div>
+                                <div class="node-title">Select Topic</div>
+                                <div class="node-subtitle">content-select-topic</div>
+                                <div class="node-status" id="status-SelectTopic"></div>
                             </div>
 
-                            <!-- Step 3: Generate Narrative -->
-                            <div class="workflow-node" id="node-narrative" data-step="3">
+                            <div class="workflow-arrow"><i class="bi bi-arrow-down"></i></div>
+
+                            <!-- Step 5: Narrative Architect -->
+                            <div class="workflow-node clickable" id="node-narrative" data-step="NarrativeArchitect" onclick="showStepDetails('NarrativeArchitect')">
                                 <div class="node-icon"><i class="bi bi-file-text"></i></div>
                                 <div class="node-title">Generate Narrative</div>
-                                <div class="node-subtitle">Lambda: content-narrative</div>
-                                <div class="node-db">
-                                    <i class="bi bi-database"></i> Read: GeneratedContent, ChannelConfigs<br>
-                                    <i class="bi bi-arrow-right-circle"></i> Write: GeneratedContent (scenes)
-                                </div>
+                                <div class="node-subtitle">content-narrative</div>
+                                <div class="node-status" id="status-NarrativeArchitect"></div>
                             </div>
 
-                            <div class="workflow-arrow" id="arrow-3">
-                                <i class="bi bi-arrow-down"></i>
-                            </div>
+                            <div class="workflow-arrow"><i class="bi bi-arrow-down"></i></div>
 
-                            <!-- Step 4: Generate Audio -->
-                            <div class="workflow-node" id="node-audio" data-step="4">
+                            <!-- Step 6: Generate Audio -->
+                            <div class="workflow-node clickable" id="node-audio" data-step="GenerateAudio" onclick="showStepDetails('GenerateAudio')">
                                 <div class="node-icon"><i class="bi bi-mic"></i></div>
                                 <div class="node-title">Generate Audio (TTS)</div>
-                                <div class="node-subtitle">Lambda: content-audio-tts</div>
-                                <div class="node-db">
-                                    <i class="bi bi-database"></i> Read: GeneratedContent<br>
-                                    <i class="bi bi-arrow-right-circle"></i> Write: S3 (audio files)
-                                </div>
+                                <div class="node-subtitle">content-audio-tts</div>
+                                <div class="node-status" id="status-GenerateAudio"></div>
                             </div>
 
-                            <div class="workflow-arrow" id="arrow-4">
-                                <i class="bi bi-arrow-down"></i>
-                            </div>
+                            <div class="workflow-arrow"><i class="bi bi-arrow-down"></i></div>
 
-                            <!-- Step 5: Save Result -->
-                            <div class="workflow-node" id="node-save" data-step="5">
+                            <!-- Step 7: Save Result -->
+                            <div class="workflow-node clickable" id="node-save" data-step="SaveResult" onclick="showStepDetails('SaveResult')">
                                 <div class="node-icon"><i class="bi bi-check-circle"></i></div>
                                 <div class="node-title">Save Result</div>
-                                <div class="node-subtitle">Lambda: content-save-result</div>
-                                <div class="node-db">
-                                    <i class="bi bi-database"></i> Read: S3, GeneratedContent<br>
-                                    <i class="bi bi-arrow-right-circle"></i> Write: GeneratedContent (final)
-                                </div>
+                                <div class="node-subtitle">content-save-result</div>
+                                <div class="node-db">Save to DynamoDB: generated_content table</div>
+                                <div class="node-status" id="status-SaveResult"></div>
                             </div>
 
                         </div>
@@ -536,9 +544,14 @@
                 </div>
 
                 <!-- Step Functions Executions -->
-                <div class="card">
-                    <div class="card-header d-flex justify-content-between align-items-center">
-                        <span><i class="bi bi-diagram-3"></i> Step Functions Executions</span>
+                <div class="card" style="margin-top: 2rem;">
+                    <div class="card-header d-flex justify-content-between align-items-center" style="background: linear-gradient(135deg, rgba(102, 126, 234, 0.2) 0%, rgba(102, 126, 234, 0.05) 100%); border-bottom: 2px solid rgba(102, 126, 234, 0.3);">
+                        <span style="font-size: 1.1rem; font-weight: 600; color: var(--text-primary);">
+                            <i class="bi bi-diagram-3"></i> Step Functions Executions
+                            <small style="display: block; font-size: 0.75rem; color: var(--text-secondary); font-weight: normal; margin-top: 0.25rem;">
+                                Клікніть на виконання щоб побачити деталі кроків
+                            </small>
+                        </span>
                         <button class="btn btn-sm btn-primary" onclick="refreshExecutions()">
                             <i class="bi bi-arrow-clockwise" id="refreshIcon"></i> Refresh
                         </button>
@@ -570,7 +583,7 @@
             </div>
 
             <!-- DEBUG & TEST TAB -->
-            <div class="tab-pane fade" id="debug" role="tabpanel">
+            <div class="dashboard-tab-pane" id="debug" style="display: none;">
                 <div class="mb-4">
                     <h2><i class="bi bi-bug-fill"></i> Debug & Test Dashboard</h2>
                     <p class="text-secondary">
@@ -820,7 +833,7 @@
     </div>
 
     <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
-    <script src="js/navigation.js"></script>
+    <script src="js/navigation.js?v=20251105-1545"></script>
     <script>
         // API URLs
         const API_URL = 'https://e2c5y2h1qj.execute-api.eu-central-1.amazonaws.com/prod';
@@ -829,38 +842,56 @@
 
         let currentExecutions = [];
         let currentLogs = [];
+        let currentExecutionDetails = null; // Stores step-by-step details
         let testStartTime = null;
         let testData = {};
 
         // ====== MONITORING TAB FUNCTIONS ======
 
         async function refreshExecutions() {
+            console.log('🔄 Refreshing executions...');
             const icon = document.getElementById('refreshIcon');
-            icon.classList.add('refresh-btn');
+            if (icon) icon.classList.add('refresh-btn');
 
             try {
+                console.log('📞 Calling:', `${API_URL}/monitoring/executions`);
                 const response = await fetch(`${API_URL}/monitoring/executions`);
+                console.log('📦 Response status:', response.status);
                 const data = await response.json();
+                console.log('📊 Executions data:', data);
 
                 displayExecutions(data.executions || []);
                 updateStats(data.stats || {});
             } catch (error) {
-                console.error('Error loading executions:', error);
-                document.getElementById('executionsList').innerHTML = `
-                    <div class="alert alert-danger">
-                        <i class="bi bi-exclamation-triangle"></i> Failed to load executions: ${error.message}
-                    </div>
-                `;
+                console.error('❌ Error loading executions:', error);
+                const list = document.getElementById('executionsList');
+                if (list) {
+                    list.innerHTML = `
+                        <div class="alert alert-danger">
+                            <i class="bi bi-exclamation-triangle"></i> Failed to load executions: ${error.message}
+                        </div>
+                    `;
+                }
             } finally {
-                icon.classList.remove('refresh-btn');
+                if (icon) icon.classList.remove('refresh-btn');
             }
         }
 
         function displayExecutions(executions) {
+            console.log('📋 displayExecutions called with', executions.length, 'executions');
             currentExecutions = executions;
 
+            const list = document.getElementById('executionsList');
+            console.log('🎯 Found executionsList element:', list);
+
+            if (!list) {
+                console.error('❌ executionsList element not found!');
+                return;
+            }
+
             if (executions.length === 0) {
-                document.getElementById('executionsList').innerHTML = `
+                console.log('ℹ️ No executions to display');
+                list.innerHTML = `
                     <div class="text-center text-secondary py-5">
                         <i class="bi bi-inbox" style="font-size: 3rem;"></i>
                         <p class="mt-3">No executions found</p>
@@ -869,19 +900,24 @@
                 return;
             }
 
-            const html = executions.map((exec, index) => `
-                <div class="execution-item" onclick="showExecutionDetails(currentExecutions[${index}])">
+            const html = executions.map((exec, index) => {
+                const formattedDate = formatDate(exec.startDate);
+                const statusIcon = getStatusIcon(exec.status);
+                const statusLower = exec.status ? exec.status.toLowerCase() : 'unknown';
+
+                return `
+                <div class="execution-item ${statusLower}" onclick="showExecutionDetails(currentExecutions[${index}])">
                     <div class="d-flex justify-content-between align-items-center">
                         <div>
                             <strong>${exec.name || 'Unnamed Execution'}</strong>
                             <br>
                             <small class="timestamp">
-                                <i class="bi bi-clock"></i> ${formatDate(exec.startDate)}
+                                <i class="bi bi-clock"></i> ${formattedDate}
                             </small>
                         </div>
                         <div>
-                            <span class="status-badge status-${exec.status.toLowerCase()}">
-                                ${getStatusIcon(exec.status)} ${exec.status}
+                            <span class="status-badge status-${statusLower}">
+                                ${statusIcon} ${exec.status}
                             </span>
                         </div>
                     </div>
@@ -893,12 +929,15 @@
                         </div>
                     ` : ''}
                 </div>
-            `).join('');
+                `;
+            }).join('');
 
-            document.getElementById('executionsList').innerHTML = html;
+            list.innerHTML = html;
+            console.log('✅ Executions displayed!');
         }
 
         function updateStats(stats) {
+            console.log('📊 updateStats called with:', stats);
             document.getElementById('runningExecutions').textContent = stats.running || 0;
             document.getElementById('succeededExecutions').textContent = stats.succeeded || 0;
             document.getElementById('failedExecutions').textContent = stats.failed || 0;
@@ -978,9 +1017,28 @@
             return div.innerHTML;
         }
 
-        function showExecutionDetails(exec) {
+        async function showExecutionDetails(exec) {
             const modal = document.getElementById('executionModal');
             const content = document.getElementById('executionDetailsContent');
+
+            // Show loading state
+            content.innerHTML = `
+                <div style="text-align: center; padding: 3rem;">
+                    <i class="bi bi-hourglass-split" style="font-size: 3rem; color: var(--primary-color);"></i>
+                    <p style="color: var(--text-secondary); margin-top: 1rem;">Завантаження деталей виконання...</p>
+                </div>
+            `;
+            modal.style.display = 'flex';
+
+            // Load execution details with step-by-step breakdown
+            if (exec.executionArn) {
+                await loadExecutionDetails(exec.executionArn);
+
+                // Scroll to workflow visualization
+                setTimeout(() => {
+                    document.querySelector('.workflow-container')?.scrollIntoView({ behavior: 'smooth', block: 'center' });
+                }, 300);
+            }
 
             const duration = exec.stopDate ? calculateDuration(exec.startDate, exec.stopDate) : 'Still running...';
             const errorInfo = exec.error ? `
@@ -990,6 +1048,24 @@
                     </div>
                     <div style="color: var(--text-secondary); font-size: 0.9rem; font-family: monospace;">
                         ${escapeHtml(exec.error)}
+                    </div>
+                </div>
+            ` : '';
+
+            const stepsInfo = currentExecutionDetails && currentExecutionDetails.steps ? `
+                <div style="margin-top: 1.5rem; padding: 1.25rem; background: linear-gradient(135deg, rgba(16, 185, 129, 0.15) 0%, rgba(102, 126, 234, 0.1) 100%); border: 2px solid var(--success-color); border-radius: 12px;">
+                    <div style="font-weight: 600; color: var(--success-color); margin-bottom: 0.75rem; font-size: 1rem;">
+                        <i class="bi bi-check-circle-fill"></i> Виконання завантажено!
+                    </div>
+                    <div style="font-size: 0.9rem; color: var(--text-primary); margin-bottom: 0.5rem;">
+                        📊 Знайдено ${currentExecutionDetails.steps.length} кроків виконання
+                    </div>
+                    <div style="font-size: 0.85rem; color: var(--text-secondary); padding: 0.75rem; background: rgba(0,0,0,0.2); border-radius: 6px; margin-top: 0.75rem;">
+                        <i class="bi bi-hand-index"></i> <strong>Що робити далі:</strong><br>
+                        1. Закрийте це вікно<br>
+                        2. Прокрутіть вгору до workflow візуалізації<br>
+                        3. Клікайте на блоки (GetActiveChannels, ThemeAgent, тощо)<br>
+                        4. Переглядайте Input/Output JSON для кожного кроку!
                     </div>
                 </div>
             ` : '';
@@ -1042,6 +1118,8 @@
                     </div>
 
                     ${errorInfo}
+
+                    ${stepsInfo}
                 </div>
             `;
 
@@ -1093,32 +1171,306 @@
             document.getElementById('executionModal').style.display = 'none';
         }
 
+        // Load execution details with step-by-step breakdown
+        async function loadExecutionDetails(executionArn) {
+            try {
+                console.log('🔍 Loading execution details for:', executionArn);
+                const response = await fetch(`${API_URL}/monitoring/execution-details?executionArn=${encodeURIComponent(executionArn)}`);
+                const data = await response.json();
+
+                console.log('📊 Execution details:', data);
+                currentExecutionDetails = data;
+
+                // Update workflow visualization with step statuses
+                if (data.steps) {
+                    data.steps.forEach(step => {
+                        const statusEl = document.getElementById(`status-${step.name}`);
+                        if (statusEl) {
+                            const statusClass = step.status === 'succeeded' ? 'text-success' :
+                                              step.status === 'failed' ? 'text-danger' : 'text-warning';
+                            statusEl.innerHTML = `<span class="${statusClass}">● ${step.status}</span>`;
+                        }
+                    });
+                }
+
+                return data;
+            } catch (error) {
+                console.error('❌ Error loading execution details:', error);
+                return null;
+            }
+        }
+
+        // Step metadata with merge information
+        const STEP_METADATA = {
+            'GetActiveChannels': {
+                description: 'Отримує список активних каналів з DynamoDB',
+                dataFlow: {
+                    loads: ['ChannelConfigs таблиця'],
+                    merges: [],
+                    outputs: ['channel_id', 'config_id', 'channel_name', 'genre']
+                }
+            },
+            'QueryTitles': {
+                description: 'Запитує популярні відео з YouTube API',
+                dataFlow: {
+                    loads: [],
+                    merges: [],
+                    outputs: ['video_titles[]', 'view_counts[]']
+                }
+            },
+            'ThemeAgent': {
+                description: 'Генерує теми контенту через OpenAI',
+                dataFlow: {
+                    loads: [
+                        'ChannelConfigs (genre, tone, keywords, target_audience)',
+                        'AIPromptConfigs (Theme Template via selected_theme_template)'
+                    ],
+                    merges: [
+                        'Merge: Channel Config + Theme Template → OpenAI system_prompt + user_message',
+                        'Формується JSON з channel info + titles для GPT'
+                    ],
+                    outputs: ['generated_titles[] (4 теми)', 'selected_topic']
+                }
+            },
+            'SelectTopic': {
+                description: 'Випадковий вибір однієї теми з згенерованих',
+                dataFlow: {
+                    loads: [],
+                    merges: ['random.choice() з generated_titles'],
+                    outputs: ['selected_topic', 'all_titles[]']
+                }
+            },
+            'NarrativeArchitect': {
+                description: 'Генерує повний narrative через OpenAI',
+                dataFlow: {
+                    loads: [
+                        'ChannelConfigs (genre, target_audience, style, character_count)',
+                        'AIPromptConfigs (Narrative Template via selected_narrative_template)'
+                    ],
+                    merges: [
+                        'Merge: Channel Config + Narrative Template + selected_topic → OpenAI request',
+                        'Формується prompt з structure guidelines, tone, SSML settings',
+                        'system_prompt містить: role_definition + genre + style',
+                        'user_prompt містить: selected_topic + character_count'
+                    ],
+                    outputs: ['narrative_text', 'scene_ssml[] (SSML markup)', 'metadata', 'scene_count']
+                }
+            },
+            'GenerateAudio': {
+                description: 'Генерує аудіо через AWS Polly',
+                dataFlow: {
+                    loads: [
+                        'ChannelConfigs ТІЛЬКИ (tts_service, tts_voice_profile)',
+                        'SSML markup вже готовий з narrative'
+                    ],
+                    merges: [
+                        'Map voice_profile → AWS Polly voice_id (Brian, Emma, Matthew...)',
+                        'Validate and fix SSML markup',
+                        'scenes + voice settings → AWS Polly API'
+                    ],
+                    outputs: ['audio_urls[] (S3)', 'total_duration_sec', 'voice_id', 'tts_service']
+                }
+            },
+            'SaveResult': {
+                description: 'Зберігає фінальний результат в DynamoDB',
+                dataFlow: {
+                    loads: [],
+                    merges: ['Збір всіх даних з попередніх кроків'],
+                    outputs: ['Запис в GeneratedContent table']
+                }
+            }
+        };
+
+        // Show details for a specific step
+        function showStepDetails(stepName) {
+            const modal = document.getElementById('executionModal');
+            const content = document.getElementById('executionDetailsContent');
+
+            // Get metadata for this step (завжди показуємо)
+            const metadata = STEP_METADATA[stepName] || { description: '', dataFlow: { loads: [], merges: [], outputs: [] } };
+
+            // Check if we have real execution data
+            let step = null;
+            let hasExecutionData = false;
+
+            if (currentExecutionDetails && currentExecutionDetails.steps) {
+                step = currentExecutionDetails.steps.find(s => s.name.includes(stepName));
+                hasExecutionData = !!step;
+            }
+
+            const inputJson = hasExecutionData ? JSON.stringify(step.input || {}, null, 2) : 'No execution selected';
+            const outputJson = hasExecutionData ? JSON.stringify(step.output || {}, null, 2) : 'No execution selected';
+
+            content.innerHTML = `
+                <div style="display: grid; gap: 1.5rem;">
+                    <div>
+                        <h5 style="color: var(--primary-color); margin-bottom: 0.5rem;">
+                            <i class="bi bi-box"></i> ${stepName}
+                        </h5>
+                        <p style="color: var(--text-secondary); font-size: 0.9rem; margin: 0;">${metadata.description}</p>
+                    </div>
+
+                    <!-- Data Flow Section -->
+                    <div style="background: rgba(234, 179, 8, 0.05); border: 1px solid rgba(234, 179, 8, 0.2); border-radius: 8px; padding: 1rem;">
+                        <h6 style="color: #fbbf24; margin-bottom: 0.75rem;">
+                            <i class="bi bi-diagram-3"></i> Data Flow
+                        </h6>
+
+                        ${metadata.dataFlow.loads.length > 0 ? `
+                        <div style="margin-bottom: 0.75rem;">
+                            <div style="color: #93c5fd; font-size: 0.85rem; font-weight: 600; margin-bottom: 0.25rem;">
+                                📥 Завантажує з DynamoDB:
+                            </div>
+                            ${metadata.dataFlow.loads.map(item => `
+                                <div style="color: var(--text-secondary); font-size: 0.8rem; padding-left: 1rem;">→ ${item}</div>
+                            `).join('')}
+                        </div>
+                        ` : ''}
+
+                        ${metadata.dataFlow.merges.length > 0 ? `
+                        <div style="margin-bottom: 0.75rem;">
+                            <div style="color: #fbbf24; font-size: 0.85rem; font-weight: 600; margin-bottom: 0.25rem;">
+                                🔄 Merge & Processing:
+                            </div>
+                            ${metadata.dataFlow.merges.map(item => `
+                                <div style="color: var(--text-secondary); font-size: 0.8rem; padding-left: 1rem;">→ ${item}</div>
+                            `).join('')}
+                        </div>
+                        ` : ''}
+
+                        ${metadata.dataFlow.outputs.length > 0 ? `
+                        <div>
+                            <div style="color: #a3e635; font-size: 0.85rem; font-weight: 600; margin-bottom: 0.25rem;">
+                                📤 Output:
+                            </div>
+                            ${metadata.dataFlow.outputs.map(item => `
+                                <div style="color: var(--text-secondary); font-size: 0.8rem; padding-left: 1rem;">→ ${item}</div>
+                            `).join('')}
+                        </div>
+                        ` : ''}
+                    </div>
+
+                    ${!hasExecutionData ? `
+                    <div style="background: rgba(102, 126, 234, 0.1); border: 1px solid rgba(102, 126, 234, 0.3); border-radius: 8px; padding: 1rem; text-align: center;">
+                        <i class="bi bi-info-circle" style="font-size: 1.5rem; color: var(--primary-color); margin-bottom: 0.5rem;"></i>
+                        <p style="color: var(--text-secondary); margin: 0;">
+                            Щоб побачити реальні Input/Output дані - клікніть на виконання в списку "Step Functions Executions" нижче
+                        </p>
+                    </div>
+                    ` : ''}
+
+                    ${hasExecutionData ? `
+                    <div>
+                        <div style="color: var(--text-secondary); font-size: 0.85rem; margin-bottom: 0.5rem;">
+                            <i class="bi bi-info-circle"></i> Status
+                        </div>
+                        <span class="status-badge status-${step.status.toLowerCase()}">${step.status.toUpperCase()}</span>
+                    </div>
+
+                    ${step.startTime ? `
+                    <div>
+                        <div style="color: var(--text-secondary); font-size: 0.85rem; margin-bottom: 0.5rem;">
+                            <i class="bi bi-clock"></i> Start Time
+                        </div>
+                        <div style="color: var(--text-primary); font-family: monospace;">${step.startTime}</div>
+                    </div>
+                    ` : ''}
+
+                    ${step.endTime ? `
+                    <div>
+                        <div style="color: var(--text-secondary); font-size: 0.85rem; margin-bottom: 0.5rem;">
+                            <i class="bi bi-clock-history"></i> End Time
+                        </div>
+                        <div style="color: var(--text-primary); font-family: monospace;">${step.endTime}</div>
+                    </div>
+                    ` : ''}
+
+                    <div>
+                        <div style="color: var(--text-secondary); font-size: 0.85rem; margin-bottom: 0.5rem;">
+                            <i class="bi bi-arrow-down-circle"></i> Input
+                        </div>
+                        <div style="background: #0d1117; border: 1px solid rgba(102, 126, 234, 0.2); border-radius: 8px; padding: 1rem; max-height: 300px; overflow-y: auto;">
+                            <pre style="color: #93c5fd; font-size: 0.85rem; margin: 0;">${escapeHtml(inputJson)}</pre>
+                        </div>
+                    </div>
+
+                    ${step.output ? `
+                    <div>
+                        <div style="color: var(--text-secondary); font-size: 0.85rem; margin-bottom: 0.5rem;">
+                            <i class="bi bi-arrow-up-circle"></i> Output
+                        </div>
+                        <div style="background: #0d1117; border: 1px solid rgba(102, 126, 234, 0.2); border-radius: 8px; padding: 1rem; max-height: 300px; overflow-y: auto;">
+                            <pre style="color: #a3e635; font-size: 0.85rem; margin: 0;">${escapeHtml(outputJson)}</pre>
+                        </div>
+                    </div>
+                    ` : ''}
+
+                    ${step.error ? `
+                    <div>
+                        <div style="color: var(--text-secondary); font-size: 0.85rem; margin-bottom: 0.5rem;">
+                            <i class="bi bi-exclamation-triangle"></i> Error
+                        </div>
+                        <div style="background: rgba(239, 68, 68, 0.1); border: 1px solid #ef4444; border-radius: 8px; padding: 1rem;">
+                            <pre style="color: #fca5a5; font-size: 0.85rem; margin: 0;">${escapeHtml(step.error)}\n${escapeHtml(step.cause || '')}</pre>
+                        </div>
+                    </div>
+                    ` : ''}
+                    ` : ''}
+                </div>
+            `;
+
+            modal.style.display = 'flex';
+        }
+
         // ====== DEBUG TAB FUNCTIONS ======
 
         // Load channels on page load
         async function loadChannels() {
             try {
+                console.log('🔄 Loading channels from:', CHANNELS_API_URL);
                 const response = await fetch(CHANNELS_API_URL, {
-                    method: 'POST',
+                    method: 'GET',
                     headers: {
                         'Content-Type': 'application/json'
-                    },
-                    body: JSON.stringify({ action: 'get_active' })
+                    }
                 });
+
+                console.log('📦 Response status:', response.status);
                 const data = await response.json();
+                console.log('📊 Channels data:', data);
 
                 const select = document.getElementById('channelSelect');
-                select.innerHTML = '<option value="">-- Оберіть канал --</option>';
+                console.log('🎯 Found select element:', select);
 
-                data.channels.forEach(channel => {
+                if (!select) {
+                    console.error('❌ channelSelect element not found!');
+                    return;
+                }
+
+                select.innerHTML = '<option value="">-- Оберіть канал --</option>';
+                console.log('📝 Populating select with', data.channels.length, 'channels');
+
+                data.channels.forEach((channel, index) => {
                     const option = document.createElement('option');
                     option.value = channel.channel_id;
-                    option.textContent = channel.channel_name;
+
+                    // Show genre if channel name is just "Channel_XXX"
+                    const displayName = channel.channel_name.startsWith('Channel_')
+                        ? `${channel.genre} (${channel.channel_id.substring(0, 10)}...)`
+                        : `${channel.channel_name} - ${channel.genre}`;
+
+                    option.textContent = displayName;
                     select.appendChild(option);
+                    console.log(`  ${index + 1}. ${displayName}`);
                 });
+
+                console.log('✅ Channels loaded successfully!');
             } catch (error) {
-                console.error('Error loading channels:', error);
-                document.getElementById('channelSelect').innerHTML = '<option value="">Помилка завантаження</option>';
+                console.error('❌ Error loading channels:', error);
+                const select = document.getElementById('channelSelect');
+                if (select) {
+                    select.innerHTML = '<option value="">Помилка завантаження</option>';
+                }
             }
         }
 
@@ -1365,6 +1717,45 @@
             }
         }
 
+        // ====== TAB SWITCHING ======
+
+        function switchTab(tabName) {
+            console.log('🔄 Switching to tab:', tabName);
+
+            // Hide all tab panes
+            document.querySelectorAll('.dashboard-tab-pane').forEach(pane => {
+                pane.style.display = 'none';
+            });
+
+            // Remove active class from all tab buttons
+            document.querySelectorAll('.nav-tabs .nav-link').forEach(btn => {
+                btn.classList.remove('active');
+            });
+
+            // Show selected tab pane
+            const selectedPane = document.getElementById(tabName);
+            if (selectedPane) {
+                selectedPane.style.display = 'block';
+                console.log('✅ Tab pane shown:', tabName);
+            } else {
+                console.error('❌ Tab pane not found:', tabName);
+            }
+
+            // Add active class to selected button
+            const selectedBtn = document.getElementById(tabName + '-tab');
+            if (selectedBtn) {
+                selectedBtn.classList.add('active');
+            }
+
+            // Trigger refresh for monitoring tab
+            if (tabName === 'monitoring') {
+                refreshExecutions();
+                refreshLogs();
+            } else if (tabName === 'debug') {
+                loadChannels();
+            }
+        }
+
         // ====== INITIALIZATION ======
 
         // Close modal when clicking outside
@@ -1376,30 +1767,19 @@
 
         // Auto-refresh monitoring tab every 30 seconds
         setInterval(() => {
-            const activeTab = document.querySelector('.nav-link.active');
-            if (activeTab && activeTab.id === 'monitoring-tab') {
+            const monitoringPane = document.getElementById('monitoring');
+            if (monitoringPane && monitoringPane.style.display !== 'none') {
                 refreshExecutions();
                 refreshLogs();
             }
         }, 30000);
 
-        // Load initial data for monitoring tab
-        refreshExecutions();
-        refreshLogs();
-
-        // Load channels for debug tab
-        loadChannels();
-
-        // Listen to tab changes to load data when switching
-        document.querySelectorAll('button[data-bs-toggle="tab"]').forEach(tab => {
-            tab.addEventListener('shown.bs.tab', (event) => {
-                if (event.target.id === 'monitoring-tab') {
-                    refreshExecutions();
-                    refreshLogs();
-                } else if (event.target.id === 'debug-tab') {
-                    loadChannels();
-                }
-            });
+        // Load initial data when DOM is ready
+        document.addEventListener('DOMContentLoaded', () => {
+            console.log('🚀 Initializing dashboard...');
+            refreshExecutions();
+            refreshLogs();
+            loadChannels();
         });
     </script>
 </body>

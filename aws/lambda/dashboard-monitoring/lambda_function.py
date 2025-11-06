@@ -30,6 +30,8 @@ def lambda_handler(event, context):
         # Route to handler
         if path.endswith('/monitoring/executions') or path.endswith('/executions'):
             response = handle_executions(query_params)
+        elif path.endswith('/monitoring/execution-details') or path.endswith('/execution-details'):
+            response = handle_execution_details(query_params)
         elif path.endswith('/monitoring/logs') or path.endswith('/logs'):
             response = handle_logs(query_params)
         else:
@@ -62,6 +64,93 @@ def lambda_handler(event, context):
             'body': json.dumps({
                 'error': str(e),
                 'type': 'InternalError'
+            })
+        }
+
+def handle_execution_details(params):
+    """Get detailed execution history with Input/Output for each step"""
+
+    execution_arn = params.get('executionArn')
+    if not execution_arn:
+        return {
+            'statusCode': 400,
+            'body': json.dumps({'error': 'executionArn parameter is required'})
+        }
+
+    try:
+        # Get execution history
+        history_response = stepfunctions.get_execution_history(
+            executionArn=execution_arn,
+            maxResults=100,
+            reverseOrder=False
+        )
+
+        events = history_response.get('events', [])
+
+        # Parse events into structured steps
+        steps = []
+        step_map = {}  # Map event IDs to step data
+
+        for event in events:
+            event_type = event['type']
+            event_id = event['id']
+            timestamp = event['timestamp'].isoformat()
+
+            # Lambda Task Started
+            if event_type == 'LambdaFunctionScheduled':
+                details = event.get('lambdaFunctionScheduledEventDetails', {})
+                step_name = details.get('resource', 'Unknown').split(':')[-1]
+
+                step_map[event_id] = {
+                    'name': step_name,
+                    'type': 'Lambda',
+                    'status': 'scheduled',
+                    'startTime': timestamp,
+                    'input': json.loads(details.get('input', '{}'))
+                }
+
+            # Lambda Task Succeeded
+            elif event_type == 'LambdaFunctionSucceeded':
+                details = event.get('lambdaFunctionSucceededEventDetails', {})
+                prev_event_id = event.get('previousEventId')
+
+                if prev_event_id in step_map:
+                    step_map[prev_event_id]['status'] = 'succeeded'
+                    step_map[prev_event_id]['endTime'] = timestamp
+                    step_map[prev_event_id]['output'] = json.loads(details.get('output', '{}'))
+                    steps.append(step_map[prev_event_id])
+
+            # Lambda Task Failed
+            elif event_type == 'LambdaFunctionFailed':
+                details = event.get('lambdaFunctionFailedEventDetails', {})
+                prev_event_id = event.get('previousEventId')
+
+                if prev_event_id in step_map:
+                    step_map[prev_event_id]['status'] = 'failed'
+                    step_map[prev_event_id]['endTime'] = timestamp
+                    step_map[prev_event_id]['error'] = details.get('error', 'Unknown error')
+                    step_map[prev_event_id]['cause'] = details.get('cause', '')
+                    steps.append(step_map[prev_event_id])
+
+        return {
+            'statusCode': 200,
+            'body': json.dumps({
+                'executionArn': execution_arn,
+                'steps': steps,
+                'totalEvents': len(events)
+            }, default=str)
+        }
+
+    except Exception as e:
+        print(f"Error getting execution details: {str(e)}")
+        import traceback
+        traceback.print_exc()
+
+        return {
+            'statusCode': 500,
+            'body': json.dumps({
+                'error': str(e),
+                'type': 'ExecutionDetailsError'
             })
         }
 
@@ -102,6 +191,7 @@ def handle_executions(params):
         for exec_item in executions_response.get('executions', []):
             exec_data = {
                 'name': exec_item.get('name', 'Unknown'),
+                'executionArn': exec_item.get('executionArn', ''),
                 'status': exec_item['status'],
                 'startDate': exec_item['startDate'].isoformat(),
                 'stopDate': exec_item.get('stopDate', datetime.now()).isoformat() if exec_item.get('stopDate') else None
