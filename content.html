@@ -17,7 +17,7 @@
             --dark-bg: #1a1d2e;
             --card-bg: #22263a;
             --text-primary: #e5e7eb;
-            --text-secondary: #9ca3af;
+            --text-secondary: #d1d5db;
         }
 
         body {
@@ -306,6 +306,31 @@
             font-size: 0.85rem;
             margin-top: 0.5rem;
         }
+
+        /* Override Bootstrap text-secondary to be light on dark background */
+        .text-secondary {
+            color: #d1d5db !important;
+        }
+
+        .form-label {
+            color: #e5e7eb;
+        }
+
+        /* SSML Syntax Highlighting */
+        .ssml-text {
+            font-family: 'Courier New', monospace;
+            white-space: pre-wrap;
+            word-wrap: break-word;
+            line-height: 1.6;
+            color: var(--text-primary);
+        }
+        .ssml-text::before {
+            content: '';
+            display: block;
+            font-size: 0.7rem;
+            color: var(--text-secondary);
+            margin-bottom: 0.25rem;
+        }
     </style>
 </head>
 <body>
@@ -490,6 +515,12 @@
                                     <span>🎬 Video</span>
                                 </button>
                             </li>
+                            <li class="nav-item" role="presentation">
+                                <button class="nav-link" id="description-tab" data-bs-toggle="pill" data-bs-target="#description" type="button">
+                                    <span class="stage-status" id="status-9"></span>
+                                    <span>📄 Description</span>
+                                </button>
+                            </li>
                         </ul>
 
                         <!-- Tab Content -->
@@ -600,6 +631,19 @@
                                     </div>
                                     <div id="videoContent">
                                         <p class="text-muted">Video not rendered yet</p>
+                                    </div>
+                                </div>
+                            </div>
+
+                            <!-- Description Tab -->
+                            <div class="tab-pane fade" id="description" role="tabpanel">
+                                <div class="content-section">
+                                    <div class="section-header">
+                                        <h5 class="section-title">📄 YouTube Description & SEO</h5>
+                                        <span class="status-badge" id="description-status">pending</span>
+                                    </div>
+                                    <div id="descriptionContent">
+                                        <p class="text-muted">No description generated yet</p>
                                     </div>
                                 </div>
                             </div>
@@ -740,6 +784,7 @@
                                 <small class="text-secondary">
                                     <i class="bi bi-calendar"></i> ${formatDate(item.created_at)} |
                                     <i class="bi bi-collection-play"></i> ${item.channel_name}
+                                    ${item.variation_set_name ? `| <span class="badge bg-info text-dark"><i class="bi bi-palette"></i> ${item.variation_set_name}</span>` : ''}
                                 </small>
                             </div>
                             <span class="status-badge status-${status}">${status}</span>
@@ -780,10 +825,16 @@
                 }
             }
 
-            // Populate overview
+            // Populate all tabs
             populateOverview(item);
+            populateThumbnail(item);
             populateStory(item);
             populateVoice(item);
+            populateCTA(item);
+            populateAudio(item);
+            populateVisuals(item);
+            populateVideo(item);
+            populateDescription(item);
 
             new bootstrap.Modal(document.getElementById('pipelineModal')).show();
         }
@@ -796,6 +847,8 @@
                         <p><strong>Genre:</strong> ${item.metadata?.genre || 'N/A'}</p>
                         <p><strong>Created:</strong> ${formatDate(item.created_at)}</p>
                         <p><strong>Model:</strong> ${item.model || 'N/A'}</p>
+                        <p><strong>Variation Set:</strong> ${item.variation_set_name ? `<span class="badge bg-info text-dark">${item.variation_set_name} (Set #${item.variation_set_index})</span>` : 'N/A'}</p>
+                        <p><strong>Generation:</strong> ${item.generation_count_at_creation !== null && item.generation_count_at_creation !== undefined ? `#${item.generation_count_at_creation}` : 'N/A'}</p>
                     </div>
                     <div class="col-md-6">
                         <p><strong>Character Count:</strong> ${item.character_count || 0}</p>
@@ -809,31 +862,67 @@
         }
 
         function populateStory(item) {
-            if (!item.narrative_text) {
+            // MEGA MODE: Use narrative_data
+            if (!item.narrative_data || !item.narrative_data.scenes) {
                 document.getElementById('storyContent').innerHTML = '<p class="text-muted">No story content</p>';
                 return;
+            }
+
+            const narrativeData = item.narrative_data;
+            const scenes = narrativeData.scenes || [];
+
+            // Helper function - now returns SSML as-is with all tags
+            function cleanSSML(text) {
+                if (!text) return '';
+                return text; // Show SSML with all tags and brackets
             }
 
             let html = `
                 <div class="mb-3">
                     <h6>Story Title:</h6>
-                    <p>${item.story_title || 'Untitled'}</p>
+                    <p>${narrativeData.story_title || item.story_title || 'Untitled'}</p>
                 </div>
+                ${item.variation_set_name ? `
+                <div class="mb-3 alert alert-info">
+                    <h6><i class="bi bi-palette"></i> Variation Set Information:</h6>
+                    <p class="mb-1"><strong>Set Name:</strong> ${item.variation_set_name}</p>
+                    <p class="mb-1"><strong>Set Index:</strong> ${item.variation_set_index}</p>
+                    <p class="mb-0"><strong>Generation:</strong> #${item.generation_count_at_creation}</p>
+                </div>
+                ` : ''}
                 <div class="mb-3">
-                    <h6>Full Narrative:</h6>
-                    <div style="background: rgba(0,0,0,0.3); padding: 1rem; border-radius: 8px; max-height: 300px; overflow-y: auto; white-space: pre-wrap;">
-                        ${item.narrative_text}
-                    </div>
+                    <h6>Selected Voice:</h6>
+                    <p><i class="bi bi-person-voice"></i> ${narrativeData.selected_voice || 'Auto'}</p>
                 </div>
             `;
 
-            if (item.scenes && item.scenes.length > 0) {
-                html += `<h6 class="mt-4">Scenes (${item.scenes.length}):</h6>`;
-                item.scenes.forEach((scene, i) => {
+            // Add hook if exists
+            if (narrativeData.hook) {
+                html += `
+                    <div class="mb-3">
+                        <h6>Opening Hook:</h6>
+                        <div style="background: rgba(102, 126, 234, 0.1); padding: 1rem; border-radius: 8px;">
+                            <p class="ssml-text" style="margin: 0;">${narrativeData.hook}</p>
+                        </div>
+                    </div>
+                `;
+            }
+
+            // Add scenes
+            if (scenes.length > 0) {
+                html += `<h6 class="mt-4">Scenes (${scenes.length}):</h6>`;
+                scenes.forEach((scene, i) => {
+                    const variationBadge = scene.variation_used ?
+                        `<span class="badge bg-secondary">${scene.variation_used}</span>` : '';
+
                     html += `
                         <div class="scene-card">
-                            <div class="scene-header">Scene ${scene.id || i+1}</div>
-                            <p style="color: var(--text-secondary); line-height: 1.6;">${scene.paragraph_text || 'No text'}</p>
+                            <div class="scene-header">
+                                Scene ${scene.scene_number || i+1}: ${scene.scene_title || 'Untitled Scene'}
+                                ${variationBadge}
+                            </div>
+                            <p class="ssml-text" style="color: var(--text-secondary);">${scene.text_with_ssml || ''}</p>
+
                         </div>
                     `;
                 });
@@ -844,23 +933,74 @@
             document.getElementById('story-status').className = 'status-badge status-completed';
         }
 
+        // Helper function to escape HTML (so SSML tags are displayed as text)
+        function escapeHtml(text) {
+            if (!text) return '';
+            const div = document.createElement('div');
+            div.textContent = text;
+            return div.innerHTML;
+        }
+
         function populateVoice(item) {
             if (!item.audio_files || item.audio_files.length === 0) {
                 document.getElementById('voiceContent').innerHTML = '<p class="text-muted">No audio files</p>';
                 return;
             }
 
-            let html = '<h6>Audio Files:</h6>';
+            // Get narrative scenes for SSML text (fallback only)
+            const narrativeScenes = item.narrative_data?.scenes || [];
+            // FIX: Use correct field names (voice, voice_profile, voice_id from content-save-result)
+            const selectedVoice = item.voice || item.voice_profile || item.voice_id || 'Auto';
+
+            let html = `
+                <div class="mb-3">
+                    <h6><i class="bi bi-person-voice"></i> Обраний голос:</h6>
+                    <div style="background: rgba(102, 126, 234, 0.1); padding: 0.75rem 1rem; border-radius: 8px; border-left: 3px solid var(--primary-color);">
+                        <strong style="font-size: 1.05rem; color: var(--primary-color);">${selectedVoice}</strong>
+                    </div>
+                </div>
+                <h6>Audio Files & SSML:</h6>
+            `;
+
             item.audio_files.forEach((audio, i) => {
+                // Use SSML that was actually used for TTS generation (NEW)
+                // Fallback to narrative scene text if ssml_used not available (old data)
+                const sceneId = audio.scene_id || (i + 1);
+                const matchingScene = narrativeScenes.find(s => s.scene_number === sceneId) || narrativeScenes[i];
+                const ssmlText = audio.ssml_used || matchingScene?.text_with_ssml || 'No SSML available';
+                const ssmlEscaped = escapeHtml(ssmlText);  // ✅ Escape HTML to show SSML tags
+
                 html += `
-                    <div class="audio-player">
+                    <div class="audio-player mb-4" style="border: 1px solid #e0e0e0; border-radius: 8px; padding: 1rem; background: var(--card-bg);">
                         <div class="d-flex justify-content-between align-items-center mb-2">
-                            <span><i class="bi bi-volume-up"></i> Scene ${audio.scene_id || i+1}</span>
+                            <span style="font-weight: 600;"><i class="bi bi-volume-up"></i> Scene ${sceneId}</span>
                             <small class="text-muted">${(audio.duration_ms / 1000).toFixed(1)}s</small>
                         </div>
-                        <audio controls>
+                        <audio controls style="width: 100%; margin-bottom: 1rem;">
                             <source src="${audio.s3_url.replace('s3://', 'https://s3.eu-central-1.amazonaws.com/')}" type="audio/mpeg">
                         </audio>
+
+                        <!-- SSML Markup -->
+                        <div style="margin-top: 1rem; padding-top: 1rem; border-top: 1px solid #e0e0e0;">
+                            <div style="display: flex; align-items: center; gap: 0.5rem; margin-bottom: 0.5rem;">
+                                <i class="bi bi-code-square" style="color: #4CAF50;"></i>
+                                <strong style="font-size: 0.9rem; color: var(--text-secondary);">SSML Markup:</strong>
+                            </div>
+                            <pre class="ssml-text" style="
+                                background: #f8f9fa;
+                                border: 1px solid #dee2e6;
+                                border-radius: 4px;
+                                padding: 0.75rem;
+                                font-size: 0.85rem;
+                                margin: 0;
+                                max-height: 200px;
+                                overflow-y: auto;
+                                white-space: pre-wrap;
+                                word-wrap: break-word;
+                                font-family: 'Courier New', monospace;
+                                color: #333;
+                            ">${ssmlEscaped}</pre>
+                        </div>
                     </div>
                 `;
             });
@@ -868,6 +1008,429 @@
             document.getElementById('voiceContent').innerHTML = html;
             document.getElementById('voice-status').textContent = 'completed';
             document.getElementById('voice-status').className = 'status-badge status-completed';
+        }
+        function populateThumbnail(item) {
+            // MEGA MODE: Use thumbnail_data
+            if (!item.thumbnail_data) {
+                document.getElementById('thumbnailContent').innerHTML = `
+                    <div class="image-placeholder">
+                        <i class="bi bi-image" style="font-size: 3rem; opacity: 0.3;"></i>
+                        <p class="mt-2">No thumbnail generated yet</p>
+                    </div>
+                `;
+                return;
+            }
+
+            const thumbnailData = item.thumbnail_data;
+            let html = '';
+
+            // Find thumbnail image from scene_images array (scene_number 0)
+            const thumbnailImage = item.scene_images?.find(img => img.scene_number === 0 || img.scene_number === '0');
+            if (thumbnailImage && (thumbnailImage.https_url || thumbnailImage.image_url || thumbnailImage.s3_url)) {
+                const imageUrl = thumbnailImage.https_url || thumbnailImage.image_url || thumbnailImage.s3_url;
+                html += `
+                    <div class="mb-3">
+                        <img src="${imageUrl}" class="image-preview" alt="Thumbnail" style="max-width: 100%; border-radius: 8px;">
+                    </div>
+                `;
+            } else {
+                // Show placeholder if image not yet generated
+                html += `
+                    <div class="image-placeholder mb-3">
+                        <i class="bi bi-image" style="font-size: 3rem; opacity: 0.3;"></i>
+                        <p class="mt-2">Image not generated yet</p>
+                    </div>
+                `;
+            }
+
+            // Thumbnail metadata
+            if (thumbnailData.thumbnail_prompt) {
+                html += `
+                    <div class="mb-3">
+                        <h6>🎨 Design Prompt:</h6>
+                        <div style="background: rgba(0,0,0,0.3); padding: 1rem; border-radius: 8px;">
+                            <p style="margin: 0;">${thumbnailData.thumbnail_prompt}</p>
+                        </div>
+                    </div>
+                `;
+            }
+
+            if (thumbnailData.text_overlay) {
+                html += `
+                    <div class="mb-3">
+                        <h6>📝 Text Overlay:</h6>
+                        <div style="background: rgba(102, 126, 234, 0.1); padding: 1rem; border-radius: 8px;">
+                            <p style="margin: 0; font-size: 1.1rem; font-weight: 600;">${thumbnailData.text_overlay}</p>
+                        </div>
+                    </div>
+                `;
+            }
+
+            if (thumbnailData.style_notes) {
+                html += `<p class="text-muted"><i class="bi bi-palette"></i> ${thumbnailData.style_notes}</p>`;
+            }
+
+            document.getElementById('thumbnailContent').innerHTML = html;
+            document.getElementById('thumbnail-status').textContent = 'completed';
+            document.getElementById('thumbnail-status').className = 'status-badge status-completed';
+        }
+
+        function populateCTA(item) {
+            // MEGA MODE: Use cta_data
+            if (!item.cta_data || !item.cta_data.cta_segments || item.cta_data.cta_segments.length === 0) {
+                document.getElementById('ctaContent').innerHTML = `
+                    <div class="alert alert-info">
+                        <i class="bi bi-info-circle"></i>
+                        Call to action not generated yet
+                    </div>
+                `;
+                return;
+            }
+
+            const ctaSegments = item.cta_data.cta_segments;
+
+            // cleanSSML() function is defined globally in populateStory()
+
+            let html = `<h6>CTA Segments (${ctaSegments.length})</h6>`;
+
+            ctaSegments.forEach((segment, idx) => {
+                const ctaAudio = segment.cta_audio_segment || {};
+                const placement = segment.placement || {};
+                const positionText = segment.position_type === 'scene_based'
+                    ? `${placement.relative_to || ''} Scene ${placement.scene_number || ''}`
+                    : segment.position_type || 'Unknown';
+
+                html += `
+                    <div class="scene-card mb-3">
+                        <div class="d-flex justify-content-between align-items-start mb-2">
+                            <div>
+                                <span class="badge bg-primary">${segment.type || 'CTA'}</span>
+                                <span class="badge bg-secondary ms-1">${positionText}</span>
+                            </div>
+                            ${ctaAudio.target_duration_seconds ?
+                                `<span class="text-muted">${ctaAudio.target_duration_seconds}s</span>`
+                                : ''}
+                        </div>
+
+                        ${ctaAudio.ssml_text ? `
+                            <div style="background: rgba(102, 126, 234, 0.1); padding: 1rem; border-radius: 8px; mb-2">
+                                <p class="ssml-text" style="margin: 0; font-size: 1.05rem;">${ctaAudio.ssml_text}</p>
+                            </div>
+                        ` : ''}
+
+                        ${ctaAudio.voice_settings ? `
+                            <p class="text-muted mb-1">
+                                <i class="bi bi-person-voice"></i> Voice: ${ctaAudio.voice_settings.voice || 'Auto'}
+                                ${ctaAudio.voice_settings.energy_level ? ` | Energy: ${ctaAudio.voice_settings.energy_level}` : ''}
+                            </p>
+                        ` : ''}
+
+                        ${segment.style_note ? `
+                            <p class="text-muted mb-0"><small><i class="bi bi-info-circle"></i> ${segment.style_note}</small></p>
+                        ` : ''}
+
+
+                    </div>
+                `;
+            });
+
+            document.getElementById('ctaContent').innerHTML = html;
+            document.getElementById('cta-status').textContent = 'completed';
+            document.getElementById('cta-status').className = 'status-badge status-completed';
+        }
+
+        function populateAudio(item) {
+            // MEGA MODE: Use sfx_data
+            if (!item.sfx_data || !item.sfx_data.scenes) {
+                document.getElementById('audioContent').innerHTML = '<p class="text-muted">No background music or sound effects added yet</p>';
+                return;
+            }
+
+            const sfxScenes = item.sfx_data.scenes || [];
+            let html = '';
+
+            // Collect unique music tracks
+            const musicTracks = [...new Set(sfxScenes.map(s => s.music_track).filter(Boolean))];
+
+            if (musicTracks.length > 0) {
+                html += `
+                    <div class="content-section mb-3">
+                        <h6>🎼 Background Music</h6>
+                `;
+                musicTracks.forEach(track => {
+                    const sceneCount = sfxScenes.filter(s => s.music_track === track).length;
+                    html += `
+                        <div class="mb-2">
+                            <p><strong>Track:</strong> ${track}</p>
+                            <p class="text-muted mb-0"><small>Used in ${sceneCount} scene(s)</small></p>
+                        </div>
+                    `;
+                });
+                html += '</div>';
+            }
+
+            // Sound Effects by Scene
+            const scenesWithSFX = sfxScenes.filter(s => s.sfx_cues && s.sfx_cues.length > 0);
+            if (scenesWithSFX.length > 0) {
+                html += `
+                    <div class="content-section">
+                        <h6>🔊 Sound Effects (${scenesWithSFX.reduce((acc, s) => acc + s.sfx_cues.length, 0)} total)</h6>
+                `;
+
+                scenesWithSFX.forEach((sfxScene) => {
+                    html += `
+                        <div class="scene-card">
+                            <div class="scene-header">Scene ${sfxScene.scene_number}</div>
+                    `;
+
+                    sfxScene.sfx_cues.forEach((sfx, idx) => {
+                        const timing = sfxScene.timing_estimates && sfxScene.timing_estimates[idx]
+                            ? `${sfxScene.timing_estimates[idx]}s`
+                            : '';
+                        html += `
+                            <div class="d-flex justify-content-between mb-1">
+                                <span><i class="bi bi-soundwave"></i> ${sfx}</span>
+                                ${timing ? `<span class="text-muted">${timing}</span>` : ''}
+                            </div>
+                        `;
+                    });
+
+                    html += '</div>';
+                });
+
+                html += '</div>';
+            }
+
+            if (!html) {
+                html = '<p class="text-muted">No background music or sound effects added yet</p>';
+            }
+
+            document.getElementById('audioContent').innerHTML = html;
+            if (musicTracks.length > 0 || scenesWithSFX.length > 0) {
+                document.getElementById('audio-status').textContent = 'completed';
+                document.getElementById('audio-status').className = 'status-badge status-completed';
+            }
+        }
+
+        function populateVisuals(item) {
+            // MEGA MODE: Use image_data for prompts, scene_images for generated images
+            if (!item.image_data || !item.image_data.scenes) {
+                document.getElementById('visualsContent').innerHTML = '<p class="text-muted">No scene images generated yet</p>';
+                return;
+            }
+
+            const imageScenes = item.image_data.scenes || [];
+            const generatedImages = item.scene_images || []; // Generated images added after image generation
+
+            let html = `<h6>Scene Images (${imageScenes.length})</h6>`;
+
+            imageScenes.forEach((imgData, i) => {
+                const sceneNum = imgData.scene_number || (i + 1);
+
+                // Find matching generated image if exists
+                const generatedImg = generatedImages.find(gi => gi.scene_id === sceneNum || gi.scene_number === sceneNum);
+
+                html += `
+                    <div class="scene-card">
+                        <div class="scene-header">Scene ${sceneNum}</div>
+                `;
+
+                // Show generated image if available
+                if (generatedImg && (generatedImg.https_url || generatedImg.image_url || generatedImg.s3_url || generatedImg.url)) {
+                    const imageUrl = generatedImg.https_url || generatedImg.image_url || generatedImg.s3_url || generatedImg.url;
+                    html += `
+                        <img src="${imageUrl}" class="image-preview mb-2" alt="Scene ${sceneNum}" style="max-width: 100%; border-radius: 8px;">
+                    `;
+                } else if (generatedImg && generatedImg.status === 'failed') {
+                    // Show error for failed images
+                    html += `
+                        <div class="image-placeholder mb-2" style="min-height: 200px; border: 2px dashed #dc3545;">
+                            <i class="bi bi-exclamation-triangle text-danger" style="font-size: 2rem;"></i>
+                            <p class="mt-2 text-danger">Image generation failed</p>
+                            ${generatedImg.error ? `<p class="text-muted" style="font-size: 0.85rem;">${generatedImg.error}</p>` : ''}
+                        </div>
+                    `;
+                } else {
+                    html += `
+                        <div class="image-placeholder mb-2" style="min-height: 200px;">
+                            <i class="bi bi-image" style="font-size: 2rem; opacity: 0.3;"></i>
+                            <p class="mt-2">Image not generated yet</p>
+                        </div>
+                    `;
+                }
+
+                // Show prompt from MEGA data
+                if (imgData.image_prompt) {
+                    html += `
+                        <div class="mb-2">
+                            <strong>Prompt:</strong>
+                            <p class="text-muted mb-0" style="font-size: 0.9rem;">${imgData.image_prompt}</p>
+                        </div>
+                    `;
+                }
+
+                // Show negative prompt if exists
+                if (imgData.negative_prompt) {
+                    html += `
+                        <details style="margin-top: 0.5rem;">
+                            <summary style="cursor: pointer; color: var(--text-secondary); font-size: 0.85rem;">
+                                <i class="bi bi-dash-circle"></i> Negative Prompt
+                            </summary>
+                            <p class="text-muted mb-0 mt-1" style="font-size: 0.85rem;">${imgData.negative_prompt}</p>
+                        </details>
+                    `;
+                }
+
+                // Show cost if available
+                if (generatedImg && generatedImg.generation_cost_usd) {
+                    html += `<p class="text-muted mt-2 mb-0"><small>Cost: $${generatedImg.generation_cost_usd}</small></p>`;
+                }
+
+                html += '</div>';
+            });
+
+            // Total cost
+            if (item.image_generation_cost_usd) {
+                html += `<p class="mt-3"><strong>Total Image Generation Cost:</strong> $${item.image_generation_cost_usd}</p>`;
+            }
+
+            document.getElementById('visualsContent').innerHTML = html;
+            document.getElementById('visuals-status').textContent = 'completed';
+            document.getElementById('visuals-status').className = 'status-badge status-completed';
+        }
+
+        function populateVideo(item) {
+            const videoData = item.final_video;
+
+            if (!videoData || !videoData.video_url) {
+                document.getElementById('videoContent').innerHTML = `
+                    <div class="alert alert-info">
+                        <i class="bi bi-info-circle"></i>
+                        Video not rendered yet. Video will be created from:
+                        <ul class="mt-2 mb-0">
+                            <li>Voice over audio (${item.audio_files ? item.audio_files.length : 0} scenes)</li>
+                            <li>Scene images (${item.scene_images ? item.scene_images.length : 0} images)</li>
+                            <li>Background music & SFX</li>
+                        </ul>
+                    </div>
+                `;
+                return;
+            }
+
+            let html = '';
+
+            if (videoData.video_url) {
+                html += `
+                    <div class="mb-3">
+                        <video controls style="width: 100%; max-height: 600px; border-radius: 8px;">
+                            <source src="${videoData.video_url}" type="video/mp4">
+                        </video>
+                    </div>
+                `;
+            }
+
+            html += '<div class="row">';
+            if (videoData.duration_sec) {
+                html += `<div class="col-md-6"><p><strong>Duration:</strong> ${videoData.duration_sec}s</p></div>`;
+            }
+            if (videoData.resolution) {
+                html += `<div class="col-md-6"><p><strong>Resolution:</strong> ${videoData.resolution}</p></div>`;
+            }
+            if (videoData.file_size_mb) {
+                html += `<div class="col-md-6"><p><strong>File Size:</strong> ${videoData.file_size_mb} MB</p></div>`;
+            }
+            if (videoData.render_time_sec) {
+                html += `<div class="col-md-6"><p><strong>Render Time:</strong> ${videoData.render_time_sec}s</p></div>`;
+            }
+            html += '</div>';
+
+            document.getElementById('videoContent').innerHTML = html;
+            document.getElementById('video-status').textContent = 'completed';
+            document.getElementById('video-status').className = 'status-badge status-completed';
+        }
+
+        function populateDescription(item) {
+            // MEGA MODE: Use description_data
+            if (!item.description_data) {
+                document.getElementById('descriptionContent').innerHTML = '<p class="text-muted">No YouTube description generated yet</p>';
+                return;
+            }
+
+            const descData = item.description_data;
+            let html = '';
+
+            // Title (from story_title or description_data)
+            const title = descData.title || item.story_title;
+            if (title) {
+                html += `
+                    <div class="mb-3">
+                        <h6>📝 YouTube Title:</h6>
+                        <div style="background: rgba(102, 126, 234, 0.1); padding: 1rem; border-radius: 8px;">
+                            <p style="margin: 0; font-size: 1.1rem; font-weight: 600;">${title}</p>
+                        </div>
+                    </div>
+                `;
+            }
+
+            // Description
+            if (descData.description) {
+                html += `
+                    <div class="mb-3">
+                        <h6>📄 Description:</h6>
+                        <div style="background: rgba(0,0,0,0.3); padding: 1rem; border-radius: 8px; max-height: 300px; overflow-y: auto; white-space: pre-wrap;">${descData.description}</div>
+                    </div>
+                `;
+            }
+
+            // Hashtags
+            if (descData.hashtags && descData.hashtags.length > 0) {
+                html += `
+                    <div class="mb-3">
+                        <h6>#️⃣ Hashtags (${descData.hashtags.length}):</h6>
+                        <div>
+                            ${descData.hashtags.map(tag => `<span class="badge bg-secondary me-1">${tag.startsWith('#') ? tag : '#' + tag}</span>`).join('')}
+                        </div>
+                    </div>
+                `;
+            }
+
+            // Timestamps
+            if (descData.timestamps && descData.timestamps.length > 0) {
+                html += `
+                    <div class="mb-3">
+                        <h6>⏱️ Video Timestamps (${descData.timestamps.length}):</h6>
+                        <div style="background: rgba(0,0,0,0.3); padding: 1rem; border-radius: 8px;">
+                `;
+                descData.timestamps.forEach(ts => {
+                    if (typeof ts === 'string') {
+                        html += `<p style="margin: 0.25rem 0;">${ts}</p>`;
+                    } else if (ts.timestamp && ts.label) {
+                        html += `<p style="margin: 0.25rem 0;"><strong>${ts.timestamp}</strong> - ${ts.label}</p>`;
+                    }
+                });
+                html += '</div></div>';
+            }
+
+            // SEO Keywords (if exists)
+            if (descData.seo_keywords && (Array.isArray(descData.seo_keywords) || typeof descData.seo_keywords === 'object')) {
+                html += `
+                    <div class="mb-3">
+                        <h6>🔍 SEO Keywords:</h6>
+                        <div style="background: rgba(0,0,0,0.3); padding: 1rem; border-radius: 8px;">
+                `;
+                if (Array.isArray(descData.seo_keywords)) {
+                    html += `<p>${descData.seo_keywords.join(', ')}</p>`;
+                } else {
+                    for (const [key, value] of Object.entries(descData.seo_keywords)) {
+                        html += `<p style="margin: 0.25rem 0;"><strong>${key}:</strong> ${Array.isArray(value) ? value.join(', ') : value}</p>`;
+                    }
+                }
+                html += '</div></div>';
+            }
+
+            document.getElementById('descriptionContent').innerHTML = html;
+            document.getElementById('description-status').textContent = 'completed';
+            document.getElementById('description-status').className = 'status-badge status-completed';
         }
 
         function formatDate(dateString) {
