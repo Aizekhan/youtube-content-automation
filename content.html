@@ -949,14 +949,32 @@
 
             // Get narrative scenes for SSML text (fallback only)
             const narrativeScenes = item.narrative_data?.scenes || [];
-            // FIX: Use correct field names (voice, voice_profile, voice_id from content-save-result)
-            const selectedVoice = item.voice || item.voice_profile || item.voice_id || 'Auto';
+
+            // Build detailed voice information with service name and voice ID
+            const voiceId = item.voice_id || 'Unknown';
+            const voiceProfile = item.voice_profile || item.voice || '';
+            const ttsService = item.tts_service || 'Unknown';
+
+            // Format TTS service name nicely
+            const serviceNames = {
+                'aws_polly_neural': 'AWS Polly Neural',
+                'aws_polly_standard': 'AWS Polly Standard',
+                'elevenlabs': 'ElevenLabs',
+                'kokoro': 'Kokoro TTS'
+            };
+            const serviceName = serviceNames[ttsService] || ttsService;
+
+            // Build voice display: "AWS Polly Neural: Matthew (deep_male)"
+            let voiceDisplay = `<strong>${serviceName}</strong>: ${voiceId}`;
+            if (voiceProfile && voiceProfile !== voiceId) {
+                voiceDisplay += ` <span style="color: var(--text-secondary);">(${voiceProfile})</span>`;
+            }
 
             let html = `
                 <div class="mb-3">
                     <h6><i class="bi bi-person-voice"></i> Обраний голос:</h6>
                     <div style="background: rgba(102, 126, 234, 0.1); padding: 0.75rem 1rem; border-radius: 8px; border-left: 3px solid var(--primary-color);">
-                        <strong style="font-size: 1.05rem; color: var(--primary-color);">${selectedVoice}</strong>
+                        <div style="font-size: 1.05rem; color: var(--primary-color);">${voiceDisplay}</div>
                     </div>
                 </div>
                 <h6>Audio Files & SSML:</h6>
