@@ -3,9 +3,17 @@ import boto3
 import http.client
 from datetime import datetime
 from boto3.dynamodb.conditions import Key
+from botocore.config import Config
 
-secrets_client = boto3.client('secretsmanager', region_name='eu-central-1')
-dynamodb = boto3.resource('dynamodb', region_name='eu-central-1')
+# WEEK 2 FIX: Add timeout configuration
+boto_config = Config(
+    connect_timeout=5,
+    read_timeout=60,
+    retries={'max_attempts': 3, 'mode': 'standard'}
+)
+
+secrets_client = boto3.client('secretsmanager', region_name='eu-central-1', config=boto_config)
+dynamodb = boto3.resource('dynamodb', region_name='eu-central-1', config=boto_config)
 
 def lambda_handler(event, context):
     print(f"Theme Agent - AI Prompt Configs Version")
@@ -27,7 +35,7 @@ def lambda_handler(event, context):
         except:
             api_key = secret_string
 
-        print(f"API key retrieved: {api_key[:10]}...")
+        print("✅ API key retrieved successfully")
 
         # 2. Отримуємо prompt config з AIPromptConfigs
         prompt_table = dynamodb.Table('AIPromptConfigs')
@@ -86,15 +94,21 @@ def lambda_handler(event, context):
         })
 
         # 6. Виклик OpenAI API
-        conn = http.client.HTTPSConnection('api.openai.com')
+        # SECURITY FIX: Add SSL/TLS verification and timeout
+        import ssl
+        ssl_context = ssl.create_default_context()
+        conn = http.client.HTTPSConnection('api.openai.com', context=ssl_context, timeout=60)
         headers = {
             'Authorization': f'Bearer {api_key}',
             'Content-Type': 'application/json'
         }
 
-        conn.request('POST', '/v1/chat/completions', body=request_body, headers=headers)
-        response = conn.getresponse()
-        response_data = response.read().decode('utf-8')
+        try:
+            conn.request('POST', '/v1/chat/completions', body=request_body, headers=headers)
+            response = conn.getresponse()
+            response_data = response.read().decode('utf-8')
+        finally:
+            conn.close()  # Ensure connection is closed
 
         print(f"OpenAI response status: {response.status}")
 

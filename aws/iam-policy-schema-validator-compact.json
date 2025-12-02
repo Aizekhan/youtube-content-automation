@@ -1,0 +1,36 @@
+{
+  "Version": "2012-10-17",
+  "Statement": [
+    {
+      "Sid": "DynamoDBRead",
+      "Effect": "Allow",
+      "Action": [
+        "dynamodb:Scan",
+        "dynamodb:GetItem",
+        "dynamodb:Query",
+        "dynamodb:DescribeTable",
+        "dynamodb:ListTables"
+      ],
+      "Resource": "arn:aws:dynamodb:eu-central-1:599297130956:table/*"
+    },
+    {
+      "Sid": "LambdaInspection",
+      "Effect": "Allow",
+      "Action": [
+        "lambda:ListFunctions",
+        "lambda:GetFunction",
+        "lambda:GetFunctionConfiguration"
+      ],
+      "Resource": "*"
+    },
+    {
+      "Sid": "StepFunctionsInspection",
+      "Effect": "Allow",
+      "Action": [
+        "states:ListStateMachines",
+        "states:DescribeStateMachine"
+      ],
+      "Resource": "*"
+    }
+  ]
+}

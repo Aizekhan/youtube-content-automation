@@ -1,19 +1,65 @@
+"""
+Content Narrative Lambda v3.0 - MEGA-GENERATION Mode
+
+Generates ALL 7 content components in ONE OpenAI request:
+1. Narrative with SSML
+2. Image Prompts for each scene
+3. SFX + Music selection
+4. CTA segments
+5. Thumbnail design
+6. Video Description
+7. Metadata
+
+Uses:
+- mega_config_merger.py to merge all templates
+- mega_prompt_builder.py to build comprehensive prompt
+"""
+
 import json
 import boto3
 import http.client
 from datetime import datetime
 from decimal import Decimal
 from boto3.dynamodb.conditions import Key
+from botocore.config import Config
 
-secrets_client = boto3.client('secretsmanager', region_name='eu-central-1')
-dynamodb = boto3.resource('dynamodb', region_name='eu-central-1')
+# Import MEGA modules
+import sys
+sys.path.append('./shared')
+from mega_config_merger import merge_mega_configuration
+from mega_prompt_builder import build_mega_prompt
+from openai_cache import get_cached_response, cache_response
+
+# WEEK 2.5: Request size validation
+try:
+    from input_size_validator import validate_content_generation_request, RequestSizeTooLargeError
+except ImportError:
+    # Fallback if module not available
+    def validate_content_generation_request(event, **kwargs):
+        pass
+    class RequestSizeTooLargeError(Exception):
+        pass
+
+# WEEK 2 FIX: Add timeout configuration for all AWS service calls
+boto_config = Config(
+    connect_timeout=5,      # Connection timeout: 5 seconds
+    read_timeout=60,        # Read timeout: 60 seconds
+    retries={
+        'max_attempts': 3,  # Retry failed requests up to 3 times
+        'mode': 'standard'  # Use standard retry mode with exponential backoff
+    }
+)
+
+# AWS clients with timeout configuration
+secrets_client = boto3.client('secretsmanager', region_name='eu-central-1', config=boto_config)
+dynamodb = boto3.resource('dynamodb', region_name='eu-central-1', config=boto_config)
 cost_table = dynamodb.Table('CostTracking')
 
-# OpenAI Pricing (USD) - November 2025
+# OpenAI Pricing
 OPENAI_PRICING = {
     'gpt-4o': {
-        'input': 2.50 / 1_000_000,  # $2.50 per 1M input tokens
-        'output': 10.00 / 1_000_000,  # $10.00 per 1M output tokens
+        'input': 2.50 / 1_000_000,
+        'output': 10.00 / 1_000_000,
     },
     'gpt-4o-mini': {
         'input': 0.150 / 1_000_000,
@@ -21,60 +67,210 @@ OPENAI_PRICING = {
     }
 }
 
-def log_openai_cost(channel_id, content_id, model, input_tokens, output_tokens):
-    """Log OpenAI API cost to CostTracking table"""
+
+def log_openai_cost(channel_id, content_id, model, input_tokens, output_tokens, user_id=None):
+    """
+    Log OpenAI API cost to CostTracking table
+
+    WEEK 2 FIX: Added user_id parameter for multi-tenant cost isolation
+    """
     try:
-        # Get pricing for model
+        # SECURITY: Warn if user_id not provided (multi-tenant isolation)
+        if not user_id:
+            print("⚠️ WARNING: Cost logged without user_id - multi-tenant isolation compromised!")
+
         model_key = model if model in OPENAI_PRICING else 'gpt-4o'
         pricing = OPENAI_PRICING[model_key]
 
-        # Calculate cost
         input_cost = input_tokens * pricing['input']
         output_cost = output_tokens * pricing['output']
         total_cost = Decimal(str(input_cost + output_cost))
 
-        # Log to CostTracking
         now = datetime.utcnow()
-        date_str = now.strftime('%Y-%m-%d')
-        timestamp = now.isoformat() + 'Z'
 
-        cost_table.put_item(
-            Item={
-                'date': date_str,
-                'timestamp': timestamp,
-                'service': 'OpenAI',
-                'operation': 'narrative_generation',
-                'channel_id': channel_id,
-                'content_id': content_id,
-                'cost_usd': total_cost,
-                'units': input_tokens + output_tokens,
-                'details': {
-                    'model': model,
-                    'input_tokens': input_tokens,
-                    'output_tokens': output_tokens,
-                    'input_cost_usd': round(input_cost, 6),
-                    'output_cost_usd': round(output_cost, 6)
-                }
+        item = {
+            'date': now.strftime('%Y-%m-%d'),
+            'timestamp': now.isoformat() + 'Z',
+            'service': 'OpenAI',
+            'operation': 'mega_generation',
+            'channel_id': channel_id,
+            'content_id': content_id,
+            'cost_usd': total_cost,
+            'units': input_tokens + output_tokens,
+            'details': {
+                'model': model,
+                'input_tokens': input_tokens,
+                'output_tokens': output_tokens,
+                'input_cost_usd': round(input_cost, 6),
+                'output_cost_usd': round(output_cost, 6)
             }
-        )
+        }
 
-        print(f"✅ Logged OpenAI cost: ${float(total_cost):.6f} ({input_tokens + output_tokens} tokens)")
+        # Add user_id for multi-tenant cost tracking
+        if user_id:
+            item['user_id'] = user_id
+
+        cost_table.put_item(Item=item)
+
+        print(f"✅ Logged cost: ${float(total_cost):.6f} ({input_tokens + output_tokens} tokens)")
         return float(total_cost)
     except Exception as e:
-        print(f"❌ Failed to log cost: {str(e)}")
+        print(f"❌ Failed to log cost: {e}")
         return 0.0
 
+
+def parse_json_fields_recursive(obj):
+    """Recursively parse JSON string fields in a dict"""
+    if not isinstance(obj, dict):
+        return obj
+
+    result = {}
+    for key, value in obj.items():
+        if isinstance(value, str):
+            # Try to parse as JSON
+            try:
+                parsed = json.loads(value)
+                result[key] = parse_json_fields_recursive(parsed) if isinstance(parsed, dict) else parsed
+            except:
+                result[key] = value
+        elif isinstance(value, dict):
+            result[key] = parse_json_fields_recursive(value)
+        elif isinstance(value, list):
+            result[key] = [parse_json_fields_recursive(item) if isinstance(item, dict) else item for item in value]
+        else:
+            result[key] = value
+    return result
+
+
+def convert_floats_to_decimal(obj):
+    """Recursively convert all floats to Decimal for DynamoDB"""
+    if isinstance(obj, list):
+        return [convert_floats_to_decimal(item) for item in obj]
+    elif isinstance(obj, dict):
+        return {key: convert_floats_to_decimal(value) for key, value in obj.items()}
+    elif isinstance(obj, float):
+        return Decimal(str(obj))
+    else:
+        return obj
+
+
+def parse_known_json_fields(template):
+    """
+    Parse all known JSON string fields in templates
+
+    DynamoDB (especially from PHP) often stores complex fields as JSON strings.
+    This ensures all nested structures are properly parsed.
+    """
+    known_fields = [
+        'ai_config',
+        'scene_variations',
+        'sfx_library',
+        'music_library',
+        'cta_config',
+        'thumbnail_config',
+        'tts_config',
+        'description_config',
+        'image_settings'
+    ]
+
+    for field in known_fields:
+        if field in template and isinstance(template[field], str):
+            try:
+                template[field] = json.loads(template[field])
+                print(f"   Parsed {field} from JSON string")
+            except json.JSONDecodeError as e:
+                print(f"   WARNING: Failed to parse {field}: {e}")
+                template[field] = {}
+
+    # Deep parse ai_config.sections if it exists
+    if 'ai_config' in template and isinstance(template['ai_config'], dict):
+        if 'sections' in template['ai_config'] and isinstance(template['ai_config']['sections'], str):
+            try:
+                template['ai_config']['sections'] = json.loads(template['ai_config']['sections'])
+                print(f"   Parsed ai_config.sections from JSON string")
+            except:
+                template['ai_config']['sections'] = {}
+
+    return template
+
+
+def load_all_templates(channel_config):
+    """Load all 7 templates for MEGA generation"""
+
+    templates = {}
+    template_types = {
+        'narrative': ('NarrativeTemplates', 'narrative_template', 'narr-universal'),
+        'image': ('ImageGenerationTemplates', 'image_template', 'img-universal-sd35'),
+        'cta': ('CTATemplates', 'cta_template', 'cta_template_1762366857242_3zx29p'),
+        'thumbnail': ('ThumbnailTemplates', 'thumbnail_template', 'thumb-universal'),
+        'tts': ('TTSTemplates', 'tts_template', 'tts-universal'),
+        'sfx': ('SFXTemplates', 'sfx_template', 'sfx_universal_v1'),
+        'description': ('DescriptionTemplates', 'description_template', 'description_universal_v1')
+    }
+
+    for key, (table_name, config_field, default_id) in template_types.items():
+        template_id = channel_config.get(config_field, default_id)
+        table = dynamodb.Table(table_name)
+
+        try:
+            response = table.get_item(Key={'template_id': template_id})
+            template = response.get('Item', {})
+
+            # Parse known JSON fields first
+            template = parse_known_json_fields(template)
+
+            # Then recursively parse any remaining nested JSON
+            template = parse_json_fields_recursive(template)
+
+            # Ensure ai_config exists and has sections
+            if 'ai_config' not in template or not isinstance(template.get('ai_config'), dict):
+                template['ai_config'] = {'sections': {}}
+            elif 'sections' not in template['ai_config']:
+                template['ai_config']['sections'] = {}
+            elif not isinstance(template['ai_config']['sections'], dict):
+                template['ai_config']['sections'] = {}
+
+            templates[f'{key}_template'] = template
+            print(f"Loaded {key} template: {template_id}")
+        except Exception as e:
+            print(f"Failed to load {key} template: {e}")
+            import traceback
+            traceback.print_exc()
+            # Provide minimal valid structure
+            templates[f'{key}_template'] = {'ai_config': {'sections': {}}}
+
+    return templates
+
+
 def lambda_handler(event, context):
-    print(f"Narrative Architect - AI Prompt Configs Version")
-    print(f"Event: {json.dumps(event, ensure_ascii=False)}")
+    print("=" * 80)
+    print("MEGA-GENERATION v3.0 - Comprehensive Content Generator")
+    print("=" * 80)
+    print(f"Event: {json.dumps(event, ensure_ascii=False)[:500]}")
+
+    # WEEK 2 FIX: Extract user_id for multi-tenant data isolation
+    user_id = event.get('user_id')
+    if not user_id:
+        print("WARNING: No user_id provided")
+        # For backward compatibility during migration
+        raise ValueError('SECURITY ERROR: user_id is required for all requests')
+
+    # WEEK 2.5: Validate request size to prevent memory exhaustion attacks
+    try:
+        validate_content_generation_request(event, max_size_mb=10, max_scenes=100)
+    except RequestSizeTooLargeError as e:
+        print(f"❌ Request validation failed: {e}")
+        return {
+            'statusCode': 413,  # Payload Too Large
+            'error': f'Request too large: {str(e)}',
+            'user_id': user_id
+        }
 
     channel_id = event.get('channel_id', 'Unknown')
     selected_topic = event.get('selected_topic', 'Default Topic')
-    target_character_count = event.get('target_character_count', 8000)
-    scene_count_target = event.get('scene_count_target', 18)
 
     try:
-        # 1. Отримуємо OpenAI API ключ
+        # 1. Get OpenAI API key
         api_key_response = secrets_client.get_secret_value(SecretId='openai/api-key')
         secret_string = api_key_response['SecretString']
         try:
@@ -83,24 +279,9 @@ def lambda_handler(event, context):
         except:
             api_key = secret_string
 
-        print(f"API key retrieved: {api_key[:10]}...")
+        print(f"✅ API key retrieved")
 
-        # 2. Отримуємо prompt config з AIPromptConfigs
-        prompt_table = dynamodb.Table('AIPromptConfigs')
-        prompt_response = prompt_table.get_item(Key={'agent_id': 'narrative_architect'})
-
-        if 'Item' not in prompt_response:
-            raise Exception('Narrative Architect config not found in AIPromptConfigs')
-
-        prompt_config = prompt_response['Item']
-        system_instructions = prompt_config['system_instructions']
-        model = prompt_config.get('model', 'gpt-4o')
-        temperature = float(prompt_config.get('temperature', '0.8'))
-        max_tokens = int(prompt_config.get('max_tokens', '4000'))
-
-        print(f"Prompt config loaded: model={model}, temp={temperature}, max_tokens={max_tokens}")
-
-        # 3. Отримуємо channel config з ChannelConfigs (query через GSI)
+        # 2. Get ChannelConfig
         channel_table = dynamodb.Table('ChannelConfigs')
         channel_response = channel_table.query(
             IndexName='channel_id-index',
@@ -111,168 +292,281 @@ def lambda_handler(event, context):
             raise Exception(f'Channel config not found for {channel_id}')
 
         channel_config = channel_response['Items'][0]
-        print(f"Channel config loaded for: {channel_config.get('channel_name', 'Unknown')}")
 
-        # 4. Формуємо JSON input згідно з інструкцією Narrative Architect
-        user_input = {
-            "channel_name": channel_config.get('channel_name', 'Unknown Channel'),
-            "channel_config": {
-                "genre": channel_config.get('genre', 'General'),
-                "tone": channel_config.get('tone', 'Neutral'),
-                "narration_style": channel_config.get('narration_style', 'Third-person'),
-                "narrative_pace": channel_config.get('narrative_pace', 'medium'),
-                "story_structure_pattern": channel_config.get('story_structure_pattern', 'Intro – build – twist – resolution'),
-                "content_focus": channel_config.get('content_focus', ''),
-                "narrative_keywords": channel_config.get('narrative_keywords', ''),
-                "visual_keywords": channel_config.get('visual_keywords', ''),
-                "image_style_variants": channel_config.get('image_style_variants', 'Cinematic realistic'),
-                "color_palettes": channel_config.get('color_palettes', 'Natural colors'),
-                "lighting_variants": channel_config.get('lighting_variants', 'Natural lighting'),
-                "composition_variants": channel_config.get('composition_variants', 'Standard composition'),
-                "tts_voice_profile": channel_config.get('tts_voice_profile', 'neutral_male'),
-                "tts_mood_tags": channel_config.get('tts_mood_tags', 'clear, steady'),
-                "recommended_music_variants": channel_config.get('recommended_music_variants', 'Ambient background')
-            },
-            "topic": selected_topic,
-            "target_character_count": target_character_count,
-            "scene_count_target": scene_count_target
-        }
+        # WEEK 2 FIX: IDOR prevention - verify channel belongs to user
+        if channel_config.get('user_id') != user_id:
+            print(f"❌ SECURITY ERROR: Channel {channel_id} belongs to user {channel_config.get('user_id')}, not {user_id}")
+            raise ValueError(f"SECURITY: Access denied - Channel does not belong to user {user_id}")
 
-        user_message = json.dumps(user_input, ensure_ascii=False)
+        print(f"✅ Channel loaded: {channel_config.get('channel_name', 'Unknown')}")
 
-        print(f"Request size: {len(user_message)} chars, topic: {selected_topic}")
+        # 3. Load ALL 7 Templates
+        print("\n📦 Loading templates...")
+        templates = load_all_templates(channel_config)
 
-        # 5. Prepare OpenAI request
-        request_body = json.dumps({
-            'model': model,
-            'messages': [
-                {'role': 'system', 'content': system_instructions},
-                {'role': 'user', 'content': user_message}
-            ],
-            'temperature': temperature,
-            'max_tokens': max_tokens,
-            'response_format': {'type': 'json_object'}  # Force JSON output
-        })
+        # 4. Merge into MEGA configuration
+        print("\n🔧 Merging configurations...")
+        try:
+            mega_config = merge_mega_configuration(
+                channel_config,
+                templates['narrative_template'],
+                templates['image_template'],
+                templates['cta_template'],
+                templates['thumbnail_template'],
+                templates['tts_template'],
+                templates['sfx_template'],
+                templates['description_template']
+            )
+        except Exception as merge_error:
+            print(f"ERROR in merge_mega_configuration: {merge_error}")
+            import traceback
+            traceback.print_exc()
+            raise
 
-        # 6. Виклик OpenAI API
-        conn = http.client.HTTPSConnection('api.openai.com')
-        headers = {
-            'Authorization': f'Bearer {api_key}',
-            'Content-Type': 'application/json'
-        }
+        print(f"✅ Mega config created")
+        print(f"   Model: {mega_config['model']}")
+        print(f"   Temp: {mega_config['temperature']}")
+        print(f"   Max tokens: {mega_config['max_tokens']}")
 
-        conn.request('POST', '/v1/chat/completions', body=request_body, headers=headers)
-        response = conn.getresponse()
-        response_data = response.read().decode('utf-8')
+        # 5. Build MEGA prompt
+        print("\n📝 Building MEGA prompt...")
+        try:
+            system_message, user_message = build_mega_prompt(mega_config, selected_topic)
+        except Exception as prompt_error:
+            print(f"ERROR in build_mega_prompt: {prompt_error}")
+            import traceback
+            traceback.print_exc()
+            raise
 
-        print(f"OpenAI response status: {response.status}")
+        print(f"✅ MEGA prompt built")
+        print(f"   System message: {len(system_message)} chars")
+        print(f"   User message: {len(user_message)} chars")
 
-        result = json.loads(response_data)
+        # 6. Call OpenAI (with caching - WEEK 5)
+        print("\n🔍 Checking OpenAI response cache...")
 
-        if 'error' in result:
-            raise Exception(f"OpenAI API Error: {result['error'].get('message', 'Unknown error')}")
+        # Build cache key from prompt
+        cache_key_prompt = system_message + user_message
 
-        # 7. Parse JSON response
+        # Check cache first
+        cached_result = get_cached_response(cache_key_prompt, mega_config['model'], max_age_hours=24)
+
+        if cached_result:
+            print("✅ Cache HIT - using cached OpenAI response (saved API call!)")
+            result = cached_result
+        else:
+            print("🚀 Cache MISS - calling OpenAI API...")
+            request_body = json.dumps({
+                'model': mega_config['model'],
+                'messages': [
+                    {'role': 'system', 'content': system_message},
+                    {'role': 'user', 'content': user_message}
+                ],
+                'temperature': mega_config['temperature'],
+                'max_tokens': mega_config['max_tokens'],
+                'response_format': {'type': 'json_object'}
+            })
+
+            # SECURITY FIX: Add SSL/TLS verification and timeout
+            import ssl
+            ssl_context = ssl.create_default_context()
+            conn = http.client.HTTPSConnection('api.openai.com', context=ssl_context, timeout=60)
+            headers = {
+                'Authorization': f'Bearer {api_key}',
+                'Content-Type': 'application/json'
+            }
+
+            try:
+                conn.request('POST', '/v1/chat/completions', body=request_body, headers=headers)
+                response = conn.getresponse()
+                response_data = response.read().decode('utf-8')
+            finally:
+                conn.close()  # Ensure connection is closed
+
+            print(f"✅ OpenAI response: {response.status}")
+
+            result = json.loads(response_data)
+
+            if 'error' in result:
+                raise Exception(f"OpenAI API Error: {result['error'].get('message', 'Unknown')}")
+
+            # Cache the successful response (TTL: 7 days)
+            cache_response(cache_key_prompt, mega_config['model'], result, ttl_hours=168)
+            print("💾 Response cached for future use")
+
+        # 7. Parse MEGA response
+        print("\n📥 Parsing MEGA response...")
         generated_content = result['choices'][0]['message']['content']
-        narrative_json = json.loads(generated_content)
+        mega_response = json.loads(generated_content)
 
-        # Extract key fields
-        story_title = narrative_json.get('story_title', selected_topic)
-        narrative_text = narrative_json.get('narrative_text', '')
-        character_count = narrative_json.get('character_count', len(narrative_text))
-        scenes = narrative_json.get('scenes', [])
+        # Extract components
+        story_title = mega_response.get('story_title', selected_topic)
+        hook = mega_response.get('hook', '')
+        scenes = mega_response.get('scenes', [])
+        cta_segments = mega_response.get('cta_segments', [])
+        thumbnail = mega_response.get('thumbnail', {})
+        description_data = mega_response.get('description', {})
+        sfx_data = mega_response.get('sfx_data', {})
+        metadata = mega_response.get('metadata', {})
 
-        print(f"Generated: {len(scenes)} scenes, {character_count} characters")
-        print(f"Story title: {story_title}")
+        print(f"✅ Parsed MEGA response:")
+        print(f"   Title: {story_title}")
+        print(f"   Scenes: {len(scenes)}")
+        print(f"   Image prompts: {len([s for s in scenes if s.get('image_prompt')])}")
+        print(f"   CTA segments: {len(cta_segments)}")
+        print(f"   Has thumbnail: {bool(thumbnail.get('thumbnail_prompt'))}")
+        print(f"   SFX cues: {len(sfx_data.get('sfx_cues', []))}")
+        print(f"   Music track: {sfx_data.get('music_track', 'None')}")
 
-        # 7.5. Extract usage and log cost
+        # Calculate character count
+        narrative_text = hook + '\n' + '\n'.join([s.get('scene_narration', '') for s in scenes])
+        character_count = len(narrative_text)
+
+        # 8. Log cost
         usage = result.get('usage', {})
         input_tokens = usage.get('prompt_tokens', 0)
         output_tokens = usage.get('completion_tokens', 0)
-        total_tokens = usage.get('total_tokens', input_tokens + output_tokens)
 
-        print(f"Token usage: {input_tokens} input + {output_tokens} output = {total_tokens} total")
-
-        # 8. Зберігаємо в DynamoDB GeneratedContent
-        content_table = dynamodb.Table('GeneratedContent')
         timestamp = datetime.utcnow().isoformat() + 'Z'
         narrative_id = timestamp.replace(':', '').replace('-', '').replace('.', '')[:20]
 
-        # Log cost
         cost_usd = log_openai_cost(
             channel_id=channel_id,
             content_id=narrative_id,
-            model=model,
+            model=mega_config['model'],
             input_tokens=input_tokens,
-            output_tokens=output_tokens
+            output_tokens=output_tokens,
+            user_id=user_id  # WEEK 2 FIX: Multi-tenant cost tracking
         )
+
+        # 9. Save to DynamoDB
+        print("\n💾 Saving to DynamoDB...")
+        content_table = dynamodb.Table('GeneratedContent')
+
+        # Convert all floats to Decimal for DynamoDB
+        scenes_decimal = convert_floats_to_decimal(scenes)
+        mega_response_decimal = convert_floats_to_decimal(mega_response)
 
         content_table.put_item(
             Item={
                 'channel_id': channel_id,
                 'created_at': timestamp,
-                'type': 'narrative_generation',
+                'type': 'mega_generation',
                 'topic': selected_topic,
                 'story_title': story_title,
                 'narrative_text': narrative_text,
                 'character_count': character_count,
                 'scene_count': len(scenes),
-                'scenes': scenes,
-                'full_response': narrative_json,
-                'model': model,
-                'api_version': 'responses_api',
-                'prompt_version': prompt_config.get('version', '1.0'),
+                'scenes': scenes_decimal,
+                'full_response': mega_response_decimal,
+                'model': mega_config['model'],
+                'api_version': 'mega_v3',
                 'status': 'completed',
                 'cost_usd': Decimal(str(cost_usd)),
-                'tokens_used': total_tokens
+                'tokens_used': input_tokens + output_tokens
             }
         )
 
-        print(f"✅ Saved to DynamoDB: {channel_id} at {timestamp}")
+        print(f"✅ Saved to DynamoDB")
 
-        # 9. Return output for Step Functions
+        # 10. Get image provider
+        image_template = templates['image_template']
+        image_settings = image_template.get('image_settings', {})
+        image_provider = image_settings.get('provider', 'ec2-sd35')
+
+        # 11. Return output for Step Functions
+        print("\n🎯 Building output...")
 
         output = {
             'channel_id': channel_id,
+            'content_id': narrative_id,
             'selected_topic': selected_topic,
             'story_title': story_title,
-            'narrative_content': narrative_json,  # Full JSON response
-            'narrative_id': narrative_id,  # For TTS Lambda
-            'scenes': scenes,  # For TTS Lambda
+            'narrative_content': mega_response,
+            'narrative_id': narrative_id,
+            'scenes': scenes,
+
+            # Image data for collect-image-prompts
+            'image_data': {
+                'scenes': scenes  # Scenes have image_prompt from MEGA response
+            },
+
+            # Thumbnail data for collect-image-prompts
+            'thumbnail_data': {
+                'thumbnail_prompt': thumbnail.get('thumbnail_prompt', ''),
+                'text_overlay': thumbnail.get('text_overlay', ''),
+                'style_notes': thumbnail.get('style_notes', '')
+            },
+
+            # CTA data for SaveFinalContent
+            'cta_data': {
+                'cta_segments': cta_segments
+            },
+
+            # Description data for SaveFinalContent
+            'description_data': {
+                'title': description_data.get('title', story_title),
+                'description': description_data.get('description', ''),
+                'tags': description_data.get('tags', []),
+                'hashtags': description_data.get('hashtags', [])
+            },
+
+            # SFX data for SaveFinalContent
+            'sfx_data': {
+                'sfx_cues': sfx_data.get('sfx_cues', []),
+                'music_track': sfx_data.get('music_track', ''),
+                'timing_estimates': sfx_data.get('timing_estimates', {})
+            },
+
+            # Provider for Step Functions
+            'image_provider': image_provider,
+
+            # Metadata for SaveFinalContent (genre & model)
+            'model': mega_config['model'],
+            'genre': channel_config.get('genre'),
+
             'character_count': character_count,
             'scene_count': len(scenes),
             'timestamp': timestamp
         }
 
-        print(f"✅ Success! Narrative generated with {len(scenes)} scenes")
+        print(f"\n" + "=" * 80)
+        print(f"✅ SUCCESS - MEGA-GENERATION COMPLETE")
+        print(f"   Scenes: {len(scenes)}")
+        print(f"   Image prompts: {len([s for s in scenes if s.get('image_prompt')])}")
+        print(f"   Thumbnail: {'Yes' if thumbnail.get('thumbnail_prompt') else 'No'}")
+        print(f"   Provider: {image_provider}")
+        print(f"   Cost: ${cost_usd:.6f}")
+        print("=" * 80)
+
         return output
 
     except Exception as e:
-        print(f"❌ Error: {str(e)}")
+        print(f"\n❌ ERROR: {str(e)}")
         import traceback
         traceback.print_exc()
 
-        # Fallback
+        # Fallback error response
         timestamp_err = datetime.utcnow().isoformat() + 'Z'
         narrative_id_err = timestamp_err.replace(':', '').replace('-', '').replace('.', '')[:20]
 
-        fallback_narrative = f"""INTRO:
-Welcome! Today we explore: {selected_topic}
-
-MAIN:
-[Generation error: {str(e)}]
-
-CONCLUSION:
-Thank you for watching! Subscribe for more content!"""
-
         return {
             'channel_id': channel_id,
+            'content_id': narrative_id_err,
             'selected_topic': selected_topic,
             'story_title': selected_topic,
-            'narrative_content': fallback_narrative,
-            'narrative_id': narrative_id_err,  # Required for TTS
-            'scenes': [],  # Required for TTS (empty array)
-            'character_count': len(fallback_narrative),
+            'narrative_content': {},
+            'narrative_id': narrative_id_err,
+            'scenes': [],
+            'image_data': {'scenes': []},
+            'thumbnail_data': {'thumbnail_prompt': ''},
+            'cta_data': {'cta_segments': []},
+            'description_data': {},
+            'sfx_data': {},
+            'image_provider': 'ec2-sd35',
+            'model': 'gpt-4o',
+            'genre': event.get('genre', 'Unknown'),
+            'character_count': 0,
             'scene_count': 0,
             'timestamp': timestamp_err,
             'error': str(e)

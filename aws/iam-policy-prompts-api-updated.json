@@ -1,0 +1,40 @@
+{
+  "Version": "2012-10-17",
+  "Statement": [
+    {
+      "Effect": "Allow",
+      "Action": [
+        "dynamodb:GetItem",
+        "dynamodb:PutItem",
+        "dynamodb:UpdateItem",
+        "dynamodb:DeleteItem",
+        "dynamodb:Query",
+        "dynamodb:Scan"
+      ],
+      "Resource": [
+        "arn:aws:dynamodb:eu-central-1:*:table/PromptTemplatesV2",
+        "arn:aws:dynamodb:eu-central-1:*:table/PromptTemplatesV2/index/*",
+        "arn:aws:dynamodb:eu-central-1:*:table/ImageGenerationTemplates",
+        "arn:aws:dynamodb:eu-central-1:*:table/ImageGenerationTemplates/index/*",
+        "arn:aws:dynamodb:eu-central-1:*:table/VideoEditingTemplates",
+        "arn:aws:dynamodb:eu-central-1:*:table/VideoEditingTemplates/index/*",
+        "arn:aws:dynamodb:eu-central-1:*:table/CTATemplates",
+        "arn:aws:dynamodb:eu-central-1:*:table/CTATemplates/index/*",
+        "arn:aws:dynamodb:eu-central-1:*:table/TTSTemplates",
+        "arn:aws:dynamodb:eu-central-1:*:table/TTSTemplates/index/*",
+        "arn:aws:dynamodb:eu-central-1:*:table/AIPromptConfigs",
+        "arn:aws:dynamodb:eu-central-1:*:table/PromptVersionHistory",
+        "arn:aws:dynamodb:eu-central-1:*:table/ChannelConfigs"
+      ]
+    },
+    {
+      "Effect": "Allow",
+      "Action": [
+        "logs:CreateLogGroup",
+        "logs:CreateLogStream",
+        "logs:PutLogEvents"
+      ],
+      "Resource": "arn:aws:logs:eu-central-1:*:*"
+    }
+  ]
+}

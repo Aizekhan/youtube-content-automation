@@ -1,0 +1,61 @@
+{
+  "Version": "2012-10-17",
+  "Statement": [
+    {
+      "Sid": "DynamoDBRead",
+      "Effect": "Allow",
+      "Action": [
+        "dynamodb:Scan",
+        "dynamodb:GetItem",
+        "dynamodb:Query",
+        "dynamodb:DescribeTable",
+        "dynamodb:ListTables"
+      ],
+      "Resource": [
+        "arn:aws:dynamodb:eu-central-1:599297130956:table/GeneratedContent",
+        "arn:aws:dynamodb:eu-central-1:599297130956:table/ChannelConfigs",
+        "arn:aws:dynamodb:eu-central-1:599297130956:table/ThemeTemplates",
+        "arn:aws:dynamodb:eu-central-1:599297130956:table/NarrativeTemplates",
+        "arn:aws:dynamodb:eu-central-1:599297130956:table/TTSTemplates",
+        "arn:aws:dynamodb:eu-central-1:599297130956:table/ImageGenerationTemplates",
+        "arn:aws:dynamodb:eu-central-1:599297130956:table/SFXTemplates",
+        "arn:aws:dynamodb:eu-central-1:599297130956:table/CTATemplates",
+        "arn:aws:dynamodb:eu-central-1:599297130956:table/DescriptionTemplates",
+        "arn:aws:dynamodb:eu-central-1:599297130956:table/ThumbnailTemplates",
+        "arn:aws:dynamodb:eu-central-1:599297130956:table/VideoEditingTemplates",
+        "arn:aws:dynamodb:eu-central-1:599297130956:table/CostTracking"
+      ]
+    },
+    {
+      "Sid": "LambdaInspection",
+      "Effect": "Allow",
+      "Action": [
+        "lambda:ListFunctions",
+        "lambda:GetFunction",
+        "lambda:GetFunctionConfiguration"
+      ],
+      "Resource": "*"
+    },
+    {
+      "Sid": "StepFunctionsInspection",
+      "Effect": "Allow",
+      "Action": [
+        "states:ListStateMachines",
+        "states:DescribeStateMachine",
+        "states:GetExecutionHistory",
+        "states:DescribeExecution"
+      ],
+      "Resource": "*"
+    },
+    {
+      "Sid": "CloudWatchLogs",
+      "Effect": "Allow",
+      "Action": [
+        "logs:CreateLogGroup",
+        "logs:CreateLogStream",
+        "logs:PutLogEvents"
+      ],
+      "Resource": "arn:aws:logs:eu-central-1:599297130956:log-group:/aws/lambda/schema-validator:*"
+    }
+  ]
+}

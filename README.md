@@ -6,7 +6,7 @@
 
 ### Доступ до сайту
 - **URL**: https://n8n-creator.space/
-- **Авторизація**: Basic Auth (`admin:FHrifd45`)
+- **Авторизація**: Google OAuth (AWS Cognito)
 
 ### Головні розділи
 - **Home** (`/`) - головна сторінка з навігацією
@@ -52,8 +52,15 @@
 
 ## 📖 Документація
 
-Повна документація в **[DOCUMENTATION.md](./DOCUMENTATION.md)**
+### Основна
+- [TECHNICAL-ARCHITECTURE-2025-11.md](./docs/TECHNICAL-ARCHITECTURE-2025-11.md)
+- [MULTI-TENANT-VIDEO-ASSEMBLY-FIX-2025-11-29.md](./docs/MULTI-TENANT-VIDEO-ASSEMBLY-FIX-2025-11-29.md)
+- [CHANGELOG-2025-11-29.md](./CHANGELOG-2025-11-29.md)
+
+## 🆕 Recent Update (29.11.2025)
+
+✅ Multi-Tenant Video Assembly - Всі баги виправлені, система працює end-to-end
 
 ---
 
-**Version**: 1.0 | **Last Update**: 03.11.2025
+**Version**: 2.0 | **Last Update**: 29.11.2025

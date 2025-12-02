@@ -1,82 +1,23 @@
-# DynamoDB Tables для YouTube Content Automation
+# DynamoDB Tables - Infrastructure as Code
 
-# =====================================
-# AIPromptConfigs - Конфігурації AI агентів
-# =====================================
-resource "aws_dynamodb_table" "ai_prompt_configs" {
-  name           = "AIPromptConfigs"
-  billing_mode   = "PAY_PER_REQUEST" # On-demand pricing
-  hash_key       = "agent_id"
+# 1. GeneratedContent - Main content storage
+resource "aws_dynamodb_table" "generated_content" {
+  name           = "GeneratedContent"
+  billing_mode   = "PAY_PER_REQUEST"
+  hash_key       = "content_id"
 
   attribute {
-    name = "agent_id"
+    name = "content_id"
     type = "S"
   }
 
-  tags = {
-    Name        = "AIPromptConfigs"
-    Description = "Зберігає конфігурації для AI агентів (Theme Agent, Narrative Architect)"
-  }
-
-  point_in_time_recovery {
-    enabled = true
-  }
-
-  server_side_encryption {
-    enabled = true
-  }
-}
-
-# =====================================
-# ChannelConfigs - Конфігурації каналів
-# =====================================
-resource "aws_dynamodb_table" "channel_configs" {
-  name           = "ChannelConfigs"
-  billing_mode   = "PAY_PER_REQUEST"
-  hash_key       = "config_id"
-
   attribute {
-    name = "config_id"
+    name = "user_id"
     type = "S"
   }
 
   attribute {
     name = "channel_id"
-    type = "S"
-  }
-
-  # GSI для пошуку за channel_id
-  global_secondary_index {
-    name            = "channel_id-index"
-    hash_key        = "channel_id"
-    projection_type = "ALL"
-  }
-
-  tags = {
-    Name        = "ChannelConfigs"
-    Description = "Зберігає конфігурації YouTube каналів для генерації контенту"
-  }
-
-  point_in_time_recovery {
-    enabled = true
-  }
-
-  server_side_encryption {
-    enabled = true
-  }
-}
-
-# =====================================
-# GeneratedVideos - Згенеровані відео
-# =====================================
-resource "aws_dynamodb_table" "generated_videos" {
-  name           = "GeneratedVideos"
-  billing_mode   = "PAY_PER_REQUEST"
-  hash_key       = "video_id"
-  range_key      = "created_at"
-
-  attribute {
-    name = "video_id"
     type = "S"
   }
 
@@ -85,87 +26,79 @@ resource "aws_dynamodb_table" "generated_videos" {
     type = "S"
   }
 
-  attribute {
-    name = "channel_id"
-    type = "S"
-  }
-
-  attribute {
-    name = "status"
-    type = "S"
-  }
-
-  # GSI для пошуку відео по каналу
+  # GSI for user queries
   global_secondary_index {
-    name            = "channel_id-index"
+    name            = "user_id-created_at-index"
+    hash_key        = "user_id"
+    range_key       = "created_at"
+    projection_type = "ALL"
+  }
+
+  # GSI for channel queries
+  global_secondary_index {
+    name            = "channel_id-created_at-index"
     hash_key        = "channel_id"
     range_key       = "created_at"
     projection_type = "ALL"
   }
 
-  # GSI для пошуку по статусу
+  # GSI for video assembly lookup (WEEK 5.3 FIX)
   global_secondary_index {
-    name            = "status-index"
-    hash_key        = "status"
+    name            = "content_id-created_at-index"
+    hash_key        = "content_id"
     range_key       = "created_at"
     projection_type = "ALL"
   }
 
-  tags = {
-    Name        = "GeneratedVideos"
-    Description = "Зберігає інформацію про згенеровані відео"
-  }
-
+  # Point-in-Time Recovery
   point_in_time_recovery {
     enabled = true
   }
 
+  # Encryption at rest
   server_side_encryption {
     enabled = true
   }
 
-  # TTL для автоматичного видалення старих записів (опціонально)
-  # ttl {
-  #   attribute_name = "expires_at"
-  #   enabled        = true
-  # }
+  # Auto-cleanup old content (90 days)
+  ttl {
+    enabled        = true
+    attribute_name = "ttl_expiration"
+  }
+
+  tags = {
+    Name        = "GeneratedContent"
+    Description = "YouTube automation generated content storage"
+  }
 }
 
-# =====================================
-# ContentQueue - Черга контенту для генерації (опціонально)
-# =====================================
-resource "aws_dynamodb_table" "content_queue" {
-  name           = "ContentQueue"
+# 2. ChannelConfigs - Channel configuration
+resource "aws_dynamodb_table" "channel_configs" {
+  name           = "ChannelConfigs"
   billing_mode   = "PAY_PER_REQUEST"
-  hash_key       = "queue_id"
-  range_key      = "timestamp"
-
-  attribute {
-    name = "queue_id"
-    type = "S"
-  }
-
-  attribute {
-    name = "timestamp"
-    type = "S"
-  }
+  hash_key       = "channel_id"
 
   attribute {
     name = "channel_id"
     type = "S"
   }
 
-  # GSI для пошуку по каналу
-  global_secondary_index {
-    name            = "channel_id-index"
-    hash_key        = "channel_id"
-    range_key       = "timestamp"
-    projection_type = "ALL"
+  attribute {
+    name = "user_id"
+    type = "S"
   }
 
-  tags = {
-    Name        = "ContentQueue"
-    Description = "Черга завдань для генерації контенту"
+  attribute {
+    name = "is_active"
+    type = "N"
+  }
+
+  # GSI for user's active channels
+  global_secondary_index {
+    name            = "user_id-is_active-index"
+    hash_key        = "user_id"
+    range_key       = "is_active"
+    projection_type = "ALL"
   }
 
   point_in_time_recovery {
@@ -176,9 +109,82 @@ resource "aws_dynamodb_table" "content_queue" {
     enabled = true
   }
 
-  # TTL для автоматичного видалення виконаних завдань
+  tags = {
+    Name        = "ChannelConfigs"
+    Description = "YouTube channel configurations"
+  }
+}
+
+# 3. CostTracking - Cost tracking
+resource "aws_dynamodb_table" "cost_tracking" {
+  name           = "CostTracking"
+  billing_mode   = "PAY_PER_REQUEST"
+  hash_key       = "record_id"
+
+  attribute {
+    name = "record_id"
+    type = "S"
+  }
+
+  attribute {
+    name = "user_id"
+    type = "S"
+  }
+
+  attribute {
+    name = "date"
+    type = "S"
+  }
+
+  # GSI for user cost queries
+  global_secondary_index {
+    name            = "user_id-date-index"
+    hash_key        = "user_id"
+    range_key       = "date"
+    projection_type = "ALL"
+  }
+
+  point_in_time_recovery {
+    enabled = true
+  }
+
+  server_side_encryption {
+    enabled = true
+  }
+
+  # Auto-cleanup old cost records (365 days)
   ttl {
-    attribute_name = "expires_at"
     enabled        = true
+    attribute_name = "ttl_expiration"
+  }
+
+  tags = {
+    Name        = "CostTracking"
+    Description = "AWS cost tracking for multi-tenant system"
+  }
+}
+
+# 4. EC2InstanceLocks - EC2 lock management
+resource "aws_dynamodb_table" "ec2_instance_locks" {
+  name           = "EC2InstanceLocks"
+  billing_mode   = "PAY_PER_REQUEST"
+  hash_key       = "instance_id"
+
+  attribute {
+    name = "instance_id"
+    type = "S"
+  }
+
+  point_in_time_recovery {
+    enabled = true
+  }
+
+  server_side_encryption {
+    enabled = true
+  }
+
+  tags = {
+    Name        = "EC2InstanceLocks"
+    Description = "EC2 instance optimistic locking"
   }
 }

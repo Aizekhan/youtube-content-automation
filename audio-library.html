@@ -1,0 +1,756 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Audio Library Manager - YouTube Content Automation</title>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.0/font/bootstrap-icons.css">
+    <link rel="stylesheet" href="css/unified-navigation.css">
+    <style>
+        :root {
+            --primary-color: #667eea;
+            --secondary-color: #764ba2;
+            --success-color: #10b981;
+            --warning-color: #f59e0b;
+            --danger-color: #ef4444;
+            --dark-bg: #1a1d2e;
+            --card-bg: #22263a;
+            --text-primary: #f3f4f6;
+            --text-secondary: #d1d5db;
+        }
+
+        body {
+            background: linear-gradient(135deg, var(--dark-bg) 0%, #16213e 100%);
+            color: var(--text-primary);
+            min-height: 100vh;
+            font-family: 'Inter', -apple-system, BlinkMacSystemFont, sans-serif;
+        }
+
+        .container {
+            max-width: 1200px;
+            margin-top: 2rem;
+        }
+
+        .card {
+            background: var(--card-bg);
+            border: 1px solid rgba(102, 126, 234, 0.2);
+            border-radius: 16px;
+            margin-bottom: 2rem;
+        }
+
+        .card-header {
+            background: transparent;
+            border-bottom: 1px solid rgba(102, 126, 234, 0.2);
+            padding: 1.25rem;
+            font-weight: 600;
+            font-size: 1.1rem;
+            color: var(--text-primary);
+        }
+
+        .card-body {
+            color: var(--text-primary);
+        }
+
+        .upload-zone {
+            border: 2px dashed var(--primary-color);
+            border-radius: 12px;
+            padding: 3rem;
+            text-align: center;
+            background: rgba(102, 126, 234, 0.1);
+            transition: all 0.3s ease;
+            cursor: pointer;
+        }
+
+        .upload-zone:hover {
+            background: rgba(102, 126, 234, 0.15);
+            border-color: var(--secondary-color);
+        }
+
+        .upload-zone.dragover {
+            background: rgba(102, 126, 234, 0.25);
+            border-color: var(--secondary-color);
+            border-style: solid;
+        }
+
+        .upload-zone i {
+            color: var(--primary-color);
+        }
+
+        .upload-zone p {
+            color: var(--text-secondary);
+        }
+
+        .file-item {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding: 0.75rem 1rem;
+            background: rgba(102, 126, 234, 0.05);
+            border: 1px solid rgba(102, 126, 234, 0.1);
+            border-radius: 8px;
+            margin-bottom: 0.5rem;
+            transition: all 0.2s ease;
+        }
+
+        .file-item:hover {
+            background: rgba(102, 126, 234, 0.1);
+            border-color: rgba(102, 126, 234, 0.3);
+        }
+
+        .category-badge {
+            display: inline-block;
+            padding: 0.25rem 0.75rem;
+            border-radius: 20px;
+            font-size: 0.85rem;
+            font-weight: 500;
+        }
+
+        .badge-sfx {
+            background: linear-gradient(135deg, #f093fb 0%, #f5576c 100%);
+            color: white;
+        }
+
+        .badge-music {
+            background: linear-gradient(135deg, #4facfe 0%, #00f2fe 100%);
+            color: white;
+        }
+
+        .stats-card {
+            background: var(--card-bg);
+            border: 1px solid rgba(102, 126, 234, 0.2);
+            color: var(--text-primary);
+            border-radius: 12px;
+            padding: 1.5rem;
+            text-align: center;
+            margin-bottom: 1rem;
+        }
+
+        .stats-card h3 {
+            font-size: 2.5rem;
+            font-weight: bold;
+            margin: 0;
+            background: linear-gradient(135deg, var(--primary-color), var(--secondary-color));
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            background-clip: text;
+        }
+
+        .stats-card p {
+            margin: 0;
+            color: var(--text-secondary);
+        }
+
+        .btn-primary {
+            background: linear-gradient(135deg, var(--primary-color) 0%, var(--secondary-color) 100%);
+            border: none;
+            padding: 0.75rem 2rem;
+            border-radius: 8px;
+            font-weight: 500;
+            transition: all 0.2s;
+            color: white;
+        }
+
+        .btn-primary:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 4px 12px rgba(102, 126, 234, 0.4);
+        }
+
+        .btn-danger {
+            background: linear-gradient(135deg, var(--danger-color), #dc2626);
+            border: none;
+            color: white;
+        }
+
+        .btn-danger:hover {
+            transform: translateY(-1px);
+            box-shadow: 0 4px 12px rgba(239, 68, 68, 0.4);
+        }
+
+        .btn-success {
+            background: linear-gradient(135deg, var(--success-color), #059669);
+            border: none;
+            color: white;
+        }
+
+        .progress {
+            height: 8px;
+            border-radius: 4px;
+            background: rgba(102, 126, 234, 0.1);
+            margin-top: 1rem;
+        }
+
+        .progress-bar {
+            background: linear-gradient(135deg, var(--primary-color) 0%, var(--secondary-color) 100%);
+        }
+
+        .library-section {
+            max-height: 400px;
+            overflow-y: auto;
+        }
+
+        .library-section::-webkit-scrollbar {
+            width: 8px;
+        }
+
+        .library-section::-webkit-scrollbar-track {
+            background: rgba(102, 126, 234, 0.1);
+            border-radius: 4px;
+        }
+
+        .library-section::-webkit-scrollbar-thumb {
+            background: var(--primary-color);
+            border-radius: 4px;
+        }
+
+        .library-section::-webkit-scrollbar-thumb:hover {
+            background: var(--secondary-color);
+        }
+
+        .text-white {
+            color: var(--text-primary) !important;
+        }
+
+        .text-muted {
+            color: var(--text-secondary) !important;
+        }
+
+        .alert-info {
+            background: rgba(59, 130, 246, 0.1);
+            border: 1px solid rgba(59, 130, 246, 0.3);
+            color: var(--text-primary);
+        }
+
+        .alert-success {
+            background: rgba(16, 185, 129, 0.1);
+            border: 1px solid rgba(16, 185, 129, 0.3);
+            color: var(--text-primary);
+        }
+
+        .alert-danger {
+            background: rgba(239, 68, 68, 0.1);
+            border: 1px solid rgba(239, 68, 68, 0.3);
+            color: var(--text-primary);
+        }
+    </style>
+</head>
+<body>
+    <div id="navigation-placeholder"></div>
+
+    <div class="container">
+        <div class="text-center text-white mb-4">
+            <h1><i class="bi bi-music-note-list"></i> Audio Library Manager</h1>
+            <p class="lead">Upload and manage SFX & Music files for content generation</p>
+        </div>
+
+        <!-- Stats Cards -->
+        <div class="row mb-4">
+            <div class="col-md-3">
+                <div class="stats-card">
+                    <h3 id="stat-sfx-files">0</h3>
+                    <p>SFX Files</p>
+                </div>
+            </div>
+            <div class="col-md-3">
+                <div class="stats-card">
+                    <h3 id="stat-music-files">0</h3>
+                    <p>Music Files</p>
+                </div>
+            </div>
+            <div class="col-md-3">
+                <div class="stats-card">
+                    <h3 id="stat-sfx-categories">0</h3>
+                    <p>SFX Categories</p>
+                </div>
+            </div>
+            <div class="col-md-3">
+                <div class="stats-card">
+                    <h3 id="stat-music-categories">0</h3>
+                    <p>Music Categories</p>
+                </div>
+            </div>
+        </div>
+
+        <!-- Upload Section -->
+        <div class="card">
+            <div class="card-header">
+                <h3 class="mb-0"><i class="bi bi-cloud-upload"></i> Upload Audio Files</h3>
+            </div>
+            <div class="card-body">
+                <div class="row mb-3">
+                    <div class="col-md-4">
+                        <label class="form-label">File Type</label>
+                        <select class="form-select" id="file-type">
+                            <option value="sfx">SFX (Sound Effects)</option>
+                            <option value="music">Music</option>
+                        </select>
+                    </div>
+                    <div class="col-md-4">
+                        <label class="form-label">Category</label>
+                        <select class="form-select" id="category">
+                            <option value="ambient">Ambient</option>
+                            <option value="action">Action</option>
+                            <option value="nature">Nature</option>
+                        </select>
+                    </div>
+                    <div class="col-md-4">
+                        <label class="form-label">&nbsp;</label>
+                        <button class="btn btn-primary w-100" onclick="updateCategoryOptions()">
+                            <i class="bi bi-arrow-repeat"></i> Refresh Categories
+                        </button>
+                    </div>
+                </div>
+
+                <div class="upload-zone" id="upload-zone" onclick="document.getElementById('file-input').click()">
+                    <i class="bi bi-cloud-arrow-up" style="font-size: 3rem; color: #667eea;"></i>
+                    <h4 class="mt-3">Drag & Drop Audio Files Here</h4>
+                    <p class="text-muted">or click to browse (MP3, WAV, OGG)</p>
+                    <input type="file" id="file-input" multiple accept="audio/*" style="display: none;" onchange="handleFileSelect(event)">
+                </div>
+
+                <div id="upload-progress" style="display: none;">
+                    <div class="progress">
+                        <div class="progress-bar" id="progress-bar" role="progressbar" style="width: 0%"></div>
+                    </div>
+                    <p class="text-center mt-2" id="upload-status">Uploading...</p>
+                </div>
+
+                <div class="mt-3">
+                    <button class="btn btn-success" onclick="scanAndUpdateLibrary()">
+                        <i class="bi bi-arrow-clockwise"></i> Scan S3 & Update Library
+                    </button>
+                    <small class="text-muted ms-2">Run this after uploading files to update the library catalog</small>
+                </div>
+            </div>
+        </div>
+
+        <!-- Current Library -->
+        <div class="card">
+            <div class="card-header">
+                <h3 class="mb-0"><i class="bi bi-collection"></i> Current Library</h3>
+            </div>
+            <div class="card-body">
+                <ul class="nav nav-tabs mb-3" role="tablist">
+                    <li class="nav-item">
+                        <button class="nav-link active" data-bs-toggle="tab" data-bs-target="#sfx-library">
+                            <i class="bi bi-soundwave"></i> SFX Library
+                        </button>
+                    </li>
+                    <li class="nav-item">
+                        <button class="nav-link" data-bs-toggle="tab" data-bs-target="#music-library">
+                            <i class="bi bi-disc"></i> Music Library
+                        </button>
+                    </li>
+                </ul>
+
+                <div class="tab-content">
+                    <div class="tab-pane fade show active library-section" id="sfx-library">
+                        <div id="sfx-library-content">
+                            <p class="text-muted">Loading SFX library...</p>
+                        </div>
+                    </div>
+                    <div class="tab-pane fade library-section" id="music-library">
+                        <div id="music-library-content">
+                            <p class="text-muted">Loading music library...</p>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+    <script src="js/auth.js"></script>
+    <script src="js/navigation.js?v=20251130-0423"></script>
+    <script>
+        const LAMBDA_URL = 'https://6kxbwzzvsoi23qxzlwauad2ttu0fzxrk.lambda-url.eu-central-1.on.aws/';
+        let currentAudio = null; // Global audio player
+
+        // File type change handler
+        document.getElementById('file-type').addEventListener('change', updateCategoryOptions);
+
+        function updateCategoryOptions() {
+            const fileType = document.getElementById('file-type').value;
+            const categorySelect = document.getElementById('category');
+
+            if (fileType === 'sfx') {
+                categorySelect.innerHTML = `
+                    <option value="ambient">Ambient</option>
+                    <option value="action">Action</option>
+                    <option value="nature">Nature</option>
+                    <option value="dramatic">Dramatic</option>
+                    <option value="comedy">Comedy</option>
+                `;
+            } else {
+                categorySelect.innerHTML = `
+                    <option value="epic">Epic</option>
+                    <option value="calm">Calm</option>
+                    <option value="dramatic">Dramatic</option>
+                    <option value="upbeat">Upbeat</option>
+                    <option value="mysterious">Mysterious</option>
+                `;
+            }
+        }
+
+        // Drag & Drop
+        const uploadZone = document.getElementById('upload-zone');
+        uploadZone.addEventListener('dragover', (e) => {
+            e.preventDefault();
+            uploadZone.classList.add('dragover');
+        });
+
+        uploadZone.addEventListener('dragleave', () => {
+            uploadZone.classList.remove('dragover');
+        });
+
+        uploadZone.addEventListener('drop', (e) => {
+            e.preventDefault();
+            uploadZone.classList.remove('dragover');
+            handleFileSelect({ target: { files: e.dataTransfer.files } });
+        });
+
+        async function handleFileSelect(event) {
+            const files = Array.from(event.target.files);
+            if (files.length === 0) return;
+
+            const fileType = document.getElementById('file-type').value;
+            const category = document.getElementById('category').value;
+
+            document.getElementById('upload-progress').style.display = 'block';
+            const progressBar = document.getElementById('progress-bar');
+            const statusText = document.getElementById('upload-status');
+
+            let uploaded = 0;
+            const total = files.length;
+
+            for (const file of files) {
+                try {
+                    statusText.textContent = `Uploading ${file.name} (${uploaded + 1}/${total})...`;
+                    await uploadFile(file, fileType, category);
+                    uploaded++;
+                    progressBar.style.width = `${(uploaded / total) * 100}%`;
+                } catch (error) {
+                    console.error('Upload failed:', error);
+                    alert(`Failed to upload ${file.name}: ${error.message}`);
+                }
+            }
+
+            statusText.textContent = `✓ Uploaded ${uploaded}/${total} files successfully!`;
+            setTimeout(() => {
+                document.getElementById('upload-progress').style.display = 'none';
+                progressBar.style.width = '0%';
+                document.getElementById('file-input').value = '';
+            }, 3000);
+        }
+
+        async function uploadFile(file, fileType, category) {
+            // Step 1: Get presigned URL
+            const urlResponse = await fetch(LAMBDA_URL, {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({
+                    action: 'get_upload_url',
+                    file_type: fileType,
+                    category: category,
+                    filename: file.name
+                })
+            });
+
+            const urlData = await urlResponse.json();
+            if (!urlData.success) {
+                throw new Error(urlData.error || 'Failed to get upload URL');
+            }
+
+            // Step 2: Upload to S3
+            const uploadResponse = await fetch(urlData.upload_url, {
+                method: 'PUT',
+                body: file,
+                headers: {
+                    'Content-Type': 'audio/mpeg'
+                }
+            });
+
+            if (!uploadResponse.ok) {
+                throw new Error('S3 upload failed');
+            }
+
+            return urlData.file_key;
+        }
+
+        async function scanAndUpdateLibrary() {
+            const btn = event.target;
+            btn.disabled = true;
+            btn.innerHTML = '<i class="bi bi-arrow-clockwise spinner-border spinner-border-sm"></i> Scanning...';
+
+            try {
+                // Get user_id if available (optional)
+                let userId = null;
+                try {
+                    const authManager = new AuthManager();
+                    userId = authManager.getUserId();
+                } catch (e) {
+                    console.log('Auth not ready, proceeding without user_id');
+                }
+
+                const requestBody = { action: 'scan_and_update' };
+                if (userId) requestBody.user_id = userId;
+
+                const response = await fetch(LAMBDA_URL, {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify(requestBody)
+                });
+
+                const data = await response.json();
+                if (data.success) {
+                    alert(`✓ Library updated!\n\nSFX: ${data.stats.sfx_files} files in ${data.stats.sfx_categories} categories\nMusic: ${data.stats.music_files} files in ${data.stats.music_categories} categories`);
+                    loadLibrary();
+                } else {
+                    alert('Error: ' + data.error);
+                }
+            } catch (error) {
+                alert('Failed to scan library: ' + error.message);
+            } finally {
+                btn.disabled = false;
+                btn.innerHTML = '<i class="bi bi-arrow-clockwise"></i> Scan S3 & Update Library';
+            }
+        }
+
+        async function loadLibrary() {
+            try {
+                // Get user_id if available (optional - Lambda doesn't filter by user yet)
+                let userId = null;
+                try {
+                    const authManager = new AuthManager();
+                    userId = authManager.getUserId();
+                } catch (e) {
+                    console.log('Auth not ready, proceeding without user_id');
+                }
+
+                const requestBody = { action: 'list_files' };
+                if (userId) requestBody.user_id = userId;
+
+                const response = await fetch(LAMBDA_URL, {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify(requestBody)
+                });
+
+                const data = await response.json();
+                if (data.success) {
+                    displayLibrary(data.files);
+                    updateStats(data.files);
+                }
+            } catch (error) {
+                console.error('Failed to load library:', error);
+            }
+        }
+
+        function displayLibrary(files) {
+            // SFX Library
+            const sfxContent = document.getElementById('sfx-library-content');
+            const sfxFiles = files.sfx || {};
+
+            if (Object.keys(sfxFiles).length === 0) {
+                sfxContent.innerHTML = '<p class="text-muted">No SFX files uploaded yet</p>';
+            } else {
+                let html = '';
+                for (const [category, fileList] of Object.entries(sfxFiles)) {
+                    html += `<h5 class="mt-3"><span class="category-badge badge-sfx">${category}</span></h5>`;
+                    fileList.forEach(file => {
+                        const audioId = `sfx-${category}-${file.filename.replace(/[^a-zA-Z0-9]/g, '_')}`;
+                        html += `
+                            <div class="file-item">
+                                <div style="display: flex; align-items: center; gap: 10px; flex: 1;">
+                                    <button class="btn btn-sm btn-primary" onclick="playAudio('sfx', '${category}', '${file.filename}', '${audioId}')" id="${audioId}-play">
+                                        <i class="bi bi-play-fill"></i>
+                                    </button>
+                                    <button class="btn btn-sm btn-secondary" onclick="stopAudio('${audioId}')" id="${audioId}-stop" style="display: none;">
+                                        <i class="bi bi-stop-fill"></i>
+                                    </button>
+                                    <div>
+                                        <i class="bi bi-file-earmark-music"></i> ${file.filename}
+                                        <small class="text-muted ms-2">${formatFileSize(file.size)}</small>
+                                    </div>
+                                </div>
+                                <small class="text-muted">${new Date(file.last_modified).toLocaleDateString()}</small>
+                            </div>
+                        `;
+                    });
+                }
+                sfxContent.innerHTML = html;
+            }
+
+            // Music Library
+            const musicContent = document.getElementById('music-library-content');
+            const musicFiles = files.music || {};
+
+            if (Object.keys(musicFiles).length === 0) {
+                musicContent.innerHTML = '<p class="text-muted">No music files uploaded yet</p>';
+            } else {
+                let html = '';
+                for (const [category, fileList] of Object.entries(musicFiles)) {
+                    html += `<h5 class="mt-3"><span class="category-badge badge-music">${category}</span></h5>`;
+                    fileList.forEach(file => {
+                        const audioId = `music-${category}-${file.filename.replace(/[^a-zA-Z0-9]/g, '_')}`;
+                        html += `
+                            <div class="file-item">
+                                <div style="display: flex; align-items: center; gap: 10px; flex: 1;">
+                                    <button class="btn btn-sm btn-primary" onclick="playAudio('music', '${category}', '${file.filename}', '${audioId}')" id="${audioId}-play">
+                                        <i class="bi bi-play-fill"></i>
+                                    </button>
+                                    <button class="btn btn-sm btn-secondary" onclick="stopAudio('${audioId}')" id="${audioId}-stop" style="display: none;">
+                                        <i class="bi bi-stop-fill"></i>
+                                    </button>
+                                    <div>
+                                        <i class="bi bi-disc"></i> ${file.filename}
+                                        <small class="text-muted ms-2">${formatFileSize(file.size)}</small>
+                                    </div>
+                                </div>
+                                <small class="text-muted">${new Date(file.last_modified).toLocaleDateString()}</small>
+                            </div>
+                        `;
+                    });
+                }
+                musicContent.innerHTML = html;
+            }
+        }
+
+        function updateStats(files) {
+            const sfxFiles = files.sfx || {};
+            const musicFiles = files.music || {};
+
+            let sfxCount = 0;
+            let musicCount = 0;
+
+            for (const fileList of Object.values(sfxFiles)) {
+                sfxCount += fileList.length;
+            }
+
+            for (const fileList of Object.values(musicFiles)) {
+                musicCount += fileList.length;
+            }
+
+            document.getElementById('stat-sfx-files').textContent = sfxCount;
+            document.getElementById('stat-music-files').textContent = musicCount;
+            document.getElementById('stat-sfx-categories').textContent = Object.keys(sfxFiles).length;
+            document.getElementById('stat-music-categories').textContent = Object.keys(musicFiles).length;
+        }
+
+        function formatFileSize(bytes) {
+            if (bytes < 1024) return bytes + ' B';
+            if (bytes < 1024 * 1024) return (bytes / 1024).toFixed(1) + ' KB';
+            return (bytes / (1024 * 1024)).toFixed(1) + ' MB';
+        }
+
+        async function playAudio(fileType, category, filename, audioId) {
+            try {
+                // Stop any currently playing audio
+                if (currentAudio) {
+                    currentAudio.pause();
+                    currentAudio = null;
+                }
+
+                // Reset all play buttons
+                document.querySelectorAll('[id$="-play"]').forEach(btn => {
+                    btn.style.display = 'inline-block';
+                });
+                document.querySelectorAll('[id$="-stop"]').forEach(btn => {
+                    btn.style.display = 'none';
+                });
+
+                // Show loading state
+                const playBtn = document.getElementById(`${audioId}-play`);
+                playBtn.innerHTML = '<i class="bi bi-hourglass-split"></i>';
+                playBtn.disabled = true;
+
+                // Get presigned URL
+                const response = await fetch(LAMBDA_URL, {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({
+                        action: 'get_playback_url',
+                        file_type: fileType,
+                        category: category,
+                        filename: filename
+                    })
+                });
+
+                const data = await response.json();
+
+                if (!data.success) {
+                    throw new Error(data.error || 'Failed to get playback URL');
+                }
+
+                // Create and play audio
+                currentAudio = new Audio(data.playback_url);
+
+                // Show stop button when playing
+                currentAudio.addEventListener('play', () => {
+                    playBtn.style.display = 'none';
+                    document.getElementById(`${audioId}-stop`).style.display = 'inline-block';
+                });
+
+                // Reset buttons when finished
+                currentAudio.addEventListener('ended', () => {
+                    playBtn.innerHTML = '<i class="bi bi-play-fill"></i>';
+                    playBtn.disabled = false;
+                    playBtn.style.display = 'inline-block';
+                    document.getElementById(`${audioId}-stop`).style.display = 'none';
+                    currentAudio = null;
+                });
+
+                // Handle errors
+                currentAudio.addEventListener('error', (e) => {
+                    console.error('Audio playback error:', e);
+                    alert('Failed to play audio file');
+                    playBtn.innerHTML = '<i class="bi bi-play-fill"></i>';
+                    playBtn.disabled = false;
+                    playBtn.style.display = 'inline-block';
+                    document.getElementById(`${audioId}-stop`).style.display = 'none';
+                    currentAudio = null;
+                });
+
+                // Start playback
+                await currentAudio.play();
+
+            } catch (error) {
+                console.error('Error playing audio:', error);
+                alert('Failed to play audio: ' + error.message);
+
+                // Reset button
+                const playBtn = document.getElementById(`${audioId}-play`);
+                if (playBtn) {
+                    playBtn.innerHTML = '<i class="bi bi-play-fill"></i>';
+                    playBtn.disabled = false;
+                }
+            }
+        }
+
+        function stopAudio(audioId) {
+            if (currentAudio) {
+                currentAudio.pause();
+                currentAudio.currentTime = 0;
+                currentAudio = null;
+            }
+
+            // Reset buttons
+            const playBtn = document.getElementById(`${audioId}-play`);
+            const stopBtn = document.getElementById(`${audioId}-stop`);
+
+            if (playBtn) {
+                playBtn.innerHTML = '<i class="bi bi-play-fill"></i>';
+                playBtn.disabled = false;
+                playBtn.style.display = 'inline-block';
+            }
+
+            if (stopBtn) {
+                stopBtn.style.display = 'none';
+            }
+        }
+
+        // Load library on page load
+        loadLibrary();
+    </script>
+</body>
+</html>

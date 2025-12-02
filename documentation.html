@@ -1,232 +1,114 @@
 <!DOCTYPE html>
 <html lang="uk">
 <head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>System Documentation - YouTube Content Automation</title>
-    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
-    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.0/font/bootstrap-icons.css">
-    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.8.0/styles/github-dark.min.css">
-    <link rel="stylesheet" href="css/unified-navigation.css">
-    <style>
-        :root {
-            --primary-color: #667eea;
-            --secondary-color: #764ba2;
-            --dark-bg: #1a1d2e;
-            --card-bg: #22263a;
-            --text-primary: #e5e7eb;
-            --text-secondary: #9ca3af;
-        }
-
-        body {
-            background: linear-gradient(135deg, var(--dark-bg) 0%, #16213e 100%);
-            color: var(--text-primary);
-            min-height: 100vh;
-            font-family: 'Inter', -apple-system, BlinkMacSystemFont, sans-serif;
-        }
-
-        .doc-container {
-            background: var(--card-bg);
-            border: 1px solid rgba(102, 126, 234, 0.2);
-            border-radius: 16px;
-            padding: 3rem;
-            margin: 2rem auto;
-            max-width: 1200px;
-        }
-
-        .doc-content {
-            line-height: 1.8;
-        }
-
-        .doc-content h1 {
-            color: var(--primary-color);
-            border-bottom: 2px solid rgba(102, 126, 234, 0.3);
-            padding-bottom: 1rem;
-            margin-bottom: 2rem;
-        }
-
-        .doc-content h2 {
-            color: var(--text-primary);
-            margin-top: 2.5rem;
-            margin-bottom: 1rem;
-            border-left: 4px solid var(--primary-color);
-            padding-left: 1rem;
-        }
-
-        .doc-content h3 {
-            color: var(--text-primary);
-            margin-top: 1.5rem;
-            margin-bottom: 1rem;
-        }
-
-        .doc-content code {
-            background: rgba(102, 126, 234, 0.1);
-            padding: 0.2rem 0.5rem;
-            border-radius: 4px;
-            color: #93c5fd;
-            font-size: 0.9em;
-        }
-
-        .doc-content pre {
-            background: #0d1117;
-            border: 1px solid rgba(102, 126, 234, 0.2);
-            border-radius: 8px;
-            padding: 1.5rem;
-            overflow-x: auto;
-        }
-
-        .doc-content pre code {
-            background: none;
-            padding: 0;
-            color: inherit;
-        }
-
-        .doc-content ul, .doc-content ol {
-            margin-left: 2rem;
-        }
-
-        .doc-content li {
-            margin-bottom: 0.5rem;
-        }
-
-        .doc-content a {
-            color: var(--primary-color);
-            text-decoration: none;
-        }
-
-        .doc-content a:hover {
-            text-decoration: underline;
-        }
-
-        .doc-content table {
-            width: 100%;
-            margin: 1rem 0;
-            border-collapse: collapse;
-        }
-
-        .doc-content table th,
-        .doc-content table td {
-            border: 1px solid rgba(102, 126, 234, 0.2);
-            padding: 0.75rem;
-        }
-
-        .doc-content table th {
-            background: rgba(102, 126, 234, 0.1);
-            font-weight: 600;
-        }
-
-        .toc {
-            background: rgba(102, 126, 234, 0.05);
-            border: 1px solid rgba(102, 126, 234, 0.2);
-            border-radius: 8px;
-            padding: 1.5rem;
-            margin-bottom: 2rem;
-        }
-
-        .toc h3 {
-            margin-top: 0;
-            color: var(--primary-color);
-        }
-
-        .toc ul {
-            list-style: none;
-            padding-left: 0;
-        }
-
-        .toc li {
-            margin-bottom: 0.5rem;
-        }
-
-        .toc a {
-            color: var(--text-primary);
-            text-decoration: none;
-            transition: color 0.2s;
-        }
-
-        .toc a:hover {
-            color: var(--primary-color);
-        }
-    </style>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>📚 Документація - YouTube Content Automation</title>
+<script src="https://cdn.jsdelivr.net/npm/marked/marked.min.js"></script>
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.9.0/styles/atom-one-dark.min.css">
+<script src="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.9.0/highlight.min.js"></script>
+<style>
+*{margin:0;padding:0;box-sizing:border-box}
+html{scroll-behavior:smooth}
+body{font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',Roboto,sans-serif;background:linear-gradient(135deg,#667eea 0%,#764ba2 100%);min-height:100vh;padding:30px 20px}
+.container{max-width:1400px;margin:0 auto;background:#fff;border-radius:24px;padding:50px;box-shadow:0 25px 70px rgba(0,0,0,.25)}
+.header{display:flex;justify-content:space-between;align-items:center;margin-bottom:40px;padding-bottom:25px;border-bottom:3px solid #667eea;flex-wrap:wrap;gap:15px}
+.header h1{margin:0;color:#667eea;font-size:2.5em;font-weight:700}
+.header-actions{display:flex;gap:15px;align-items:center}
+.lang-switcher{display:flex;gap:8px;background:#f8f9fa;padding:6px;border-radius:10px;box-shadow:0 2px 8px rgba(0,0,0,.1)}
+.lang-btn{padding:8px 16px;border:none;background:transparent;color:#666;font-weight:600;cursor:pointer;border-radius:6px;transition:all .3s;font-size:14px}
+.lang-btn:hover{background:#e9ecef;color:#667eea}
+.lang-btn.active{background:linear-gradient(135deg,#667eea 0%,#764ba2 100%);color:#fff;box-shadow:0 2px 8px rgba(102,126,234,.4)}
+.back-btn{background:linear-gradient(135deg,#667eea 0%,#764ba2 100%);color:#fff;padding:12px 28px;border-radius:12px;text-decoration:none;font-weight:600;transition:all .3s;box-shadow:0 4px 15px rgba(102,126,234,.4)}
+.back-btn:hover{transform:translateY(-2px);box-shadow:0 6px 20px rgba(102,126,234,.6)}
+#loading{text-align:center;padding:60px;color:#667eea;font-size:20px}
+.loading-spinner{border:5px solid #f3f3f3;border-top:5px solid #667eea;border-radius:50%;width:60px;height:60px;animation:spin 1s linear infinite;margin:30px auto}
+@keyframes spin{0%{transform:rotate(0deg)}100%{transform:rotate(360deg)}}
+#content{line-height:1.8;color:#2c3e50;font-size:16px}
+#content h1,#content h2,#content h3{scroll-margin-top:30px}
+#content h1{color:#667eea;margin-top:50px;margin-bottom:25px;padding-bottom:15px;border-bottom:4px solid #667eea;font-size:2.8em;font-weight:700}
+#content h1:first-child{margin-top:0;font-size:3.2em}
+#content h2{color:#2c3e50;margin-top:45px;margin-bottom:20px;padding-bottom:12px;border-bottom:3px solid #e9ecef;font-size:2.2em;font-weight:600}
+#content h3{color:#34495e;margin-top:30px;margin-bottom:15px;font-size:1.6em;font-weight:600}
+#content p{margin:15px 0;line-height:1.8}
+#content ul,#content ol{margin:15px 0;padding-left:30px}
+#content li{margin:8px 0;line-height:1.7}
+#content code{background:linear-gradient(135deg,#f6f8fa 0%,#e9ecef 100%);padding:3px 8px;border-radius:5px;font-family:Monaco,Menlo,monospace;font-size:.88em;color:#e83e8c;font-weight:600;border:1px solid #e1e4e8}
+#content pre{background:#282c34;padding:25px;border-radius:12px;overflow-x:auto;margin:25px 0;border:1px solid #404854;box-shadow:0 4px 15px rgba(0,0,0,.2)}
+#content pre code{background:none;padding:0;color:#abb2bf;border:none;font-weight:400;font-size:.95em}
+#content table{width:100%;border-collapse:collapse;margin:25px 0;background:#fff;border-radius:8px;overflow:hidden;box-shadow:0 2px 8px rgba(0,0,0,.1)}
+#content table thead{background:linear-gradient(135deg,#667eea 0%,#764ba2 100%);color:#fff}
+#content table th{padding:15px;text-align:left;font-weight:600}
+#content table td{padding:12px 15px;border-bottom:1px solid #e9ecef}
+#content table tbody tr:hover{background:#f8f9fa}
+#content a{color:#667eea;text-decoration:none;font-weight:600;transition:all .2s;cursor:pointer}
+#content a:hover{color:#764ba2;text-decoration:underline}
+#content>ol:first-of-type,#content>ul:first-of-type{background:linear-gradient(135deg,#f8f9fa 0%,#e9ecef 100%);padding:25px 40px;border-radius:12px;border-left:5px solid #667eea;box-shadow:0 2px 10px rgba(0,0,0,.08);margin:25px 0}
+@media (max-width:768px){.container{padding:30px 20px}.header{gap:10px}.header h1{font-size:1.8em;width:100%}.header-actions{width:100%;justify-content:space-between}}
+</style>
 </head>
 <body>
-    <!-- Unified Navigation -->
-    <nav class="nav-container">
-        <div class="nav-wrapper">
-            <div class="nav-bar">
-                <a href="index.html" class="nav-link">
-                    <i class="bi bi-house-door"></i> Home
-                </a>
-                <a href="dashboard.html" class="nav-link">
-                    <i class="bi bi-speedometer2"></i> Dashboard
-                </a>
-                <a href="channels.html" class="nav-link">
-                    <i class="bi bi-collection"></i> Channels
-                </a>
-                <a href="content.html" class="nav-link">
-                    <i class="bi bi-file-earmark-text"></i> Content
-                </a>
-                <a href="costs.html" class="nav-link">
-                    <i class="bi bi-currency-dollar"></i> Costs
-                </a>
-                <a href="prompts-editor.html" class="nav-link">
-                    <i class="bi bi-pencil-square"></i> Prompts
-                </a>
-            </div>
-        </div>
-    </nav>
-
-    <div class="container">
-        <div class="doc-container">
-            <div class="doc-content" id="markdown-content">
-                <p class="text-center text-secondary">
-                    <i class="bi bi-hourglass-split" style="font-size: 3rem;"></i><br>
-                    Loading documentation...
-                </p>
-            </div>
-        </div>
-    </div>
-
-    <script src="https://cdn.jsdelivr.net/npm/marked/marked.min.js"></script>
-    <script src="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.8.0/highlight.min.js"></script>
-    <script>
-        async function loadDocumentation() {
-            try {
-                const response = await fetch('DOCUMENTATION.md');
-                const markdown = await response.text();
-                
-                // Configure marked
-                marked.setOptions({
-                    highlight: function(code, lang) {
-                        if (lang && hljs.getLanguage(lang)) {
-                            return hljs.highlight(code, { language: lang }).value;
-                        }
-                        return hljs.highlightAuto(code).value;
-                    },
-                    breaks: true,
-                    gfm: true
-                });
-                
-                // Convert markdown to HTML
-                const html = marked.parse(markdown);
-                document.getElementById('markdown-content').innerHTML = html;
-                
-                // Highlight code blocks
-                document.querySelectorAll('pre code').forEach((block) => {
-                    hljs.highlightElement(block);
-                });
-            } catch (error) {
-                console.error('Error loading documentation:', error);
-                document.getElementById('markdown-content').innerHTML = `
-                    <div class="alert alert-danger">
-                        <i class="bi bi-exclamation-triangle"></i> Failed to load documentation: ${error.message}
-                    </div>
-                `;
-            }
-        }
-
-        loadDocumentation();
-    </script>
-
-    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+<div class="container">
+<div class="header">
+<h1>📚 Документація Системи</h1>
+<div class="header-actions">
+<div class="lang-switcher">
+<button class="lang-btn active" data-lang="ua">🇺🇦 UA</button>
+<button class="lang-btn" data-lang="en">🇬🇧 EN</button>
+</div>
+<a href="/" class="back-btn">← Назад</a>
+</div>
+</div>
+<div id="loading"><div class="loading-spinner"></div><p>Завантаження...</p></div>
+<div id="content"></div>
+</div>
+<script>
+marked.setOptions({highlight:(c,l)=>l&&hljs.getLanguage(l)?hljs.highlight(c,{language:l}).value:hljs.highlightAuto(c).value,breaks:true,gfm:true,headerIds:false,mangle:false});
+const slug=t=>t.toLowerCase().trim().replace(/[^\p{L}\p{N}\s-]/gu,'').replace(/[\s_]+/g,'-').replace(/^-+|-+$/g,'');
+async function loadDoc(lang){
+try{
+const file=lang==='ua'?'DOCUMENTATION-UA.md':'DOCUMENTATION.md';
+document.getElementById('loading').style.display='block';
+document.getElementById('content').innerHTML='';
+const r=await fetch(file);
+if(!r.ok)throw new Error('Failed');
+const m=await r.text(),h=marked.parse(m);
+document.getElementById('loading').style.display='none';
+document.getElementById('content').innerHTML=h;
+document.querySelectorAll('pre code').forEach(b=>hljs.highlightElement(b));
+console.log('=== Setting up header IDs ===');
+document.querySelectorAll('#content h1,#content h2,#content h3').forEach(e=>{
+const originalText=e.textContent;
+const generatedId=slug(originalText);
+e.id=generatedId;
+console.log('Header:',originalText,'→ ID:',generatedId);
+});
+console.log('=== Setting up navigation links ===');
+document.querySelectorAll('#content a[href^="#"]').forEach(a=>{
+const href=a.getAttribute('href');
+console.log('Found link:',a.textContent,'→',href);
+a.onclick=e=>{
+e.preventDefault();
+const id=a.getAttribute('href').substring(1);
+const el=document.getElementById(id);
+console.log('Clicked:',a.textContent,'→ Looking for ID:',id,'→ Found element:',!!el);
+if(el){
+el.scrollIntoView({behavior:'smooth',block:'start'});
+history.pushState(null,null,'#'+id);
+}else{
+console.error('Element NOT FOUND! ID:',id);
+console.log('Available IDs:',Array.from(document.querySelectorAll('[id]')).map(e=>e.id));
+}
+};
+});
+if(location.hash)setTimeout(()=>{const el=document.getElementById(location.hash.substring(1));if(el)el.scrollIntoView({behavior:'smooth'})},100);
+localStorage.setItem('docLang',lang);
+}catch(e){
+document.getElementById('loading').innerHTML='<p style="color:#dc3545">❌ '+e.message+'</p>';
+if(lang==='ua'){console.warn('UA not found');loadDoc('en')}
+}}
+document.querySelectorAll('.lang-btn').forEach(btn=>{btn.onclick=()=>{const lang=btn.dataset.lang;document.querySelectorAll('.lang-btn').forEach(b=>b.classList.remove('active'));btn.classList.add('active');loadDoc(lang)}});
+window.addEventListener('load',()=>{const lang=localStorage.getItem('docLang')||'ua';const btn=document.querySelector('.lang-btn[data-lang="'+lang+'"]');if(btn){document.querySelectorAll('.lang-btn').forEach(b=>b.classList.remove('active'));btn.classList.add('active')}loadDoc(lang)});
+</script>
 </body>
 </html>

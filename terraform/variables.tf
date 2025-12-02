@@ -1,62 +1,17 @@
 variable "aws_region" {
-  description = "AWS region для розгортання ресурсів"
+  description = "AWS region"
   type        = string
   default     = "eu-central-1"
 }
 
 variable "environment" {
-  description = "Environment (dev, staging, prod)"
+  description = "Environment name"
   type        = string
-  default     = "prod"
+  default     = "production"
 }
 
-variable "project_name" {
-  description = "Назва проекту"
+variable "sns_alerts_arn" {
+  description = "SNS topic ARN for CloudWatch alerts"
   type        = string
-  default     = "youtube-content-automation"
-}
-
-variable "openai_api_key" {
-  description = "OpenAI API Key (зберігається в AWS Secrets Manager)"
-  type        = string
-  sensitive   = true
-}
-
-variable "notion_api_key" {
-  description = "Notion API Key (опціонально)"
-  type        = string
-  sensitive   = true
-  default     = ""
-}
-
-variable "notion_tasks_database_id" {
-  description = "Notion Tasks Database ID"
-  type        = string
-  sensitive   = true
-  default     = ""
-}
-
-variable "youtube_api_key" {
-  description = "YouTube Data API Key (опціонально)"
-  type        = string
-  sensitive   = true
-  default     = ""
-}
-
-variable "lambda_runtime" {
-  description = "Python runtime для Lambda"
-  type        = string
-  default     = "python3.11"
-}
-
-variable "lambda_timeout" {
-  description = "Lambda timeout в секундах"
-  type        = number
-  default     = 300
-}
-
-variable "lambda_memory" {
-  description = "Lambda memory в MB"
-  type        = number
-  default     = 512
+  default     = "arn:aws:sns:eu-central-1:599297130956:youtube-automation-alerts"
 }

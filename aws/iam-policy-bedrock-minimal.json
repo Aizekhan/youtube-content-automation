@@ -1,0 +1,36 @@
+{
+  "Version": "2012-10-17",
+  "Statement": [
+    {
+      "Sid": "BedrockInvokeSpecificModels",
+      "Effect": "Allow",
+      "Action": "bedrock:InvokeModel",
+      "Resource": [
+        "arn:aws:bedrock:eu-central-1::foundation-model/stability.stable-diffusion-xl-v1",
+        "arn:aws:bedrock:us-east-1::foundation-model/stability.stable-diffusion-xl-v1",
+        "arn:aws:bedrock:us-west-2::foundation-model/stability.stable-diffusion-xl-v1"
+      ]
+    },
+    {
+      "Sid": "S3ImagesAccess",
+      "Effect": "Allow",
+      "Action": [
+        "s3:PutObject",
+        "s3:GetObject"
+      ],
+      "Resource": [
+        "arn:aws:s3:::youtube-automation-images/*",
+        "arn:aws:s3:::youtube-automation-audio-files/images/*"
+      ]
+    },
+    {
+      "Sid": "SecretsManagerImageGeneration",
+      "Effect": "Allow",
+      "Action": "secretsmanager:GetSecretValue",
+      "Resource": [
+        "arn:aws:secretsmanager:eu-central-1:599297130956:secret:replicate/api-key-*",
+        "arn:aws:secretsmanager:eu-central-1:599297130956:secret:vast-ai/config-*"
+      ]
+    }
+  ]
+}

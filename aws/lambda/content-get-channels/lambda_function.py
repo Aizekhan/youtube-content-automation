@@ -1,9 +1,16 @@
 import json
 import boto3
 from datetime import datetime
+from decimal import Decimal
 
 dynamodb = boto3.resource('dynamodb', region_name='eu-central-1')
 table = dynamodb.Table('ChannelConfigs')
+
+def decimal_default(obj):
+    """Helper to convert Decimal to int/float for JSON serialization"""
+    if isinstance(obj, Decimal):
+        return int(obj) if obj % 1 == 0 else float(obj)
+    raise TypeError
 
 def lambda_handler(event, context):
     """
@@ -59,8 +66,7 @@ def lambda_handler(event, context):
     # Require user_id for security (return error instead of raising exception)
     if not user_id:
         error_msg = "SECURITY ERROR: user_id is required for all requests"
-        print(f"❌ {error_msg}")
-        # Note: CORS headers are handled by Lambda Function URL config, not needed here
+        print(f"ERROR: {error_msg}")
         return {
             'statusCode': 400,
             'body': json.dumps({'error': error_msg, 'success': False})
@@ -91,7 +97,6 @@ def lambda_handler(event, context):
                 continue
 
             # Filter by active status if requested
-            # Check BOTH 'is_active' (new) and 'active' (legacy) fields
             is_channel_active = item.get('is_active', False) or item.get('active', False)
             if active_only and not is_channel_active:
                 continue
@@ -99,57 +104,53 @@ def lambda_handler(event, context):
             channel_id = item.get('channel_id', '')
             config_id = item.get('config_id', '')
 
-            # Handle empty channel names - try channel_title first, then channel_name, then fallback
+            # Handle empty channel names
             channel_title = item.get('channel_title', '').strip()
             channel_name = item.get('channel_name', '').strip()
-
-            # Use first available: channel_title > channel_name > fallback
             display_name = channel_title or channel_name or f"Channel_{channel_id[:10]}"
 
             genre = item.get('genre', 'General')
 
-            # Build channel object with all available fields
+            # Build channel object with ALL fields including variation_sets
             channel = {
                 'channel_id': channel_id,
                 'config_id': config_id,
-                'channel_name': display_name,  # Use computed display name
-                'channel_title': display_name,  # Use same for consistency
+                'channel_name': display_name,
+                'channel_title': display_name,
                 'genre': genre,
                 'is_active': is_channel_active,
                 'user_id': user_id,
-
-                # Publishing settings
                 'daily_upload_count': item.get('daily_upload_count', 1),
                 'videos_per_week': item.get('videos_per_week', 3),
                 'publish_times': item.get('publish_times', ''),
                 'publish_days': item.get('publish_days', ''),
-
-                # Channel statistics (if available)
                 'view_count': item.get('view_count', 0),
                 'subscriber_count': item.get('subscriber_count', 0),
                 'video_count': item.get('video_count', 0),
                 'statistics': item.get('statistics', {}),
-
-                # Token info
                 'token_expiry': item.get('token_expiry', ''),
-
-                # Content count
-                'content_count': item.get('content_count', 0)
+                'content_count': item.get('content_count', 0),
+                # FIX 2025-11-30: Include variation_sets for channels.html
+                'variation_sets': item.get('variation_sets', []),
+                'rotation_mode': item.get('rotation_mode', 'sequential'),
+                'generation_count': item.get('generation_count', 0)
             }
 
             channels.append(channel)
 
         print(f"Returning {len(channels)} channels (active_only={active_only})")
-        if channels:
-            print(f"First channel: {json.dumps(channels[0], ensure_ascii=False)}")
 
-        # Return all channels
-        return channels
+        # Convert Decimals to int/float for JSON serialization
+        channels_json = json.loads(json.dumps(channels, default=decimal_default))
+
+        if channels_json:
+            vs_count = len(channels_json[0].get('variation_sets', []))
+            print(f"First channel variation_sets: {vs_count}")
+
+        return channels_json
 
     except Exception as e:
         print(f"Error: {str(e)}")
         import traceback
         traceback.print_exc()
-
-        # Return empty array on error for Step Functions
         return []

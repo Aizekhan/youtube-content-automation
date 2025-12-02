@@ -1,0 +1,134 @@
+{
+  "TableName": "Users",
+  "Description": "User accounts for multi-tenant YouTube Content Automation system",
+  "KeySchema": [
+    {
+      "AttributeName": "user_id",
+      "KeyType": "HASH",
+      "Description": "Cognito sub (UUID) - Primary partition key"
+    }
+  ],
+  "GlobalSecondaryIndexes": [
+    {
+      "IndexName": "email-index",
+      "KeySchema": [
+        {
+          "AttributeName": "email",
+          "KeyType": "HASH"
+        }
+      ],
+      "Description": "Query users by email address"
+    }
+  ],
+  "Attributes": {
+    "user_id": {
+      "Type": "String (UUID)",
+      "Required": true,
+      "Description": "Cognito user sub - unique user identifier",
+      "Example": "a1b2c3d4-e5f6-7890-abcd-ef1234567890"
+    },
+    "email": {
+      "Type": "String",
+      "Required": true,
+      "Description": "User's email address (from Google OAuth)",
+      "Example": "user@example.com"
+    },
+    "display_name": {
+      "Type": "String",
+      "Required": false,
+      "Description": "User's display name",
+      "Example": "John Doe"
+    },
+    "google_id": {
+      "Type": "String",
+      "Required": false,
+      "Description": "Google account ID (if using Google OAuth)",
+      "Example": "1234567890"
+    },
+    "profile_picture": {
+      "Type": "String (URL)",
+      "Required": false,
+      "Description": "URL to user's profile picture",
+      "Example": "https://lh3.googleusercontent.com/..."
+    },
+    "is_active": {
+      "Type": "Boolean",
+      "Required": true,
+      "Default": true,
+      "Description": "Whether user account is active"
+    },
+    "role": {
+      "Type": "String",
+      "Required": true,
+      "Default": "user",
+      "Enum": ["admin", "user"],
+      "Description": "User role for permissions"
+    },
+    "subscription_tier": {
+      "Type": "String",
+      "Required": false,
+      "Enum": ["free", "basic", "pro", "enterprise"],
+      "Default": "free",
+      "Description": "Subscription level for quota management"
+    },
+    "quota_limits": {
+      "Type": "Map",
+      "Required": false,
+      "Description": "Per-user quota limits",
+      "Example": {
+        "max_channels": 5,
+        "max_daily_videos": 10,
+        "max_monthly_cost_usd": 100
+      }
+    },
+    "usage_stats": {
+      "Type": "Map",
+      "Required": false,
+      "Description": "Current usage statistics",
+      "Example": {
+        "total_channels": 3,
+        "total_videos_generated": 150,
+        "total_cost_usd": 45.67,
+        "last_generation_at": "2025-01-15T10:30:00Z"
+      }
+    },
+    "preferences": {
+      "Type": "Map",
+      "Required": false,
+      "Description": "User preferences and settings",
+      "Example": {
+        "theme": "dark",
+        "language": "en",
+        "timezone": "UTC",
+        "notifications_enabled": true
+      }
+    },
+    "created_at": {
+      "Type": "String (ISO 8601)",
+      "Required": true,
+      "Description": "Account creation timestamp",
+      "Example": "2025-01-01T12:00:00Z"
+    },
+    "updated_at": {
+      "Type": "String (ISO 8601)",
+      "Required": true,
+      "Description": "Last update timestamp",
+      "Example": "2025-01-15T14:30:00Z"
+    },
+    "last_login_at": {
+      "Type": "String (ISO 8601)",
+      "Required": false,
+      "Description": "Last login timestamp",
+      "Example": "2025-01-15T10:00:00Z"
+    }
+  },
+  "Notes": [
+    "user_id comes from Cognito's 'sub' claim (UUID)",
+    "Email is unique and indexed for fast lookups",
+    "Google OAuth provides: email, name, profile picture",
+    "Quota limits can be enforced per user",
+    "Usage stats updated by Lambda functions",
+    "Role 'admin' can access all data (for management)",
+    "Role 'user' can only access their own data"
+  ]
+}

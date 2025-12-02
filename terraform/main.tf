@@ -6,19 +6,13 @@ terraform {
       source  = "hashicorp/aws"
       version = "~> 5.0"
     }
-    archive = {
-      source  = "hashicorp/archive"
-      version = "~> 2.4"
-    }
   }
 
-  # Опціонально: Remote state в S3
+  # Remote state backend (S3) - uncomment after creating bucket
   # backend "s3" {
-  #   bucket         = "youtube-automation-terraform-state"
-  #   key            = "terraform.tfstate"
-  #   region         = "eu-central-1"
-  #   encrypt        = true
-  #   dynamodb_table = "terraform-state-lock"
+  #   bucket = "youtube-automation-terraform-state"
+  #   key    = "production/terraform.tfstate"
+  #   region = "eu-central-1"
   # }
 }
 
@@ -27,9 +21,9 @@ provider "aws" {
 
   default_tags {
     tags = {
-      Project     = "youtube-content-automation"
       Environment = var.environment
-      ManagedBy   = "terraform"
+      ManagedBy   = "Terraform"
+      Project     = "YouTubeAutomation"
     }
   }
 }

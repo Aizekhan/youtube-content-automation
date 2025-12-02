@@ -17,8 +17,8 @@
             --danger-color: #ef4444;
             --dark-bg: #1a1d2e;
             --card-bg: #22263a;
-            --text-primary: #e5e7eb;
-            --text-secondary: #9ca3af;
+            --text-primary: #f3f4f6;
+            --text-secondary: #d1d5db;
         }
 
         body {
@@ -76,6 +76,7 @@
             padding: 1.25rem;
             font-weight: 600;
             font-size: 1.1rem;
+            color: var(--text-primary);
         }
 
         .status-badge {
@@ -380,10 +381,61 @@
         }
 
         .form-label {
-            color: var(--text-secondary);
+            color: var(--text-primary);
             font-size: 0.9rem;
             font-weight: 600;
             margin-bottom: 0.5rem;
+        }
+
+        /* Channel selection styles */
+        .channel-item {
+            padding: 0.75rem;
+            border-bottom: 1px solid rgba(102, 126, 234, 0.1);
+            display: flex;
+            align-items: center;
+            gap: 0.75rem;
+            transition: background 0.2s ease;
+        }
+
+        .channel-item:hover {
+            background: rgba(102, 126, 234, 0.05);
+        }
+
+        .channel-item label {
+            flex: 1;
+            margin-bottom: 0;
+            color: var(--text-primary);
+        }
+
+        .channel-item label strong {
+            color: var(--text-primary);
+        }
+
+        .channel-item label small {
+            color: var(--text-secondary);
+        }
+
+        .channel-checkbox {
+            width: 20px;
+            height: 20px;
+            min-width: 20px;
+            min-height: 20px;
+            cursor: pointer;
+            accent-color: var(--primary-color);
+            pointer-events: auto;
+            z-index: 10;
+            position: relative;
+            margin: 0;
+            flex-shrink: 0;
+        }
+
+        .channel-checkbox:disabled {
+            cursor: not-allowed;
+            opacity: 0.5;
+        }
+
+        .channel-checkbox:hover:not(:disabled) {
+            transform: scale(1.1);
         }
 
         .duration-info {
@@ -404,6 +456,19 @@
             0%, 100% { transform: translateY(0); }
             50% { transform: translateY(-10px); }
         }
+
+        /* Override Bootstrap text-secondary to be light on dark background */
+        .text-secondary {
+            color: #d1d5db !important;
+        }
+
+        .form-label {
+            color: #e5e7eb;
+        }
+
+        .card-header {
+            color: #ffffff;
+        }
     </style>
 </head>
 <body>
@@ -414,7 +479,12 @@
         <!-- Dashboard Tabs -->
         <ul class="nav nav-tabs" id="dashboardTabs" role="tablist">
             <li class="nav-item" role="presentation">
-                <button class="nav-link active" id="monitoring-tab" onclick="switchTab('monitoring')" type="button">
+                <button class="nav-link active" id="control-tab" onclick="switchTab('control')" type="button">
+                    <i class="bi bi-play-circle-fill"></i> Control Center
+                </button>
+            </li>
+            <li class="nav-item" role="presentation">
+                <button class="nav-link" id="monitoring-tab" onclick="switchTab('monitoring')" type="button">
                     <i class="bi bi-activity"></i> Monitoring
                 </button>
             </li>
@@ -428,8 +498,147 @@
         <!-- Tab Content -->
         <div class="tab-content" id="dashboardTabContent" style="display: block !important;">
 
+            <!-- CONTROL CENTER TAB -->
+            <div class="dashboard-tab-pane active" id="control">
+                <div class="mb-4">
+                    <h2><i class="bi bi-rocket-takeoff-fill"></i> Control Center</h2>
+                    <p class="text-secondary">
+                        Централізований запуск генерації контенту для YouTube каналів
+                    </p>
+                </div>
+
+                <!-- Quick Actions -->
+                <div class="row mb-4">
+                    <div class="col-md-6">
+                        <div class="card" style="background: linear-gradient(135deg, rgba(16, 185, 129, 0.15) 0%, rgba(102, 126, 234, 0.1) 100%); border: 2px solid var(--success-color);">
+                            <div class="card-body text-center" style="padding: 2rem;">
+                                <div style="font-size: 3rem; margin-bottom: 1rem;">🚀</div>
+                                <h4 style="color: var(--text-primary); margin-bottom: 1rem;">Запустити для всіх активних каналів</h4>
+                                <p style="color: var(--text-secondary); margin-bottom: 1.5rem;">
+                                    Генерація контенту для всіх активних каналів одночасно
+                                </p>
+                                <!-- Test/Production Mode Toggle -->
+                                <div class="mb-3 p-3" style="background: rgba(0,0,0,0.2); border-radius: 8px;">
+                                    <div class="d-flex justify-content-between align-items-center mb-2">
+                                        <div>
+                                            <strong style="color: var(--text-primary);">Режим генерації</strong>
+                                            <div style="font-size: 0.85rem; color: var(--text-secondary); margin-top: 4px;">
+                                                <span id="modeDescription">Тестування (необмежені запуски)</span>
+                                            </div>
+                                        </div>
+                                        <div>
+                                            <span id="modeIndicator" class="badge bg-warning" style="font-size: 0.9rem; padding: 6px 12px;">
+                                                🧪 TEST
+                                            </span>
+                                        </div>
+                                    </div>
+                                    <div class="form-check form-switch" style="font-size: 1.1rem;">
+                                        <input class="form-check-input" type="checkbox" id="productionModeToggle" onchange="toggleProductionMode()" style="cursor: pointer;">
+                                        <label class="form-check-label" for="productionModeToggle" style="cursor: pointer; color: var(--text-primary);">
+                                            <span id="toggleLabel">Увімкнути Production Mode</span>
+                                        </label>
+                                    </div>
+                                </div>
+                                <button class="btn btn-success btn-lg" onclick="startAllChannels()" id="startAllBtn">
+                                    <i class="bi bi-play-circle-fill"></i> Запустити всі канали
+                                </button>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="col-md-6">
+                        <div class="card" style="background: linear-gradient(135deg, rgba(102, 126, 234, 0.15) 0%, rgba(118, 75, 162, 0.1) 100%); border: 2px solid var(--primary-color);">
+                            <div class="card-body text-center" style="padding: 2rem;">
+                                <div style="font-size: 3rem; margin-bottom: 1rem;">🎯</div>
+                                <h4 style="color: var(--text-primary); margin-bottom: 1rem;">Вибрати конкретні канали</h4>
+                                <p style="color: var(--text-secondary); margin-bottom: 1.5rem;">
+                                    Запуск генерації тільки для обраних каналів
+                                </p>
+                                <button class="btn btn-primary btn-lg" onclick="showChannelSelector()">
+                                    <i class="bi bi-list-check"></i> Вибрати канали
+                                </button>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Channel Selector (hidden by default) -->
+                <div id="channelSelectorCard" class="card mb-4" style="display: none;">
+                    <div class="card-header">
+                        <i class="bi bi-list-ul"></i> Вибір каналів для генерації
+                    </div>
+                    <div class="card-body">
+                        <div class="mb-3">
+                            <input type="text" class="form-control" id="channelSearchInput" placeholder="🔍 Пошук каналів..." onkeyup="filterChannels()">
+                        </div>
+                        <div id="channelsList" style="max-height: 400px; overflow-y: auto;">
+                            <div class="text-center py-3">
+                                <i class="bi bi-hourglass-split" style="font-size: 2rem;"></i>
+                                <p class="mt-2">Завантаження каналів...</p>
+                            </div>
+                        </div>
+                        <div class="d-flex gap-3 mt-3">
+                            <button class="btn btn-primary" onclick="startSelectedChannels()" id="startSelectedBtn" disabled>
+                                <i class="bi bi-play-circle-fill"></i> Запустити вибрані (<span id="selectedCount">0</span>)
+                            </button>
+                            <button class="btn btn-secondary" onclick="selectAllChannels()">
+                                <i class="bi bi-check-all"></i> Вибрати всі
+                            </button>
+                            <button class="btn btn-secondary" onclick="deselectAllChannels()">
+                                <i class="bi bi-x-circle"></i> Скасувати всі
+                            </button>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Recent Executions -->
+                <div class="card">
+                    <div class="card-header d-flex justify-content-between align-items-center">
+                        <span><i class="bi bi-clock-history"></i> Останні запуски</span>
+                        <button class="btn btn-sm btn-primary" onclick="refreshRecentExecutions()">
+                            <i class="bi bi-arrow-clockwise"></i> Оновити
+                        </button>
+                    </div>
+                    <div class="card-body">
+                        <div id="recentExecutionsList">
+                            <div class="text-center py-3">
+                                <i class="bi bi-hourglass-split" style="font-size: 2rem;"></i>
+                                <p class="mt-2">Завантаження...</p>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Stats -->
+                <div class="row mt-4">
+                    <div class="col-md-3">
+                        <div class="stat-card">
+                            <div class="stat-value" id="totalChannelsCount">-</div>
+                            <div class="stat-label">Всього каналів</div>
+                        </div>
+                    </div>
+                    <div class="col-md-3">
+                        <div class="stat-card">
+                            <div class="stat-value text-success" id="activeChannelsCount">-</div>
+                            <div class="stat-label">Активні канали</div>
+                        </div>
+                    </div>
+                    <div class="col-md-3">
+                        <div class="stat-card">
+                            <div class="stat-value" id="todayExecutionsCount">-</div>
+                            <div class="stat-label">Запусків сьогодні</div>
+                        </div>
+                    </div>
+                    <div class="col-md-3">
+                        <div class="stat-card">
+                            <div class="stat-value" id="contentGeneratedToday">-</div>
+                            <div class="stat-label">Контенту сьогодні</div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
             <!-- MONITORING TAB -->
-            <div class="dashboard-tab-pane active" id="monitoring">
+            <div class="dashboard-tab-pane" id="monitoring">
                 <!-- Stats Row -->
                 <div class="row mb-4">
                     <div class="col-md-3">
@@ -458,87 +667,83 @@
                     </div>
                 </div>
 
-                <!-- Workflow Visualization -->
-                <div class="card">
-                    <div class="card-header">
-                        <i class="bi bi-diagram-3-fill"></i> Content Generation Workflow
-                        <span class="float-end" style="font-size: 0.9rem; font-weight: normal;">
-                            <span id="workflow-status" class="status-badge status-pending">Idle</span>
+                <!-- FLUX EC2 Health Monitoring -->
+                <div class="card mb-4">
+                    <div class="card-header d-flex justify-content-between align-items-center">
+                        <span>
+                            <i class="bi bi-gpu-card"></i> FLUX EC2 Instance Status
+                        </span>
+                        <span id="sd35-health-timestamp" style="font-size: 0.85rem; color: var(--text-secondary);">
+                            Last checked: -
                         </span>
                     </div>
-                    <div class="card-body" style="padding: 2rem;">
-                        <div class="workflow-container">
-
-                            <!-- Step 1: Get Active Channels -->
-                            <div class="workflow-node clickable" id="node-get-channels" data-step="GetActiveChannels" onclick="showStepDetails('GetActiveChannels')">
-                                <div class="node-icon"><i class="bi bi-play-circle"></i></div>
-                                <div class="node-title">Get Active Channels</div>
-                                <div class="node-subtitle">content-get-channels</div>
-                                <div class="node-db">Output: channel_id, config_id, genre</div>
-                                <div class="node-status" id="status-GetActiveChannels"></div>
+                    <div class="card-body">
+                        <div class="row">
+                            <!-- EC2 Instance Status -->
+                            <div class="col-md-3">
+                                <div class="stat-card">
+                                    <div style="font-size: 0.9rem; color: var(--text-secondary); margin-bottom: 0.5rem;">EC2 Instance</div>
+                                    <div id="sd35-ec2-status" class="stat-value" style="font-size: 1.2rem;">
+                                        <i class="bi bi-hourglass-split"></i> Loading...
+                                    </div>
+                                    <div id="sd35-ec2-id" style="font-size: 0.75rem; color: var(--text-secondary); margin-top: 0.5rem;">-</div>
+                                </div>
                             </div>
 
-                            <div class="workflow-arrow"><i class="bi bi-arrow-down"></i></div>
-
-                            <!-- Step 2: Query Titles -->
-                            <div class="workflow-node clickable" id="node-query-titles" data-step="QueryTitles" onclick="showStepDetails('QueryTitles')">
-                                <div class="node-icon"><i class="bi bi-search"></i></div>
-                                <div class="node-title">Query Titles</div>
-                                <div class="node-subtitle">content-query-titles</div>
-                                <div class="node-status" id="status-QueryTitles"></div>
+                            <!-- FLUX Model Status -->
+                            <div class="col-md-3">
+                                <div class="stat-card">
+                                    <div style="font-size: 0.9rem; color: var(--text-secondary); margin-bottom: 0.5rem;">FLUX Model</div>
+                                    <div id="sd35-model-status" class="stat-value" style="font-size: 1.2rem;">
+                                        <i class="bi bi-hourglass-split"></i> Checking...
+                                    </div>
+                                    <div id="sd35-model-details" style="font-size: 0.75rem; color: var(--text-secondary); margin-top: 0.5rem;">-</div>
+                                </div>
                             </div>
 
-                            <div class="workflow-arrow"><i class="bi bi-arrow-down"></i></div>
-
-                            <!-- Step 3: Theme Agent -->
-                            <div class="workflow-node clickable" id="node-theme" data-step="ThemeAgent" onclick="showStepDetails('ThemeAgent')">
-                                <div class="node-icon"><i class="bi bi-lightbulb"></i></div>
-                                <div class="node-title">Generate Theme</div>
-                                <div class="node-subtitle">content-theme-agent</div>
-                                <div class="node-status" id="status-ThemeAgent"></div>
+                            <!-- GPU Info -->
+                            <div class="col-md-3">
+                                <div class="stat-card">
+                                    <div style="font-size: 0.9rem; color: var(--text-secondary); margin-bottom: 0.5rem;">GPU</div>
+                                    <div id="sd35-gpu-info" class="stat-value" style="font-size: 1.2rem;">
+                                        <i class="bi bi-gpu-card"></i> -
+                                    </div>
+                                    <div id="sd35-gpu-memory" style="font-size: 0.75rem; color: var(--text-secondary); margin-top: 0.5rem;">-</div>
+                                </div>
                             </div>
 
-                            <div class="workflow-arrow"><i class="bi bi-arrow-down"></i></div>
-
-                            <!-- Step 4: Select Topic -->
-                            <div class="workflow-node clickable" id="node-select-topic" data-step="SelectTopic" onclick="showStepDetails('SelectTopic')">
-                                <div class="node-icon"><i class="bi bi-check2-square"></i></div>
-                                <div class="node-title">Select Topic</div>
-                                <div class="node-subtitle">content-select-topic</div>
-                                <div class="node-status" id="status-SelectTopic"></div>
+                            <!-- API Endpoint -->
+                            <div class="col-md-3">
+                                <div class="stat-card">
+                                    <div style="font-size: 0.9rem; color: var(--text-secondary); margin-bottom: 0.5rem;">API Endpoint</div>
+                                    <div id="sd35-api-url" class="stat-value" style="font-size: 0.9rem; word-break: break-all;">
+                                        -
+                                    </div>
+                                    <div style="font-size: 0.75rem; margin-top: 0.5rem;">
+                                        <a href="#" id="sd35-health-link" target="_blank" style="display: none;">
+                                            <i class="bi bi-box-arrow-up-right"></i> Test Health
+                                        </a>
+                                    </div>
+                                </div>
                             </div>
+                        </div>
+                    </div>
+                </div>
 
-                            <div class="workflow-arrow"><i class="bi bi-arrow-down"></i></div>
-
-                            <!-- Step 5: Narrative Architect -->
-                            <div class="workflow-node clickable" id="node-narrative" data-step="NarrativeArchitect" onclick="showStepDetails('NarrativeArchitect')">
-                                <div class="node-icon"><i class="bi bi-file-text"></i></div>
-                                <div class="node-title">Generate Narrative</div>
-                                <div class="node-subtitle">content-narrative</div>
-                                <div class="node-status" id="status-NarrativeArchitect"></div>
+                <!-- Dynamic Workflow Visualization -->
+                <div class="card mt-4">
+                    <div class="card-header" style="background: linear-gradient(135deg, rgba(75, 192, 192, 0.2) 0%, rgba(75, 192, 192, 0.05) 100%); border-bottom: 2px solid rgba(75, 192, 192, 0.3);">
+                        <span style="font-size: 1.1rem; font-weight: 600;">
+                            <i class="bi bi-diagram-3"></i> Workflow Steps
+                            <small class="text-muted ms-2" id="workflow-step-count"></small>
+                        </span>
+                    </div>
+                    <div class="card-body">
+                        <div id="workflow-steps-container" style="max-height: 600px; overflow-y: auto;">
+                            <div class="text-muted text-center py-5">
+                                <i class="bi bi-info-circle" style="font-size: 2rem;"></i>
+                                <p class="mt-2">Click on an execution above to see workflow steps</p>
                             </div>
-
-                            <div class="workflow-arrow"><i class="bi bi-arrow-down"></i></div>
-
-                            <!-- Step 6: Generate Audio -->
-                            <div class="workflow-node clickable" id="node-audio" data-step="GenerateAudio" onclick="showStepDetails('GenerateAudio')">
-                                <div class="node-icon"><i class="bi bi-mic"></i></div>
-                                <div class="node-title">Generate Audio (TTS)</div>
-                                <div class="node-subtitle">content-audio-tts</div>
-                                <div class="node-status" id="status-GenerateAudio"></div>
-                            </div>
-
-                            <div class="workflow-arrow"><i class="bi bi-arrow-down"></i></div>
-
-                            <!-- Step 7: Save Result -->
-                            <div class="workflow-node clickable" id="node-save" data-step="SaveResult" onclick="showStepDetails('SaveResult')">
-                                <div class="node-icon"><i class="bi bi-check-circle"></i></div>
-                                <div class="node-title">Save Result</div>
-                                <div class="node-subtitle">content-save-result</div>
-                                <div class="node-db">Save to DynamoDB: generated_content table</div>
-                                <div class="node-status" id="status-SaveResult"></div>
-                            </div>
-
                         </div>
                     </div>
                 </div>
@@ -591,7 +796,50 @@
                     </p>
                 </div>
 
-                <!-- Test Controls -->
+                <!-- Schema Validation Section -->
+                <div class="card mb-4">
+                    <div class="card-header">
+                        <i class="bi bi-shield-check"></i> Валідація Схеми Системи
+                    </div>
+                    <div class="card-body">
+                        <p class="text-secondary mb-3">
+                            Перевірте сумісність між DynamoDB схемою, Lambda API, та Frontend очікуваннями для MEGA MODE
+                        </p>
+                        <button class="btn btn-primary" id="validateSchemaBtn" onclick="runSchemaValidation()">
+                            <i class="bi bi-check-circle"></i> Запустити валідацію
+                        </button>
+
+                        <!-- Validation Results -->
+                        <div id="validationResults" style="display: none; margin-top: 1.5rem;">
+                            <div class="alert" id="validationAlert" role="alert">
+                                <h5 id="validationStatus">-</h5>
+                                <p id="validationSummary" class="mb-0">-</p>
+                            </div>
+
+                            <!-- Frontend Expectations -->
+                            <div class="data-section">
+                                <h6>Frontend Functions</h6>
+                                <div id="frontendFunctions" class="data-content">-</div>
+                            </div>
+
+                            <!-- Lambda Checks -->
+                            <div class="data-section mt-3">
+                                <h6>Lambda API Checks</h6>
+                                <div id="lambdaChecks" class="data-content">-</div>
+                            </div>
+
+                            <!-- Raw Response -->
+                            <details class="mt-3">
+                                <summary style="cursor: pointer; color: var(--primary-color);">
+                                    <i class="bi bi-code-square"></i> View Raw Response
+                                </summary>
+                                <div class="data-content mt-2" id="rawValidationResponse" style="max-height: 400px;">-</div>
+                            </details>
+                        </div>
+                    </div>
+                </div>
+
+
                 <div class="test-controls">
                     <h4 class="mb-3"><i class="bi bi-sliders"></i> Налаштування тесту</h4>
                     <div class="row">
@@ -721,15 +969,47 @@
                         <i class="bi bi-arrow-down-circle-fill"></i>
                     </div>
 
-                    <!-- Step 4: Generate Audio -->
+                    <!-- Step 4: Generate SSML -->
+                    <div class="process-step pending" id="step-ssml">
+                        <div class="step-header">
+                            <div class="step-icon pending">
+                                <i class="bi bi-code-square"></i>
+                            </div>
+                            <div class="step-title">
+                                <h4>4. Генерація SSML розмітки</h4>
+                                <p>Lambda: ssml-generator → SSML markup</p>
+                            </div>
+                            <div class="step-status pending">Очікування</div>
+                        </div>
+                        <div class="step-body" id="step-ssml-body" style="display: none;">
+                            <div class="data-section">
+                                <h6>📥 Input (Plain Text Scenes)</h6>
+                                <div class="data-content" id="step-ssml-input">-</div>
+                            </div>
+                            <div class="data-section">
+                                <h6>🎨 Genre Rules Applied</h6>
+                                <div class="data-content" id="step-ssml-rules">-</div>
+                            </div>
+                            <div class="data-section">
+                                <h6>📤 Output (SSML Markup)</h6>
+                                <div class="data-content" id="step-ssml-output">-</div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="arrow-down">
+                        <i class="bi bi-arrow-down-circle-fill"></i>
+                    </div>
+
+                    <!-- Step 5: Generate Audio -->
                     <div class="process-step pending" id="step-audio">
                         <div class="step-header">
                             <div class="step-icon pending">
                                 <i class="bi bi-mic"></i>
                             </div>
                             <div class="step-title">
-                                <h4>4. Генерація аудіо (TTS)</h4>
-                                <p>Lambda: content-audio-tts → AWS Polly → S3</p>
+                                <h4>5. Генерація аудіо (TTS)</h4>
+                                <p>Lambda: content-audio-polly → AWS Polly → S3</p>
                             </div>
                             <div class="step-status pending">Очікування</div>
                         </div>
@@ -757,14 +1037,50 @@
                         <i class="bi bi-arrow-down-circle-fill"></i>
                     </div>
 
-                    <!-- Step 5: Save Result -->
+                    <!-- Step 6: Generate Images -->
+                    <div class="process-step pending" id="step-images">
+                        <div class="step-header">
+                            <div class="step-icon pending">
+                                <i class="bi bi-image"></i>
+                            </div>
+                            <div class="step-title">
+                                <h4>6. Генерація зображень</h4>
+                                <p>Lambda: content-generate-images → AI Image API → S3</p>
+                            </div>
+                            <div class="step-status pending">Очікування</div>
+                        </div>
+                        <div class="step-body" id="step-images-body" style="display: none;">
+                            <div class="data-section">
+                                <h6>📥 Input (Scenes with image_prompt)</h6>
+                                <div class="data-content" id="step-images-input">-</div>
+                            </div>
+                            <div class="data-section">
+                                <h6>🎨 Image Configuration</h6>
+                                <div class="data-content" id="step-images-config">-</div>
+                            </div>
+                            <div class="data-section">
+                                <h6>📤 Output (Image URLs)</h6>
+                                <div class="data-content" id="step-images-output">-</div>
+                            </div>
+                            <div class="data-section">
+                                <h6>💰 Cost</h6>
+                                <div class="data-content" id="step-images-cost">-</div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="arrow-down">
+                        <i class="bi bi-arrow-down-circle-fill"></i>
+                    </div>
+
+                    <!-- Step 7: Save Result -->
                     <div class="process-step pending" id="step-save">
                         <div class="step-header">
                             <div class="step-icon pending">
                                 <i class="bi bi-check-circle"></i>
                             </div>
                             <div class="step-title">
-                                <h4>5. Збереження результату</h4>
+                                <h4>7. Збереження результату</h4>
                                 <p>Lambda: content-save-result → GeneratedContent (final)</p>
                             </div>
                             <div class="step-status pending">Очікування</div>
@@ -806,6 +1122,10 @@
                                 <h6 class="text-secondary">Сцени</h6>
                                 <h4 id="summaryScenes">-</h4>
                             </div>
+                            <div class="col-md-3">
+                                <h6 class="text-secondary">Зображення</h6>
+                                <h4 id="summaryImages">-</h4>
+                            </div>
                         </div>
                     </div>
                 </div>
@@ -833,18 +1153,387 @@
     </div>
 
     <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
-    <script src="js/navigation.js?v=20251105-1545"></script>
+    <script src="js/auth.js"></script>
+    <script src="js/navigation.js?v=20251130-0423"></script>
     <script>
         // API URLs
         const API_URL = 'https://e2c5y2h1qj.execute-api.eu-central-1.amazonaws.com/prod';
         const CHANNELS_API_URL = 'https://lr555ui3ycne6lj7opvpqjigce0cvkzu.lambda-url.eu-central-1.on.aws/';
         const DEBUG_API_URL = 'https://huooyve5uullyeh7safuexpawm0jidlu.lambda-url.eu-central-1.on.aws/';
+        const SCHEMA_VALIDATOR_URL = 'https://qweb5zj34pftappyn3bqxt77qa0rkyii.lambda-url.eu-central-1.on.aws/';
+        const TRIGGER_API_URL = 'https://qqlkgo62xbfcrsatii2g464dby0ibchd.lambda-url.eu-central-1.on.aws/';
+        const SD35_HEALTH_API_URL = 'https://dteaeahrmufib6yzhanlf2euoy0jkkrl.lambda-url.eu-central-1.on.aws/';
 
         let currentExecutions = [];
         let currentLogs = [];
         let currentExecutionDetails = null; // Stores step-by-step details
         let testStartTime = null;
         let testData = {};
+        let allChannels = [];
+        let selectedChannelIds = [];
+
+        // ====== CONTROL CENTER TAB FUNCTIONS ======
+
+        async function loadControlCenterData() {
+            console.log('🔄 Loading Control Center data...');
+            await loadChannelsForControl();
+            await refreshRecentExecutions();
+            await loadControlStats();
+        }
+
+        async function loadChannelsForControl() {
+            try {
+                console.log('📞 Loading channels from:', CHANNELS_API_URL);
+                // Get user_id from localStorage
+                const cognitoUser = JSON.parse(localStorage.getItem('cognito_user') || '{}');
+                const userId = cognitoUser.user_id || 'c334d862-4031-7097-4207-84856b59d3ed';
+                const url = `${CHANNELS_API_URL}?user_id=${userId}&active_only=false`;
+                console.log('Fetching with user_id:', userId);
+                const response = await fetch(url);
+                const data = await response.json();
+
+                allChannels = data.channels || [];
+                console.log(`✅ Loaded ${allChannels.length} channels`);
+
+                displayChannelsForSelection();
+                updateChannelStats();
+
+                // Setup event delegation for checkboxes
+                setupChannelCheckboxListeners();
+
+            } catch (error) {
+                console.error('❌ Error loading channels:', error);
+            }
+        }
+
+        function setupChannelCheckboxListeners() {
+            console.log('🔧 Setting up checkbox listeners...');
+
+            // Wait a bit for DOM to be ready
+            setTimeout(() => {
+                const checkboxes = document.querySelectorAll('.channel-checkbox');
+                console.log(`📌 Found ${checkboxes.length} checkboxes`);
+
+                checkboxes.forEach((checkbox, index) => {
+                    checkbox.addEventListener('change', function() {
+                        console.log(`✓ Checkbox ${index} changed:`, this.checked);
+                        updateSelectedCount();
+                    });
+
+                    checkbox.addEventListener('click', function(e) {
+                        console.log(`🖱️ Checkbox ${index} clicked`);
+                        e.stopPropagation();
+                    });
+                });
+
+                console.log('✅ Event listeners attached to all checkboxes');
+            }, 100);
+        }
+
+        function displayChannelsForSelection() {
+            const list = document.getElementById('channelsList');
+            if (!list || allChannels.length === 0) {
+                list.innerHTML = '<div class="text-center py-3" style="color: var(--text-secondary);">Канали не знайдено</div>';
+                return;
+            }
+
+            const html = allChannels.map(channel => {
+                const isActive = channel.is_active;
+                const statusIcon = isActive ? '🟢' : '⚫';
+                const displayName = channel.channel_name.startsWith('Channel_')
+                    ? `${channel.genre} (${channel.channel_id.substring(0, 12)}...)`
+                    : `${channel.channel_name} - ${channel.genre}`;
+
+                return `
+                    <div class="channel-item ${!isActive ? 'disabled' : ''}" data-channel-id="${channel.channel_id}">
+                        <input type="checkbox"
+                               class="channel-checkbox"
+                               id="ch-${channel.channel_id}"
+                               value="${channel.channel_id}"
+                               ${!isActive ? 'disabled' : ''}>
+                        <label for="ch-${channel.channel_id}" style="cursor: ${isActive ? 'pointer' : 'not-allowed'}; opacity: ${isActive ? '1' : '0.5'};">
+                            ${statusIcon} <strong>${displayName}</strong>
+                            <br>
+                            <small>ID: ${channel.channel_id}</small>
+                        </label>
+                    </div>
+                `;
+            }).join('');
+
+            list.innerHTML = html;
+
+            console.log('✅ Channels rendered:', allChannels.length);
+        }
+
+        function showChannelSelector() {
+            const card = document.getElementById('channelSelectorCard');
+            card.style.display = 'block';
+            card.scrollIntoView({ behavior: 'smooth' });
+
+            // Setup listeners when showing the selector
+            console.log('👀 Showing channel selector, setting up listeners...');
+            setupChannelCheckboxListeners();
+        }
+
+        function updateSelectedCount() {
+            const checkboxes = document.querySelectorAll('.channel-checkbox:checked');
+            selectedChannelIds = Array.from(checkboxes).map(cb => cb.value);
+
+            document.getElementById('selectedCount').textContent = selectedChannelIds.length;
+            document.getElementById('startSelectedBtn').disabled = selectedChannelIds.length === 0;
+
+            console.log('📊 Selected channels:', selectedChannelIds.length);
+        }
+
+        function selectAllChannels() {
+            document.querySelectorAll('.channel-checkbox:not([disabled])').forEach(cb => {
+                cb.checked = true;
+            });
+            updateSelectedCount();
+        }
+
+        function deselectAllChannels() {
+            document.querySelectorAll('.channel-checkbox').forEach(cb => {
+                cb.checked = false;
+            });
+            updateSelectedCount();
+        }
+
+        function filterChannels() {
+            const search = document.getElementById('channelSearchInput').value.toLowerCase();
+            document.querySelectorAll('.channel-item').forEach(item => {
+                const text = item.textContent.toLowerCase();
+                item.style.display = text.includes(search) ? 'flex' : 'none';
+            });
+        }
+
+
+        // Test/Production Mode Toggle State
+        let isProductionMode = false;
+
+        function getForceMode() {
+            // Test mode = force: true (bypasses rate limiting)
+            // Production mode = force: false (respects publishing frequency)
+            return !isProductionMode;
+        }
+
+        function toggleProductionMode() {
+            const toggle = document.getElementById('productionModeToggle');
+            const indicator = document.getElementById('modeIndicator');
+            const description = document.getElementById('modeDescription');
+            const label = document.getElementById('toggleLabel');
+
+            isProductionMode = toggle.checked;
+
+            if (isProductionMode) {
+                // Production Mode - respects publishing schedule
+                indicator.className = 'badge bg-success';
+                indicator.textContent = '✅ PRODUCTION';
+                description.textContent = 'Production (дотримується графіку публікацій)';
+                label.textContent = 'Production Mode активний';
+                console.log('🏭 Production Mode: force=false (respects publishing frequency)');
+            } else {
+                // Test Mode - unlimited runs
+                indicator.className = 'badge bg-warning';
+                indicator.textContent = '🧪 TEST';
+                description.textContent = 'Тестування (необмежені запуски)';
+                label.textContent = 'Увімкнути Production Mode';
+                console.log('🧪 Test Mode: force=true (bypasses rate limiting)');
+            }
+        }
+
+        async function startAllChannels() {
+            if (!confirm('Запустити генерацію контенту для ВСІХ активних каналів?\n\nЦе може зайняти багато часу та коштів.')) {
+                return;
+            }
+
+            const authManager = new AuthManager();
+            await authManager.initialize();  // ← ВИПРАВЛЕНО: ініціалізуємо перед getUserId()
+            const userId = authManager.getUserId();
+            if (!userId) {
+                alert('Помилка: не знайдено user_id. Будь ласка, увійдіть знову.');
+                window.location.href = '/login.html';
+                return;
+            }
+
+            const btn = document.getElementById('startAllBtn');
+            btn.disabled = true;
+            btn.innerHTML = '<i class="bi bi-hourglass-split"></i> Запуск...';
+
+            try {
+                console.log('🚀 Starting all channels...');
+                const response = await fetch(TRIGGER_API_URL, {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({
+                        user_id: userId,
+                        channels: 'all',
+                        options: { force: getForceMode(), dry_run: false }
+                    })
+                });
+
+                const result = await response.json();
+                console.log('📦 Result:', result);
+
+                if (result.success) {
+                    alert(`✅ Успішно!\n\nЗапущено генерацію для ${result.channels_count} каналів\n\nExecution ARN:\n${result.execution_arn}`);
+                    await refreshRecentExecutions();
+
+                    // Switch to monitoring tab
+                    switchTab('monitoring');
+                } else {
+                    throw new Error(result.error || 'Unknown error');
+                }
+
+            } catch (error) {
+                console.error('❌ Error:', error);
+                alert(`❌ Помилка запуску:\n${error.message}`);
+            } finally {
+                btn.disabled = false;
+                btn.innerHTML = '<i class="bi bi-play-circle-fill"></i> Запустити всі канали';
+            }
+        }
+
+        async function startSelectedChannels() {
+            if (selectedChannelIds.length === 0) {
+                alert('Оберіть хоча б один канал');
+                return;
+            }
+
+            if (!confirm(`Запустити генерацію контенту для ${selectedChannelIds.length} вибраних каналів?`)) {
+                return;
+            }
+            const authManager = new AuthManager();
+            await authManager.initialize();  // ← ВИПРАВЛЕНО: ініціалізуємо перед getUserId()
+            const userId = authManager.getUserId();
+            if (!userId) {
+                alert('Помилка: не знайдено user_id. Будь ласка, увійдіть знову.');
+                window.location.href = '/login.html';
+                return;
+            }
+
+
+            const btn = document.getElementById('startSelectedBtn');
+            btn.disabled = true;
+            btn.innerHTML = '<i class="bi bi-hourglass-split"></i> Запуск...';
+
+            try {
+                console.log('🚀 Starting selected channels:', selectedChannelIds);
+                const response = await fetch(TRIGGER_API_URL, {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({
+                        user_id: userId,
+                        channels: selectedChannelIds,
+                        options: { force: false, dry_run: false }
+                    })
+                });
+
+                const result = await response.json();
+                console.log('📦 Result:', result);
+
+                if (result.success) {
+                    alert(`✅ Успішно!\n\nЗапущено генерацію для ${result.channels_count} каналів\n\nExecution ARN:\n${result.execution_arn}`);
+                    await refreshRecentExecutions();
+
+                    // Reset selection
+                    deselectAllChannels();
+
+                    // Switch to monitoring tab
+                    switchTab('monitoring');
+                } else {
+                    throw new Error(result.error || 'Unknown error');
+                }
+
+            } catch (error) {
+                console.error('❌ Error:', error);
+                alert(`❌ Помилка запуску:\n${error.message}`);
+            } finally {
+                btn.disabled = false;
+                btn.innerHTML = `<i class="bi bi-play-circle-fill"></i> Запустити вибрані (<span id="selectedCount">${selectedChannelIds.length}</span>)`;
+            }
+        }
+
+        async function refreshRecentExecutions() {
+            try {
+                console.log('🔄 Loading recent executions...');
+                const response = await fetch(`${API_URL}/monitoring/executions?limit=10`);
+                const data = await response.json();
+
+                displayRecentExecutions(data.executions || []);
+                updateTodayExecutionsCount(data.executions || []);
+
+            } catch (error) {
+                console.error('❌ Error loading recent executions:', error);
+                document.getElementById('recentExecutionsList').innerHTML = `
+                    <div class="alert alert-danger">Помилка завантаження: ${error.message}</div>
+                `;
+            }
+        }
+
+        function displayRecentExecutions(executions) {
+            const list = document.getElementById('recentExecutionsList');
+
+            if (executions.length === 0) {
+                list.innerHTML = '<div class="text-center py-3 text-secondary">Запусків ще немає</div>';
+                return;
+            }
+
+            const html = executions.slice(0, 10).map(exec => {
+                const statusClass = exec.status.toLowerCase();
+                const statusIcon = getStatusIcon(exec.status);
+                const duration = exec.stopDate ? calculateDuration(exec.startDate, exec.stopDate) : 'В процесі...';
+
+                return `
+                    <div class="execution-item ${statusClass}" onclick="showExecutionDetails(${JSON.stringify(exec).replace(/"/g, '&quot;')})">
+                        <div class="d-flex justify-content-between align-items-center">
+                            <div>
+                                <strong>${exec.name || 'Unnamed'}</strong>
+                                <br>
+                                <small class="timestamp">
+                                    <i class="bi bi-clock"></i> ${formatDate(exec.startDate)}
+                                </small>
+                            </div>
+                            <div class="text-end">
+                                <span class="status-badge status-${statusClass}">
+                                    ${statusIcon} ${exec.status}
+                                </span>
+                                <br>
+                                <small class="text-secondary">${duration}</small>
+                            </div>
+                        </div>
+                    </div>
+                `;
+            }).join('');
+
+            list.innerHTML = html;
+        }
+
+        function updateTodayExecutionsCount(executions) {
+            const today = new Date().toDateString();
+            const todayExecs = executions.filter(e => new Date(e.startDate).toDateString() === today);
+            document.getElementById('todayExecutionsCount').textContent = todayExecs.length;
+        }
+
+        function updateChannelStats() {
+            const total = allChannels.length;
+            const active = allChannels.filter(ch => ch.is_active).length;
+
+            document.getElementById('totalChannelsCount').textContent = total;
+            document.getElementById('activeChannelsCount').textContent = active;
+        }
+
+        async function loadControlStats() {
+            try {
+                // TODO: Fix CORS issue with dashboard-content Lambda
+                // For now, just show a placeholder
+                document.getElementById('contentGeneratedToday').textContent = '-';
+
+            } catch (error) {
+                console.error('❌ Error loading content stats:', error);
+                document.getElementById('contentGeneratedToday').textContent = '-';
+            }
+        }
 
         // ====== MONITORING TAB FUNCTIONS ======
 
@@ -934,6 +1623,15 @@
 
             list.innerHTML = html;
             console.log('✅ Executions displayed!');
+        
+            // AUTO-LOAD: Automatically load the first (most recent) execution's details
+            // so the workflow visualization has data immediately without requiring a click
+            if (executions.length > 0 && executions[0].executionArn) {
+                console.log('🔄 Auto-loading first execution details:', executions[0].name);
+                loadExecutionDetails(executions[0].executionArn).then(() => {
+                    console.log('✅ First execution details loaded automatically');
+                });
+            }
         }
 
         function updateStats(stats) {
@@ -980,6 +1678,92 @@
             }).join('');
 
             document.getElementById('logsViewer').innerHTML = html;
+        }
+
+        async function checkSD35Health() {
+            try {
+                console.log('🔍 Checking SD 3.5 Medium EC2 health...');
+                const response = await fetch(SD35_HEALTH_API_URL);
+                const data = await response.json();
+                
+                console.log('📊 SD35 Health data:', data);
+                
+                // Update timestamp
+                const now = new Date().toLocaleString('uk-UA');
+                document.getElementById('sd35-health-timestamp').textContent = 'Last checked: ' + now;
+                
+                // Update EC2 status
+                const ec2Status = document.getElementById('sd35-ec2-status');
+                const ec2Id = document.getElementById('sd35-ec2-id');
+                
+                if (data.ec2_status === 'running') {
+                    ec2Status.innerHTML = '<i class="bi bi-check-circle-fill text-success"></i> Running';
+                    ec2Id.textContent = data.instance_id || '-';
+                } else if (data.ec2_status === 'stopped') {
+                    ec2Status.innerHTML = '<i class="bi bi-x-circle-fill text-danger"></i> Stopped';
+                    ec2Id.textContent = data.instance_id || '-';
+                } else if (data.ec2_status === 'not-found') {
+                    ec2Status.innerHTML = '<i class="bi bi-question-circle text-warning"></i> Not Found';
+                    ec2Id.textContent = 'Instance not found';
+                } else {
+                    ec2Status.innerHTML = '<i class="bi bi-hourglass-split"></i> ' + data.ec2_status;
+                    ec2Id.textContent = data.instance_id || '-';
+                }
+                
+                // Update model status
+                const modelStatus = document.getElementById('sd35-model-status');
+                const modelDetails = document.getElementById('sd35-model-details');
+                
+                if (data.sd35_health && data.sd35_health.status === 'ready') {
+                    modelStatus.innerHTML = '<i class="bi bi-check-circle-fill text-success"></i> Ready';
+                    modelDetails.textContent = 'Model loaded and ready';
+                } else if (data.sd35_health && data.sd35_health.error) {
+                    modelStatus.innerHTML = '<i class="bi bi-exclamation-triangle text-warning"></i> Error';
+                    modelDetails.textContent = 'Service unreachable';
+                } else if (data.ec2_status === 'stopped' || data.ec2_status === 'not-found') {
+                    modelStatus.innerHTML = '<i class="bi bi-dash-circle text-secondary"></i> N/A';
+                    modelDetails.textContent = 'EC2 not running';
+                } else {
+                    modelStatus.innerHTML = '<i class="bi bi-hourglass-split"></i> Checking...';
+                    modelDetails.textContent = '-';
+                }
+                
+                // Update GPU info
+                const gpuInfo = document.getElementById('sd35-gpu-info');
+                const gpuMemory = document.getElementById('sd35-gpu-memory');
+                
+                if (data.sd35_health && data.sd35_health.gpu) {
+                    gpuInfo.innerHTML = '<i class="bi bi-gpu-card"></i> ' + (data.sd35_health.gpu.name || 'GPU Available');
+                    const memUsed = data.sd35_health.gpu.memory_used || 0;
+                    const memTotal = data.sd35_health.gpu.memory_total || 0;
+                    gpuMemory.textContent = memUsed + ' / ' + memTotal + ' MB';
+                } else if (data.ec2_status === 'running') {
+                    gpuInfo.innerHTML = '<i class="bi bi-gpu-card"></i> Checking...';
+                    gpuMemory.textContent = '-';
+                } else {
+                    gpuInfo.innerHTML = '<i class="bi bi-dash-circle text-secondary"></i> N/A';
+                    gpuMemory.textContent = '-';
+                }
+                
+                // Update API endpoint
+                const apiUrl = document.getElementById('sd35-api-url');
+                const healthLink = document.getElementById('sd35-health-link');
+                
+                if (data.public_ip && data.ec2_status === 'running') {
+                    const endpoint = 'http://' + data.public_ip + ':5000';
+                    apiUrl.textContent = endpoint;
+                    healthLink.href = endpoint + '/health';
+                    healthLink.style.display = 'inline-block';
+                } else {
+                    apiUrl.textContent = 'Not available';
+                    healthLink.style.display = 'none';
+                }
+                
+            } catch (error) {
+                console.error('❌ Error checking SD35 health:', error);
+                document.getElementById('sd35-ec2-status').innerHTML = '<i class="bi bi-exclamation-triangle text-danger"></i> Error';
+                document.getElementById('sd35-model-status').innerHTML = '<i class="bi bi-x-circle text-danger"></i> Failed';
+            }
         }
 
         function getLogClass(message) {
@@ -1172,6 +1956,82 @@
         }
 
         // Load execution details with step-by-step breakdown
+
+        // Render workflow steps dynamically
+        function renderWorkflowSteps(steps) {
+            const container = document.getElementById('workflow-steps-container');
+            const stepCount = document.getElementById('workflow-step-count');
+            
+            if (!steps || steps.length === 0) {
+                container.innerHTML = '<div class="text-muted text-center py-5"><i class="bi bi-info-circle" style="font-size: 2rem;"></i><p class="mt-2">No steps found</p></div>';
+                stepCount.textContent = '';
+                return;
+            }
+
+            stepCount.textContent = `(${steps.length} steps)`;
+
+            // Generate HTML for all steps
+            let html = '<div style="display: flex; flex-direction: column; gap: 0.5rem;">';
+
+            steps.forEach((step, index) => {
+                // Icon based on type
+                const icon = step.type === 'Task' ? 'bi-gear' : 
+                             step.type === 'Map' ? 'bi-collection' :
+                             step.type === 'Choice' ? 'bi-signpost-split' :
+                             step.type === 'Pass' ? 'bi-arrow-right-circle' : 'bi-circle';
+                
+                // Status color
+                const statusColor = step.status === 'succeeded' ? '#28a745' :
+                                   step.status === 'failed' ? '#dc3545' :
+                                   step.status === 'running' ? '#ffc107' : '#6c757d';
+                
+                // Status icon
+                const statusIcon = step.status === 'succeeded' ? 'check-circle-fill' :
+                                  step.status === 'failed' ? 'x-circle-fill' :
+                                  step.status === 'running' ? 'arrow-clockwise' : 'circle';
+
+                html += `
+                    <div class="workflow-node clickable" onclick="showStepDetails('${step.name}')" 
+                         style="padding: 1rem; border: 2px solid #e0e0e0; border-radius: 8px; background: white; cursor: pointer; transition: all 0.2s;"
+                         onmouseover="this.style.borderColor='#667eea'; this.style.boxShadow='0 4px 12px rgba(102,126,234,0.15)'"
+                         onmouseout="this.style.borderColor='#e0e0e0'; this.style.boxShadow='none'">
+                        <div style="display: flex; align-items: center; justify-content: space-between;">
+                            <div style="display: flex; align-items: center; gap: 1rem; flex: 1;">
+                                <div style="font-size: 1.5rem; color: #667eea;">
+                                    <i class="bi ${icon}"></i>
+                                </div>
+                                <div style="flex: 1;">
+                                    <div style="font-weight: 600; font-size: 1rem; color: #2d3748;">
+                                        ${step.name}
+                                    </div>
+                                    <div style="font-size: 0.85rem; color: #718096; margin-top: 0.25rem;">
+                                        ${step.type}
+                                        ${step.startTime ? ` • ${new Date(step.startTime).toLocaleTimeString()}` : ''}
+                                    </div>
+                                </div>
+                            </div>
+                            <div style="display: flex; align-items: center; gap: 0.5rem;">
+                                <span style="color: ${statusColor}; font-size: 1.2rem;">
+                                    <i class="bi bi-${statusIcon}"></i>
+                                </span>
+                                <span style="font-size: 0.9rem; color: ${statusColor}; font-weight: 500; text-transform: capitalize;">
+                                    ${step.status}
+                                </span>
+                            </div>
+                        </div>
+                    </div>
+                `;
+
+                // Add arrow between steps (except last)
+                if (index < steps.length - 1) {
+                    html += '<div style="text-align: center; color: #cbd5e0; font-size: 1.2rem; margin: 0;"><i class="bi bi-arrow-down"></i></div>';
+                }
+            });
+
+            html += '</div>';
+            container.innerHTML = html;
+        }
+
         async function loadExecutionDetails(executionArn) {
             try {
                 console.log('🔍 Loading execution details for:', executionArn);
@@ -1181,16 +2041,9 @@
                 console.log('📊 Execution details:', data);
                 currentExecutionDetails = data;
 
-                // Update workflow visualization with step statuses
+                // Render dynamic workflow visualization
                 if (data.steps) {
-                    data.steps.forEach(step => {
-                        const statusEl = document.getElementById(`status-${step.name}`);
-                        if (statusEl) {
-                            const statusClass = step.status === 'succeeded' ? 'text-success' :
-                                              step.status === 'failed' ? 'text-danger' : 'text-warning';
-                            statusEl.innerHTML = `<span class="${statusClass}">● ${step.status}</span>`;
-                        }
-                    });
+                    renderWorkflowSteps(data.steps);
                 }
 
                 return data;
@@ -1253,15 +2106,37 @@
                         'system_prompt містить: role_definition + genre + style',
                         'user_prompt містить: selected_topic + character_count'
                     ],
-                    outputs: ['narrative_text', 'scene_ssml[] (SSML markup)', 'metadata', 'scene_count']
+                    outputs: ['narrative_text (PLAIN TEXT)', 'scenes[] з variation_used', 'metadata', 'scene_count']
+                }
+            },
+            'GenerateSSML': {
+                description: 'Генерує SSML розмітку з plain text narrative',
+                dataFlow: {
+                    loads: [
+                        'Scenes[] з plain text narration',
+                        'Genre rules (Horror: slow rate, long pauses, whisper effects)',
+                        'Variation settings (normal, dramatic, whisper, action)'
+                    ],
+                    merges: [
+                        'Apply genre-specific SSML rules (pause_multiplier, default_rate, pitch)',
+                        'Add <break> tags: 450ms після речення, 225ms після коми, 675ms після ...',
+                        'Add <prosody> tags: rate, pitch, volume based on variation',
+                        'Add <amazon:effect phonation="soft"> for whisper variation',
+                        'Wrap in <speak> tags для AWS Polly'
+                    ],
+                    outputs: [
+                        'scenes[] з scene_narration_ssml (повна SSML розмітка)',
+                        'scenes[] з scene_narration_plain (оригінальний текст)',
+                        'ssml_generated: true'
+                    ]
                 }
             },
             'GenerateAudio': {
-                description: 'Генерує аудіо через AWS Polly',
+                description: 'Генерує аудіо через AWS Polly з SSML розмітки',
                 dataFlow: {
                     loads: [
                         'ChannelConfigs ТІЛЬКИ (tts_service, tts_voice_profile)',
-                        'SSML markup вже готовий з narrative'
+                        'SSML markup з GenerateSSML Lambda'
                     ],
                     merges: [
                         'Map voice_profile → AWS Polly voice_id (Brian, Emma, Matthew...)',
@@ -1269,6 +2144,22 @@
                         'scenes + voice settings → AWS Polly API'
                     ],
                     outputs: ['audio_urls[] (S3)', 'total_duration_sec', 'voice_id', 'tts_service']
+                }
+            },
+            'GenerateImages': {
+                description: 'Генерує зображення для кожної сцени через AI (Replicate / Bedrock / Vast.ai)',
+                dataFlow: {
+                    loads: [
+                        'ChannelConfigs (image_generation_service, image_model, image_resolution)',
+                        'ImageTemplates (image prompts, negative prompts, style settings)',
+                        'Narrative scenes[] (image_prompt для кожної сцени)'
+                    ],
+                    merges: [
+                        'Merge: Channel Config + Image Template → provider settings',
+                        'For each scene: image_prompt + negative_prompt → AI Image API',
+                        'Batching support: процес 6 сцен за раз для уникнення timeout'
+                    ],
+                    outputs: ['scene_images[] (S3 URLs)', 'total_cost_usd', 'images_generated', 'provider']
                 }
             },
             'SaveResult': {
@@ -1428,7 +2319,12 @@
         async function loadChannels() {
             try {
                 console.log('🔄 Loading channels from:', CHANNELS_API_URL);
-                const response = await fetch(CHANNELS_API_URL, {
+                // Get user_id from localStorage
+                const cognitoUser = JSON.parse(localStorage.getItem('cognito_user') || '{}');
+                const userId = cognitoUser.user_id || 'c334d862-4031-7097-4207-84856b59d3ed';
+                const url = `${CHANNELS_API_URL}?user_id=${userId}&active_only=false`;
+                console.log('🔑 Fetching with user_id:', userId);
+                const response = await fetch(url, {
                     method: 'GET',
                     headers: {
                         'Content-Type': 'application/json'
@@ -1448,9 +2344,24 @@
                 }
 
                 select.innerHTML = '<option value="">-- Оберіть канал --</option>';
-                console.log('📝 Populating select with', data.channels.length, 'channels');
 
-                data.channels.forEach((channel, index) => {
+                // Handle different response formats
+                let channels = [];
+                if (Array.isArray(data)) {
+                    channels = data;
+                } else if (data.channels && Array.isArray(data.channels)) {
+                    channels = data.channels;
+                } else if (data.Items && Array.isArray(data.Items)) {
+                    channels = data.Items;
+                } else {
+                    console.error('❌ Unexpected data format:', data);
+                    select.innerHTML = '<option value="">Невідомий формат даних</option>';
+                    return;
+                }
+
+                console.log('📝 Populating select with', channels.length, 'channels');
+
+                channels.forEach((channel, index) => {
                     const option = document.createElement('option');
                     option.value = channel.channel_id;
 
@@ -1501,7 +2412,7 @@
 
             try {
                 // Mark all steps as running
-                ['step-get-channel', 'step-theme', 'step-narrative', 'step-audio', 'step-save'].forEach(stepId => {
+                ['step-get-channel', 'step-theme', 'step-narrative', 'step-audio', 'step-images', 'step-save'].forEach(stepId => {
                     updateStepStatus(stepId, 'running', 'Виконується...');
                 });
 
@@ -1571,6 +2482,9 @@
                 'generate-theme': 'step-theme',
                 'generate-narrative': 'step-narrative',
                 'generate-audio': 'step-audio',
+                'generate-images': 'step-images',
+                'save-result': 'step-save',
+                'generate-images': 'step-images',
                 'save-result': 'step-save'
             };
 
@@ -1633,6 +2547,18 @@
                             costEl.textContent = `Cost: $${step.output.cost_usd}\nDuration: ${step.output.total_duration_sec || 0}s`;
                         }
                     }
+
+                    // For images step
+                    if (stepId === 'step-images') {
+                        const configEl = document.getElementById('step-images-config');
+                        if (configEl && step.output.provider) {
+                            configEl.textContent = `Provider: ${step.output.provider || 'Unknown'}\nImages: ${step.output.images_generated || 0}`;
+                        }
+                        const costEl = document.getElementById('step-images-cost');
+                        if (costEl && step.output.total_cost_usd !== undefined) {
+                            costEl.textContent = `Cost: $${step.output.total_cost_usd}\nImages Generated: ${step.output.images_generated || 0}`;
+                        }
+                    }
                 }
             });
         }
@@ -1649,6 +2575,7 @@
             document.getElementById('summaryDuration').textContent = `${summ.total_duration_sec}s`;
             document.getElementById('summaryCost').textContent = `$${summ.total_cost_usd.toFixed(6)}`;
             document.getElementById('summaryScenes').textContent = summ.scene_count || 0;
+            document.getElementById('summaryImages').textContent = summ.images_generated || 0;
 
             // Scroll to summary
             summary.scrollIntoView({ behavior: 'smooth' });
@@ -1747,10 +2674,13 @@
                 selectedBtn.classList.add('active');
             }
 
-            // Trigger refresh for monitoring tab
-            if (tabName === 'monitoring') {
+            // Trigger refresh for specific tabs
+            if (tabName === 'control') {
+                loadControlCenterData();
+            } else if (tabName === 'monitoring') {
                 refreshExecutions();
                 refreshLogs();
+                checkSD35Health();
             } else if (tabName === 'debug') {
                 loadChannels();
             }
@@ -1767,6 +2697,15 @@
 
         // Auto-refresh monitoring tab every 30 seconds
         setInterval(() => {
+            // Check if monitoring tab is active
+            const monitoringTab = document.getElementById('monitoring');
+            if (monitoringTab && monitoringTab.style.display !== 'none') {
+                checkSD35Health();
+            }
+        }, 30000);
+
+        // Separate interval for executions (less frequent to reduce API calls)
+        setInterval(() => {
             const monitoringPane = document.getElementById('monitoring');
             if (monitoringPane && monitoringPane.style.display !== 'none') {
                 refreshExecutions();
@@ -1777,10 +2716,100 @@
         // Load initial data when DOM is ready
         document.addEventListener('DOMContentLoaded', () => {
             console.log('🚀 Initializing dashboard...');
-            refreshExecutions();
-            refreshLogs();
-            loadChannels();
+
+            // Load Control Center data (default tab)
+            loadControlCenterData();
+
+            // Also load other tabs data
+            loadChannels(); // For Debug tab
         });
+        // Schema Validation Function
+        async function runSchemaValidation() {
+            const btn = document.getElementById('validateSchemaBtn');
+            const resultsDiv = document.getElementById('validationResults');
+            const alertDiv = document.getElementById('validationAlert');
+            const statusEl = document.getElementById('validationStatus');
+            const summaryEl = document.getElementById('validationSummary');
+            const frontendEl = document.getElementById('frontendFunctions');
+            const lambdaEl = document.getElementById('lambdaChecks');
+            const rawEl = document.getElementById('rawValidationResponse');
+
+            // URL check removed - SCHEMA_VALIDATOR_URL is defined
+
+            // Disable button and show loading
+            btn.disabled = true;
+            btn.innerHTML = '<span class="spinner-border spinner-border-sm me-2"></span>Валідація...';
+            resultsDiv.style.display = 'block';
+            alertDiv.className = 'alert alert-info';
+            statusEl.textContent = 'Виконується валідація...';
+            summaryEl.textContent = 'Зачекайте, будь ласка...';
+
+            try {
+                const response = await fetch(SCHEMA_VALIDATOR_URL, {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json'
+                    },
+                    body: JSON.stringify({})
+                });
+
+                const result = await response.json();
+                console.log('Validation result:', result);
+
+                const validationStatus = result.validation_status || 'UNKNOWN';
+                const isPass = validationStatus === 'PASS';
+
+                alertDiv.className = `alert ${isPass ? 'alert-success' : 'alert-danger'}`;
+                statusEl.innerHTML = `${isPass ? '✅' : '❌'} Validation ${validationStatus}`;
+                summaryEl.textContent = `${result.summary.valid_functions}/${result.summary.total_functions} frontend functions valid | Lambda API: ${result.results.lambda_api_checks.all_checks_passed ? 'PASS' : 'FAIL'}`;
+
+                let frontendHTML = '';
+                const functions = result.results.frontend_expectations.functions;
+                for (const [funcName, funcResult] of Object.entries(functions)) {
+                    const icon = funcResult.valid ? '✅' : '❌';
+                    const status = funcResult.valid ? 'VALID' : 'INVALID';
+                    frontendHTML += `${icon} ${funcName}: ${status} (${funcResult.satisfied_count}/${funcResult.required_count} paths)
+`;
+
+                    if (!funcResult.valid && funcResult.missing_paths.length > 0) {
+                        frontendHTML += `   Missing paths:
+`;
+                        funcResult.missing_paths.forEach(path => {
+                            frontendHTML += `      - ${path}
+`;
+                        });
+                    }
+                }
+                frontendEl.textContent = frontendHTML;
+
+                const lambdaChecks = result.results.lambda_api_checks;
+                let lambdaHTML = '';
+                lambdaHTML += `${lambdaChecks.supports_s3_conversion ? '✅' : '❌'} S3 URL Conversion Support
+`;
+                lambdaHTML += `${lambdaChecks.supports_mega_types ? '✅' : '❌'} MEGA Types Recognition
+`;
+                lambdaHTML += `${lambdaChecks.tracks_mega_stats ? '✅' : '❌'} MEGA Stats Tracking
+`;
+                lambdaHTML += `
+Overall: ${lambdaChecks.all_checks_passed ? '✅ PASS' : '❌ FAIL'}`;
+                lambdaEl.textContent = lambdaHTML;
+
+                rawEl.textContent = JSON.stringify(result, null, 2);
+
+            } catch (error) {
+                console.error('Validation error:', error);
+                alertDiv.className = 'alert alert-danger';
+                statusEl.innerHTML = '❌ Validation Error';
+                summaryEl.textContent = error.message;
+                frontendEl.textContent = 'Error occurred during validation';
+                lambdaEl.textContent = 'Error occurred during validation';
+                rawEl.textContent = JSON.stringify({ error: error.message }, null, 2);
+            } finally {
+                btn.disabled = false;
+                btn.innerHTML = '<i class="bi bi-check-circle"></i> Запустити валідацію';
+            }
+        }
+
     </script>
 </body>
 </html>

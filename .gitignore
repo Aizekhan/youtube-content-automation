@@ -100,3 +100,53 @@ workflow-dashboard.html
 workflow-integration.js
 workflow-script.js
 workflow-styles.css
+
+# Execution and Result Files
+*-execution.json
+*-result.json
+*-history.json
+exec-*.json
+latest-*.json
+*-output.json
+*-logs.txt
+*-logs.json
+*-details.json
+*-check.json
+*-sample.json
+*-exec-*.json
+execution-*.json
+deploy-*.json
+
+# Temporary Python Scripts
+add-*.py
+update-*.py
+check-*.py
+migrate-*.py
+restore-*.py
+patch.py
+
+# AWS Sensitive Files
+aws/cognito-*.txt
+aws/userdata-base64.txt
+download_url.txt
+
+# Terraform State
+.terraform/
+*.tfstate
+*.tfstate.*
+.terraform.lock.hcl
+terraform.tfvars
+
+# Backup HTML Files
+*-backup.html
+*-BROKEN-*.html
+*-old.html
+*-fix.html
+
+# Archive folders
+archive/
+
+# Credentials
+credentials.json
+*-credentials.json
+*-secrets.json

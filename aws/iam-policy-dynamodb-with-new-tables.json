@@ -1,0 +1,50 @@
+{
+    "Version": "2012-10-17",
+    "Statement": [
+        {
+            "Effect": "Allow",
+            "Action": [
+                "dynamodb:Scan",
+                "dynamodb:Query",
+                "dynamodb:GetItem",
+                "dynamodb:PutItem",
+                "dynamodb:UpdateItem",
+                "dynamodb:DeleteItem"
+            ],
+            "Resource": [
+                "arn:aws:dynamodb:eu-central-1:599297130956:table/YouTubeCredentials",
+                "arn:aws:dynamodb:eu-central-1:599297130956:table/YouTubeCredentials/index/*",
+                "arn:aws:dynamodb:eu-central-1:599297130956:table/ChannelConfigs",
+                "arn:aws:dynamodb:eu-central-1:599297130956:table/ChannelConfigs/index/*",
+                "arn:aws:dynamodb:eu-central-1:599297130956:table/DailyPublishingStats",
+                "arn:aws:dynamodb:eu-central-1:599297130956:table/DailyPublishingStats/index/*",
+                "arn:aws:dynamodb:eu-central-1:599297130956:table/GeneratedContent",
+                "arn:aws:dynamodb:eu-central-1:599297130956:table/GeneratedContent/index/*",
+                "arn:aws:dynamodb:eu-central-1:599297130956:table/AIPromptConfigs",
+                "arn:aws:dynamodb:eu-central-1:599297130956:table/AIPromptConfigs/index/*",
+                "arn:aws:dynamodb:eu-central-1:599297130956:table/PromptVersionHistory",
+                "arn:aws:dynamodb:eu-central-1:599297130956:table/PromptVersionHistory/index/*",
+                "arn:aws:dynamodb:eu-central-1:599297130956:table/CostTracking",
+                "arn:aws:dynamodb:eu-central-1:599297130956:table/CostTracking/index/*",
+                "arn:aws:dynamodb:eu-central-1:599297130956:table/ThemeTemplates",
+                "arn:aws:dynamodb:eu-central-1:599297130956:table/ThemeTemplates/index/*",
+                "arn:aws:dynamodb:eu-central-1:599297130956:table/NarrativeTemplates",
+                "arn:aws:dynamodb:eu-central-1:599297130956:table/NarrativeTemplates/index/*",
+                "arn:aws:dynamodb:eu-central-1:599297130956:table/SFXTemplates",
+                "arn:aws:dynamodb:eu-central-1:599297130956:table/SFXTemplates/index/*",
+                "arn:aws:dynamodb:eu-central-1:599297130956:table/ThumbnailTemplates",
+                "arn:aws:dynamodb:eu-central-1:599297130956:table/ThumbnailTemplates/index/*",
+                "arn:aws:dynamodb:eu-central-1:599297130956:table/DescriptionTemplates",
+                "arn:aws:dynamodb:eu-central-1:599297130956:table/DescriptionTemplates/index/*",
+                "arn:aws:dynamodb:eu-central-1:599297130956:table/ImageGenerationTemplates",
+                "arn:aws:dynamodb:eu-central-1:599297130956:table/ImageGenerationTemplates/index/*",
+                "arn:aws:dynamodb:eu-central-1:599297130956:table/TTSTemplates",
+                "arn:aws:dynamodb:eu-central-1:599297130956:table/TTSTemplates/index/*",
+                "arn:aws:dynamodb:eu-central-1:599297130956:table/CTATemplates",
+                "arn:aws:dynamodb:eu-central-1:599297130956:table/CTATemplates/index/*",
+                "arn:aws:dynamodb:eu-central-1:599297130956:table/VideoEditingTemplates",
+                "arn:aws:dynamodb:eu-central-1:599297130956:table/VideoEditingTemplates/index/*"
+            ]
+        }
+    ]
+}

@@ -9,9 +9,10 @@ from boto3.dynamodb.conditions import Key
 import sys
 
 # Add shared directory to path
-sys.path.insert(0, os.path.join(os.path.dirname(__file__), '..', 'shared'))
+sys.path.insert(0, os.path.join(os.path.dirname(__file__), 'shared'))
 from config_merger import merge_configuration, map_voice_profile_to_actual_voice
 from ssml_validator import validate_and_fix_ssml
+from ssml_generator import generate_ssml_timeline
 
 polly = boto3.client('polly', region_name='eu-central-1')
 s3 = boto3.client('s3', region_name='eu-central-1')
@@ -37,9 +38,17 @@ VOICE_MAPPING = {
     'warm_female': 'Amy',  # British female, warm
 }
 
-def log_polly_cost(channel_id, content_id, total_characters, engine='neural'):
-    """Log AWS Polly cost to CostTracking table"""
+def log_polly_cost(channel_id, content_id, total_characters, engine='neural', user_id=None):
+    """
+    Log AWS Polly cost to CostTracking table
+
+    WEEK 2 FIX: Added user_id parameter for multi-tenant cost isolation
+    """
     try:
+        # SECURITY: Warn if user_id not provided (multi-tenant isolation)
+        if not user_id:
+            print("⚠️ WARNING: Cost logged without user_id - multi-tenant isolation compromised!")
+
         cost_table = dynamodb.Table(COST_TRACKING_TABLE)
 
         # Calculate cost
@@ -51,22 +60,26 @@ def log_polly_cost(channel_id, content_id, total_characters, engine='neural'):
         date_str = now.strftime('%Y-%m-%d')
         timestamp = now.isoformat() + 'Z'
 
-        cost_table.put_item(
-            Item={
-                'date': date_str,
-                'timestamp': timestamp,
-                'service': 'AWS Polly',
-                'operation': 'audio_generation',
-                'channel_id': channel_id,
-                'content_id': content_id,
-                'cost_usd': total_cost,
-                'units': total_characters,
-                'details': {
-                    'characters': total_characters,
-                    'engine': engine
-                }
+        item = {
+            'date': date_str,
+            'timestamp': timestamp,
+            'service': 'AWS Polly',
+            'operation': 'audio_generation',
+            'channel_id': channel_id,
+            'content_id': content_id,
+            'cost_usd': total_cost,
+            'units': total_characters,
+            'details': {
+                'characters': total_characters,
+                'engine': engine
             }
-        )
+        }
+
+        # Add user_id for multi-tenant cost tracking
+        if user_id:
+            item['user_id'] = user_id
+
+        cost_table.put_item(Item=item)
 
         print(f"✅ Logged Polly cost: ${float(total_cost):.6f} ({total_characters} characters, {engine})")
         return float(total_cost)
@@ -108,6 +121,13 @@ def lambda_handler(event, context):
 
     print(f"🎤 Audio TTS - Config Merger Version 2.0")
     print(f"Event: {json.dumps(event, default=str)}")
+
+    # WEEK 2 FIX: Extract user_id for multi-tenant data isolation
+    user_id = event.get('user_id')
+    if not user_id:
+        print("WARNING: No user_id provided")
+        # For backward compatibility during migration
+        raise ValueError('SECURITY ERROR: user_id is required for all requests')
 
     try:
         # Parse input
@@ -154,14 +174,75 @@ def lambda_handler(event, context):
             channel_config = channel_response['Items'][0]
             print(f"✅ Channel config loaded: {channel_config.get('channel_name', 'Unknown')}")
 
-            # For audio-tts, we primarily need channel config (TTS settings)
-            # Template would be used if we need SSML rules, but SSML is already in scenes
-            # So we'll do a simplified merge - just extract TTS settings from channel
+            # Get TTS template
+            selected_tts_template = channel_config.get('selected_tts_template', 'tts_universal_v1')
+            print(f"🎵 Loading TTS template: {selected_tts_template}")
+
+            tts_table = dynamodb.Table('TTSTemplates')
+            tts_response = tts_table.get_item(Key={'template_id': selected_tts_template})
+
+            if 'Item' not in tts_response:
+                print(f"⚠️  TTS template '{selected_tts_template}' not found, using defaults")
+                tts_template = {}
+            else:
+                tts_template = tts_response['Item']
+                print(f"✅ TTS template loaded: {tts_template.get('template_name', 'Unknown')}")
+
+            # Get TTS config from template
+            tts_config = tts_template.get('tts_config', {})
+            tts_settings = tts_template.get('tts_settings', {})
+
+            # Voice selection priority: TTS Template → ChannelConfig → Default
+            # 1. tts_config.voice_id (manual mode)
+            # 2. tts_settings.tts_voice_profile (template level)
+            # 3. tts_config.voice_profile (fallback)
+            # 4. channel_config.tts_voice_profile (channel level)
+            # 5. Default
+            template_voice_id = tts_config.get('voice_id')
+            template_settings_voice = tts_settings.get('tts_voice_profile')
+            template_voice_profile = tts_config.get('voice_profile')
+            channel_voice_profile = channel_config.get('tts_voice_profile')
+
+            # Determine final voice profile
+            if template_voice_id:
+                # Template has explicit voice_id (manual mode)
+                final_voice_profile = template_voice_id
+                print(f"🎤 Using voice from TTS Template (tts_config.voice_id): {final_voice_profile}")
+            elif template_settings_voice:
+                # Template has voice in tts_settings
+                final_voice_profile = template_settings_voice
+                print(f"🎤 Using voice from TTS Template (tts_settings.tts_voice_profile): {final_voice_profile}")
+            elif template_voice_profile:
+                # Template has voice_profile
+                final_voice_profile = template_voice_profile
+                print(f"🎤 Using voice from TTS Template (tts_config.voice_profile): {final_voice_profile}")
+            elif channel_voice_profile:
+                # Fallback to channel config
+                final_voice_profile = channel_voice_profile
+                print(f"🎤 Using voice from ChannelConfig: {final_voice_profile}")
+            else:
+                # No voice configured - STOP generation with clear error
+                error_msg = (
+                    "❌ NO TTS VOICE CONFIGURED!
+"
+                    "Please configure a voice in one of these locations:
+"
+                    "  1. TTS Template (tts_config.voice_id or voice_profile)
+"
+                    "  2. Channel Config (tts_voice_profile)
+"
+                    "Content generation cannot proceed without a voice selection."
+                )
+                print(error_msg)
+                raise ValueError(error_msg)
+
+            # Merge configs
             merged_config = {
-                'tts_service': channel_config.get('tts_service', 'aws_polly_neural'),
-                'tts_voice_profile': channel_config.get('tts_voice_profile', 'neutral_male'),
+                'tts_service': tts_settings.get('tts_service') or tts_config.get('service') or channel_config.get('tts_service', 'aws_polly_neural'),
+                'tts_voice_profile': final_voice_profile,
                 'tts_mood_variants': channel_config.get('tts_mood_variants', ''),
-                'channel_name': channel_config.get('channel_name', 'Unknown')
+                'channel_name': channel_config.get('channel_name', 'Unknown'),
+                'scene_variations': tts_template.get('scene_variations', {})
             }
 
         print(f"✅ Using TTS config:")
@@ -175,15 +256,30 @@ def lambda_handler(event, context):
         )
         print(f"✅ Mapped to Polly voice: {voice_id}")
 
+        # 3. Check if scenes already have SSML (MEGA mode) or need SSML generation
+        # MEGA mode sends scenes with text_with_ssml already populated
+        # Old mode sends scenes with scene_narration (plain text) that needs SSML generation
+        first_scene = scenes[0] if scenes else {}
+        has_ssml = 'text_with_ssml' in first_scene or 'ssml_text' in first_scene
+
+        if has_ssml:
+            print(f"✅ Scenes already have SSML markup (MEGA mode), using as-is")
+            scenes_with_ssml = scenes
+        else:
+            print(f"🎙️ Generating SSML markup from plain text...")
+            scenes_with_ssml = generate_ssml_timeline(scenes, merged_config)
+            print(f"✅ SSML generated for {len(scenes_with_ssml)} scenes")
+
         # Generate audio for each scene
         audio_files = []
         audio_streams = []
         total_characters = 0
         engine_used = 'neural'  # Track engine used
 
-        for scene in scenes:
-            scene_id = scene.get('id', 0)
-            ssml_text = scene.get('ssml_text', '')
+        for scene in scenes_with_ssml:
+            # Support both old and new field names (MEGA mode uses different names)
+            scene_id = scene.get('id') or scene.get('scene_number', 0)
+            ssml_text = scene.get('ssml_text') or scene.get('text_with_ssml', '')
 
             if not ssml_text:
                 print(f"Warning: Scene {scene_id} has no SSML text, skipping")
@@ -192,7 +288,7 @@ def lambda_handler(event, context):
             print(f"Generating audio for scene {scene_id}...")
 
             # Generate audio with AWS Polly
-            audio_stream, duration_ms, characters, engine = synthesize_speech(ssml_text, voice_id)
+            audio_stream, duration_ms, characters, engine, final_ssml = synthesize_speech(ssml_text, voice_id)
             total_characters += characters
             engine_used = engine  # Save last engine used
 
@@ -204,7 +300,8 @@ def lambda_handler(event, context):
                 'scene_id': scene_id,
                 's3_url': s3_url,
                 's3_key': s3_key,
-                'duration_ms': duration_ms
+                'duration_ms': duration_ms,
+                'ssml_used': final_ssml  # ✅ Save actual SSML used for TTS
             })
 
             audio_streams.append(audio_stream)
@@ -220,7 +317,8 @@ def lambda_handler(event, context):
             channel_id=channel_id,
             content_id=narrative_id,
             total_characters=total_characters,
-            engine=engine_used
+            engine=engine_used,
+            user_id=user_id  # WEEK 2 FIX: Multi-tenant cost tracking
         )
 
         print(f"✅ Generated {len(audio_files)} audio files")
@@ -295,7 +393,7 @@ def lambda_handler(event, context):
 def synthesize_speech(ssml_text, voice_id):
     """
     Generate audio from SSML text using AWS Polly
-    Returns: (audio_stream, duration_ms, characters, engine)
+    Returns: (audio_stream, duration_ms, characters, engine, fixed_ssml)
     """
     # Validate and fix SSML using comprehensive validator
     fixed_ssml, is_valid, warnings, errors = validate_and_fix_ssml(ssml_text)
@@ -324,7 +422,7 @@ def synthesize_speech(ssml_text, voice_id):
                 LanguageCode='en-US'
             )
             audio_stream, duration_ms, characters = process_polly_response(response)
-            return audio_stream, duration_ms, characters, 'neural'
+            return audio_stream, duration_ms, characters, 'neural', ssml_text
         except Exception as neural_error:
             print(f"Neural engine failed: {str(neural_error)}, trying standard...")
             # Fallback to standard engine
@@ -337,7 +435,7 @@ def synthesize_speech(ssml_text, voice_id):
                 LanguageCode='en-US'
             )
             audio_stream, duration_ms, characters = process_polly_response(response)
-            return audio_stream, duration_ms, characters, 'standard'
+            return audio_stream, duration_ms, characters, 'standard', ssml_text
     except Exception as e:
         print(f"Error synthesizing speech: {str(e)}")
         raise

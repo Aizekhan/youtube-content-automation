@@ -65,6 +65,7 @@ def lambda_handler(event, context):
         body = event
 
     channel_id = body.get('channel_id')
+    user_id = body.get('user_id')
     topic = body.get('topic', '')
 
     if not channel_id:
@@ -73,6 +74,15 @@ def lambda_handler(event, context):
             'body': json.dumps({
                 'success': False,
                 'error': 'channel_id is required'
+            })
+        }
+
+    if not user_id:
+        return {
+            'statusCode': 400,
+            'body': json.dumps({
+                'success': False,
+                'error': 'user_id is required'
             })
         }
 
@@ -88,7 +98,7 @@ def lambda_handler(event, context):
             step_number=1,
             step_name='get-channel-config',
             lambda_function='content-get-channels',
-            payload={'action': 'get_active'},
+            payload={'action': 'get_active', 'user_id': user_id},
             description='Fetching channel configuration from ChannelConfigs'
         )
         steps.append(step1_result)
@@ -96,8 +106,15 @@ def lambda_handler(event, context):
         if step1_result['status'] != 'completed':
             raise Exception(f"Step 1 failed: {step1_result.get('error')}")
 
-        # Extract channel config
-        channels = step1_result['output'].get('channels', [])
+        # Extract channel config - handle both list and dict responses
+        output = step1_result['output']
+        if isinstance(output, list):
+            channels = output
+        elif isinstance(output, dict):
+            channels = output.get('channels', [])
+        else:
+            raise Exception(f"Unexpected output format from content-get-channels: {type(output)}")
+
         channel_config = next((ch for ch in channels if ch['channel_id'] == channel_id), None)
 
         if not channel_config:
@@ -161,11 +178,12 @@ def lambda_handler(event, context):
 
 
         # Step 4: Generate Audio (TTS)
+        narrative_data = narrative_output.get('narrative_data', {})
         step4_payload = {
             'channel_id': channel_id,
-            'narrative_id': narrative_output.get('narrative_id'),
-            'scenes': narrative_output.get('scenes', []),
-            'story_title': narrative_output.get('story_title', 'Untitled')
+            'narrative_id': narrative_output.get('content_id'),
+            'scenes': narrative_data.get('scenes', []),
+            'story_title': narrative_data.get('story_title', 'Untitled')
         }
 
         step4_result = run_step(
@@ -187,29 +205,57 @@ def lambda_handler(event, context):
         print(f"✅ Step 4: Audio generated - {audio_output.get('scene_count', 0)} files, {audio_output.get('total_duration_sec', 0)}s")
 
 
-        # Step 5: Save Result
+        # Step 5: Generate Images
         step5_payload = {
             'channel_id': channel_id,
-            'narrative_id': narrative_output.get('narrative_id'),
-            'theme_data': theme_output,
-            'narrative_data': narrative_output,
-            'audio_data': audio_output
+            'narrative_id': narrative_output.get('content_id'),
+            'story_title': narrative_data.get('story_title', 'Untitled'),
+            'scenes': narrative_data.get('scenes', [])
         }
 
         step5_result = run_step(
             step_number=5,
-            step_name='save-result',
-            lambda_function='content-save-result',
+            step_name='generate-images',
+            lambda_function='content-generate-images',
             payload=step5_payload,
-            description='Saving final result to GeneratedContent'
+            description='Generating images for all scenes'
         )
         steps.append(step5_result)
 
         if step5_result['status'] != 'completed':
-            print(f"⚠️  Step 5 warning: {step5_result.get('error')}")
+            raise Exception(f"Step 5 failed: {step5_result.get('error')}")
+
+        image_output = step5_result['output']
+        test_data['images'] = image_output
+        total_cost += float(image_output.get('total_cost_usd', 0))
+
+        print(f"✅ Step 5: Images generated - {image_output.get('images_generated', 0)} images, ${image_output.get('total_cost_usd', 0)}")
+
+
+        # Step 6: Save Result
+        step6_payload = {
+            'channel_id': channel_id,
+            'narrative_id': narrative_output.get('narrative_id'),
+            'theme_data': theme_output,
+            'narrative_data': narrative_output,
+            'audio_data': audio_output,
+            'image_data': image_output
+        }
+
+        step6_result = run_step(
+            step_number=6,
+            step_name='save-result',
+            lambda_function='content-save-result',
+            payload=step6_payload,
+            description='Saving final result to GeneratedContent'
+        )
+        steps.append(step6_result)
+
+        if step6_result['status'] != 'completed':
+            print(f"⚠️  Step 6 warning: {step6_result.get('error')}")
             # Don't fail the whole test if save fails
         else:
-            print(f"✅ Step 5: Result saved")
+            print(f"✅ Step 6: Result saved")
 
 
         # Calculate total duration
@@ -221,9 +267,10 @@ def lambda_handler(event, context):
             'total_duration_ms': total_duration_ms,
             'total_duration_sec': round(total_duration_ms / 1000, 2),
             'total_cost_usd': round(total_cost, 6),
-            'scene_count': narrative_output.get('scene_count', 0),
+            'scene_count': len(narrative_data.get('scenes', [])),
             'character_count': narrative_output.get('character_count', 0),
             'audio_duration_sec': audio_output.get('total_duration_sec', 0),
+            'images_generated': image_output.get('images_generated', 0),
             'narrative_id': narrative_output.get('narrative_id'),
             'story_title': narrative_output.get('story_title', 'Untitled')
         }
@@ -232,6 +279,7 @@ def lambda_handler(event, context):
         print(f"   Duration: {summary['total_duration_sec']}s")
         print(f"   Cost: ${summary['total_cost_usd']}")
         print(f"   Scenes: {summary['scene_count']}")
+        print(f"   Images: {summary['images_generated']}")
 
         return {
             'statusCode': 200,

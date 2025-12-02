@@ -1,0 +1,27 @@
+{
+  "CORSRules": [
+    {
+      "AllowedOrigins": [
+        "https://n8n-creator.space",
+        "http://n8n-creator.space",
+        "http://localhost:*",
+        "http://127.0.0.1:*"
+      ],
+      "AllowedMethods": [
+        "GET",
+        "HEAD",
+        "PUT",
+        "POST"
+      ],
+      "AllowedHeaders": [
+        "*"
+      ],
+      "ExposeHeaders": [
+        "ETag",
+        "Content-Length",
+        "Content-Type"
+      ],
+      "MaxAgeSeconds": 3600
+    }
+  ]
+}

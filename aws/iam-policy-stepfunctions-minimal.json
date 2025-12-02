@@ -1,0 +1,47 @@
+{
+  "Version": "2012-10-17",
+  "Statement": [
+    {
+      "Sid": "InvokeContentPipelineLambdas",
+      "Effect": "Allow",
+      "Action": "lambda:InvokeFunction",
+      "Resource": [
+        "arn:aws:lambda:eu-central-1:599297130956:function:content-get-channels",
+        "arn:aws:lambda:eu-central-1:599297130956:function:content-query-titles",
+        "arn:aws:lambda:eu-central-1:599297130956:function:content-theme-agent",
+        "arn:aws:lambda:eu-central-1:599297130956:function:content-narrative",
+        "arn:aws:lambda:eu-central-1:599297130956:function:content-audio-tts",
+        "arn:aws:lambda:eu-central-1:599297130956:function:content-generate-images",
+        "arn:aws:lambda:eu-central-1:599297130956:function:content-save-result",
+        "arn:aws:lambda:eu-central-1:599297130956:function:ec2-flux-control",
+        "arn:aws:lambda:eu-central-1:599297130956:function:prepare-image-batches",
+        "arn:aws:lambda:eu-central-1:599297130956:function:merge-image-batches"
+      ]
+    },
+    {
+      "Sid": "CloudWatchLogsAccess",
+      "Effect": "Allow",
+      "Action": [
+        "logs:CreateLogDelivery",
+        "logs:GetLogDelivery",
+        "logs:UpdateLogDelivery",
+        "logs:DeleteLogDelivery",
+        "logs:ListLogDeliveries",
+        "logs:PutLogEvents",
+        "logs:CreateLogGroup",
+        "logs:CreateLogStream"
+      ],
+      "Resource": "*"
+    },
+    {
+      "Sid": "EventBridgeMinimal",
+      "Effect": "Allow",
+      "Action": [
+        "events:PutTargets",
+        "events:PutRule",
+        "events:DescribeRule"
+      ],
+      "Resource": "arn:aws:events:eu-central-1:599297130956:rule/StepFunctionsGetEventsForStepFunctionsExecutionRule"
+    }
+  ]
+}

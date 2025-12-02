@@ -18,47 +18,28 @@
             --dark-bg: #1a1d2e;
             --card-bg: #22263a;
             --text-primary: #e5e7eb;
-            --text-secondary: #9ca3af;
+            --text-secondary: #d1d5db;
         }
 
         body {
             background: linear-gradient(135deg, var(--dark-bg) 0%, #16213e 100%);
-            color: var(--text-primary);
+            color: #ffffff !important;
             min-height: 100vh;
             font-family: 'Inter', -apple-system, BlinkMacSystemFont, sans-serif;
+        }
+
+        * {
+            color: inherit;
+        }
+
+        .card-body, .card-body * {
+            color: #ffffff;
         }
 
         .navbar {
             background: rgba(34, 38, 58, 0.95) !important;
             backdrop-filter: blur(10px);
             border-bottom: 1px solid rgba(102, 126, 234, 0.2);
-        }
-
-        .nav-menu {
-            background: var(--card-bg);
-            border-radius: 12px;
-            padding: 0.5rem;
-            margin-bottom: 2rem;
-        }
-
-        .nav-menu a {
-            color: var(--text-secondary);
-            text-decoration: none;
-            padding: 0.75rem 1.5rem;
-            border-radius: 8px;
-            transition: all 0.3s ease;
-            display: inline-block;
-            margin: 0.25rem;
-        }
-
-        .nav-menu a:hover {
-            background: rgba(102, 126, 234, 0.2);
-            color: var(--text-primary);
-        }
-
-        .nav-menu a.active {
-            background: linear-gradient(135deg, var(--primary-color), var(--secondary-color));
-            color: white;
         }
 
         .card {
@@ -74,19 +55,49 @@
             padding: 1.25rem;
             font-weight: 600;
             font-size: 1.1rem;
+            color: #ffffff;
         }
 
+        /* OLD STYLE: Large cost cards with gradient text */
         .cost-card {
             background: var(--card-bg);
             border: 1px solid rgba(102, 126, 234, 0.2);
             border-radius: 12px;
-            padding: 1.5rem;
+            padding: 2rem 1.5rem;
+            transition: all 0.3s ease;
+        }
+
+        .cost-card:hover {
+            transform: translateY(-4px);
+            box-shadow: 0 8px 24px rgba(102, 126, 234, 0.3);
         }
 
         .cost-value {
-            font-size: 2.5rem;
+            font-size: 2.8rem;
             font-weight: 700;
             background: linear-gradient(135deg, var(--warning-color), #d97706);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            background-clip: text;
+            margin-bottom: 0.5rem;
+        }
+
+        .cost-value.text-success {
+            background: linear-gradient(135deg, var(--success-color), #059669);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            background-clip: text;
+        }
+
+        .cost-value.text-info {
+            background: linear-gradient(135deg, #3b82f6, #2563eb);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            background-clip: text;
+        }
+
+        .cost-value.text-primary {
+            background: linear-gradient(135deg, var(--primary-color), var(--secondary-color));
             -webkit-background-clip: text;
             -webkit-text-fill-color: transparent;
             background-clip: text;
@@ -94,8 +105,15 @@
 
         .cost-label {
             color: var(--text-secondary);
-            font-size: 0.85rem;
+            font-size: 0.9rem;
+            font-weight: 500;
             margin-top: 0.5rem;
+        }
+
+        .cost-sublabel {
+            color: rgba(209, 213, 219, 0.6);
+            font-size: 0.8rem;
+            margin-top: 0.25rem;
         }
 
         .service-item {
@@ -112,6 +130,9 @@
 
         .service-name {
             font-weight: 500;
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
         }
 
         .service-cost {
@@ -151,87 +172,131 @@
             height: 300px;
         }
 
-        .forecast-badge {
-            background: linear-gradient(135deg, #3b82f6, #2563eb);
-            color: white;
+        .loading-spinner {
+            text-align: center;
+            padding: 3rem;
+            color: var(--text-secondary);
+        }
+
+        .loading-spinner i {
+            font-size: 3rem;
+            animation: spin 1s linear infinite;
+        }
+
+        @keyframes spin {
+            0% { transform: rotate(0deg); }
+            100% { transform: rotate(360deg); }
+        }
+
+        .budget-alert {
+            background: rgba(239, 68, 68, 0.1);
+            border-left: 3px solid var(--danger-color);
+            padding: 1rem;
+            border-radius: 8px;
+            margin-bottom: 1rem;
+        }
+
+        .optimization-tip {
+            background: rgba(16, 185, 129, 0.1);
+            border-left: 3px solid var(--success-color);
+            padding: 1rem;
+            border-radius: 8px;
+            margin-bottom: 1rem;
+        }
+
+        .badge-custom {
             padding: 0.5rem 1rem;
             border-radius: 8px;
             font-weight: 600;
+            font-size: 0.85rem;
+        }
+
+        .badge-success {
+            background: rgba(16, 185, 129, 0.2);
+            color: var(--success-color);
+        }
+
+        .badge-warning {
+            background: rgba(245, 158, 11, 0.2);
+            color: var(--warning-color);
+        }
+
+        .text-secondary {
+            color: #d1d5db !important;
         }
     </style>
 </head>
 <body>
-    <!-- Unified Navigation -->
-    <nav class="nav-container">
-        <div class="nav-wrapper">
-            <div class="nav-bar">
-                <a href="index.html" class="nav-link">
-                    <i class="bi bi-house-door"></i> Home
-                </a>
-                <a href="dashboard.html" class="nav-link">
-                    <i class="bi bi-speedometer2"></i> Dashboard
-                </a>
-                <a href="channels.html" class="nav-link">
-                    <i class="bi bi-collection"></i> Channels
-                </a>
-                <a href="content.html" class="nav-link">
-                    <i class="bi bi-file-earmark-text"></i> Content
-                </a>
-                <a href="costs.html" class="nav-link active">
-                    <i class="bi bi-currency-dollar"></i> Costs
-                </a>
-                <a href="prompts-editor.html" class="nav-link">
-                    <i class="bi bi-pencil-square"></i> Prompts
-                </a>
-            </div>
-        </div>
-    </nav>
+    <!-- Navigation -->
+    <div id="navigation-placeholder"></div>
 
     <div class="container mt-4">
+        <!-- Budget Settings -->
+        <div class="card mb-3" style="background: rgba(102, 126, 234, 0.1);">
+            <div class="card-body">
+                <div class="row align-items-center">
+                    <div class="col-md-8">
+                        <h6 style="margin: 0; color: #ffffff;">💰 Monthly Budget</h6>
+                        <p style="margin: 0; font-size: 0.9rem; color: #d1d5db;">Set your monthly cost budget for tracking and alerts</p>
+                    </div>
+                    <div class="col-md-4 text-end">
+                        <div class="input-group">
+                            <span class="input-group-text">$</span>
+                            <input type="number" id="budgetInput" class="form-control" placeholder="1000" min="0" step="10" style="background: var(--card-bg); color: #ffffff; border-color: rgba(102, 126, 234, 0.3);">
+                            <button class="btn btn-primary" onclick="saveBudget()">Save</button>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
 
-        <!-- Cost Summary -->
+        <!-- TOP: Large Cost Cards (OLD STYLE) -->
         <div class="row mb-4">
             <div class="col-md-3">
                 <div class="cost-card text-center">
                     <div class="cost-value" id="monthToDate">-</div>
-                    <div class="cost-label">Month-to-Date</div>
+                    <div class="cost-label">💰 Month-to-Date</div>
+                    <div class="cost-sublabel" id="monthPercent">-</div>
                 </div>
             </div>
             <div class="col-md-3">
                 <div class="cost-card text-center">
-                    <div class="cost-value text-success" id="yesterday">-</div>
-                    <div class="cost-label">Daily Average</div>
+                    <div class="cost-value text-success" id="dailyAvg">-</div>
+                    <div class="cost-label">📅 Daily Average</div>
+                    <div class="cost-sublabel">Last 7 days</div>
                 </div>
             </div>
             <div class="col-md-3">
                 <div class="cost-card text-center">
-                    <div class="cost-value text-info" id="today">-</div>
-                    <div class="cost-label">Today</div>
+                    <div class="cost-value text-info" id="budgetLeft">-</div>
+                    <div class="cost-label">🎯 Budget Remaining</div>
+                    <div class="cost-sublabel" id="budgetPercent">-</div>
                 </div>
             </div>
             <div class="col-md-3">
                 <div class="cost-card text-center">
-                    <div class="cost-value text-primary" id="lastMonth">-</div>
-                    <div class="cost-label">Last Month</div>
+                    <div class="cost-value text-primary" id="forecast">-</div>
+                    <div class="cost-label">📈 Month Forecast</div>
+                    <div class="cost-sublabel" id="forecastStatus">-</div>
                 </div>
             </div>
         </div>
 
-        <!-- Cost by Service -->
+        <!-- AWS Infrastructure + Chart (TWO COLUMN) -->
         <div class="row">
             <div class="col-md-6">
                 <div class="card">
                     <div class="card-header d-flex justify-content-between align-items-center">
-                        <span><i class="bi bi-graph-up"></i> Costs by AWS Service</span>
-                        <button class="btn btn-sm btn-primary" onclick="refreshCosts()">
+                        <span><i class="bi bi-server"></i> AWS Infrastructure Costs</span>
+                        <button class="btn btn-sm btn-primary" onclick="refreshAllData()">
                             <i class="bi bi-arrow-clockwise"></i> Refresh
                         </button>
                     </div>
                     <div class="card-body">
-                        <div id="servicesList">
-                            <div class="text-center text-secondary py-5">
-                                <i class="bi bi-hourglass-split" style="font-size: 3rem;"></i>
-                                <p class="mt-3">Loading cost data...</p>
+                        <div id="infrastructureCosts">
+                            <div class="loading-spinner">
+                                <i class="bi bi-hourglass-split"></i>
+                                <p class="mt-3">Loading...</p>
                             </div>
                         </div>
                     </div>
@@ -252,128 +317,348 @@
             </div>
         </div>
 
-        <!-- OpenAI API Costs -->
+        <!-- Content Generation Costs -->
         <div class="card">
             <div class="card-header">
-                <i class="bi bi-robot"></i> OpenAI API Usage & Costs
+                <i class="bi bi-film"></i> Content Generation Costs
             </div>
             <div class="card-body">
-                <div class="row">
-                    <div class="col-md-3 text-center mb-3">
-                        <div class="cost-value" id="openaiCost">-</div>
-                        <div class="cost-label">Total Cost (Month)</div>
+                <div class="row mb-4">
+                    <div class="col-md-3 text-center">
+                        <div class="cost-value" id="totalContentCost">-</div>
+                        <div class="cost-label">Total Content Cost</div>
                     </div>
-                    <div class="col-md-3 text-center mb-3">
-                        <div class="cost-value text-info" id="openaiRequests">-</div>
-                        <div class="cost-label">API Requests</div>
+                    <div class="col-md-3 text-center">
+                        <div class="cost-value text-success" id="totalVideos">-</div>
+                        <div class="cost-label">Videos Generated</div>
                     </div>
-                    <div class="col-md-3 text-center mb-3">
-                        <div class="cost-value text-success" id="openaiTokens">-</div>
-                        <div class="cost-label">Tokens Used</div>
+                    <div class="col-md-3 text-center">
+                        <div class="cost-value text-info" id="costPerVideo">-</div>
+                        <div class="cost-label">Cost per Video</div>
                     </div>
-                    <div class="col-md-3 text-center mb-3">
-                        <div class="cost-value text-warning" id="openaiAvgCost">-</div>
-                        <div class="cost-label">Avg per Request</div>
+                    <div class="col-md-3 text-center">
+                        <div class="cost-value text-primary" id="aiModelCost">-</div>
+                        <div class="cost-label">AI Models Total</div>
                     </div>
                 </div>
-                <div class="chart-container mt-4">
-                    <canvas id="openaiChart"></canvas>
+
+                <h6 class="text-secondary mb-3">AI Models Breakdown</h6>
+                <div id="aiModelsCosts">
+                    <div class="loading-spinner">
+                        <i class="bi bi-hourglass-split"></i>
+                        <p class="mt-3">Loading...</p>
+                    </div>
                 </div>
             </div>
         </div>
 
-        <!-- Daily Trend -->
+        <!-- Per-Channel Breakdown -->
         <div class="card">
             <div class="card-header">
-                <i class="bi bi-graph-up-arrow"></i> Daily Cost Trend (Last 30 Days)
+                <i class="bi bi-bar-chart"></i> Cost by Channel (Top 10)
             </div>
             <div class="card-body">
-                <div class="chart-container" style="height: 250px;">
+                <div id="channelBreakdown">
+                    <div class="loading-spinner">
+                        <i class="bi bi-hourglass-split"></i>
+                        <p class="mt-3">Loading...</p>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Budget Alerts & Optimization -->
+        <div class="row">
+            <div class="col-md-6">
+                <div class="card">
+                    <div class="card-header">
+                        <i class="bi bi-exclamation-triangle"></i> Budget Alerts
+                    </div>
+                    <div class="card-body" id="budgetAlerts">
+                        <div class="text-center text-secondary py-3">
+                            <i class="bi bi-check-circle" style="font-size: 3rem; color: var(--success-color);"></i>
+                            <p class="mt-3">No alerts - Everything looks good!</p>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <div class="col-md-6">
+                <div class="card">
+                    <div class="card-header">
+                        <i class="bi bi-lightbulb"></i> Top Optimization Tips
+                    </div>
+                    <div class="card-body">
+                        <div class="optimization-tip">
+                            <div style="font-weight: 600; margin-bottom: 0.5rem;">
+                                <i class="bi bi-lightning-charge"></i> EC2 → Vast.ai Migration
+                            </div>
+                            <div class="text-secondary" style="font-size: 0.9rem;">
+                                Save ~$180/month (90% reduction)
+                            </div>
+                            <div class="mt-2">
+                                <span class="badge-custom badge-success">💰 High Impact</span>
+                            </div>
+                        </div>
+
+                        <div class="optimization-tip">
+                            <div style="font-weight: 600; margin-bottom: 0.5rem;">
+                                <i class="bi bi-hdd"></i> S3 Intelligent-Tiering
+                            </div>
+                            <div class="text-secondary" style="font-size: 0.9rem;">
+                                Save ~$15/month on storage
+                            </div>
+                            <div class="mt-2">
+                                <span class="badge-custom badge-warning">💰 Medium Impact</span>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Operations Breakdown -->
+        <div class="card">
+            <div class="card-header">
+                <i class="bi bi-list-task"></i> Cost by Operation Type
+            </div>
+            <div class="card-body">
+                <div id="operationsBreakdown">
+                    <div class="loading-spinner">
+                        <i class="bi bi-hourglass-split"></i>
+                        <p class="mt-3">Loading operations breakdown...</p>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Historical Trend Chart (6 Months) -->
+        <div class="card">
+            <div class="card-header d-flex justify-content-between align-items-center">
+                <span><i class="bi bi-graph-up-arrow"></i> Cost History</span>
+                <div>
+                    <button class="btn btn-sm btn-primary" onclick="changeHistoryPeriod(30)">30 Days</button>
+                    <button class="btn btn-sm btn-primary" onclick="changeHistoryPeriod(90)">90 Days</button>
+                    <button class="btn btn-sm btn-primary active" onclick="changeHistoryPeriod(180)">6 Months</button>
+                </div>
+            </div>
+            <div class="card-body">
+                <div class="chart-container" style="height: 300px;">
                     <canvas id="trendChart"></canvas>
                 </div>
             </div>
         </div>
     </div>
 
+    <script src="js/auth.js"></script>
     <script>
-        const API_URL = 'https://e2c5y2h1qj.execute-api.eu-central-1.amazonaws.com/prod';
-        let costChart, openaiChart, trendChart;
+        // Initialize
+        const authManager = new AuthManager();
 
-        async function refreshCosts() {
+        // API URLs
+        const COSTS_API = 'https://hthjzdtuynvyelx5sbqacktgdu0pbhnk.lambda-url.eu-central-1.on.aws';
+        const AWS_COSTS_API = 'https://s3ct6y3lyx5olxjhzgjexbw5qy0qqvcs.lambda-url.eu-central-1.on.aws';
+
+        // Charts
+        let costChart, trendChart;
+
+        // Budget configuration (load from localStorage)
+        let MONTHLY_BUDGET = parseInt(localStorage.getItem('monthlyBudget') || '1000');
+
+        // History period (days)
+        let historyPeriod = 180; // Default: 6 months
+
+        // Load budget on page load
+        function loadBudget() {
+            const budget = parseInt(localStorage.getItem('monthlyBudget') || '1000');
+            MONTHLY_BUDGET = budget;
+            document.getElementById('budgetInput').value = budget;
+            console.log(`💰 Loaded budget: $${budget}/month`);
+        }
+
+        // Save budget to localStorage
+        function saveBudget() {
+            const budgetInput = document.getElementById('budgetInput');
+            const newBudget = parseInt(budgetInput.value) || 1000;
+            localStorage.setItem('monthlyBudget', newBudget);
+            MONTHLY_BUDGET = newBudget;
+            console.log(`💾 Saved new budget: $${newBudget}/month`);
+            // Refresh to show updated budget status
+            refreshAllData();
+        }
+
+        async function refreshAllData() {
+            console.log('🔄 Refreshing all cost data...');
             try {
-                const response = await fetch(`${API_URL}/costs/summary`);
-                const data = await response.json();
+                await authManager.requireAuth();
+                const userId = authManager.getUserId();
+                console.log(`✅ Auth successful, user_id: ${userId}`);
 
-                updateCostSummary(data.summary || {});
-                displayServices(data.services || []);
-                updateCharts(data);
+                // Fetch both Cost Explorer and CostTracking data
+                console.log(`📊 Fetching costs for ${historyPeriod} days...`);
+                const [awsCosts, trackingCosts] = await Promise.all([
+                    fetchAWSCosts(),
+                    fetchTrackingCosts(userId)
+                ]);
+
+                console.log('AWS Costs:', awsCosts);
+                console.log('Tracking Costs:', trackingCosts);
+
+                // Update UI
+                updateTopCards(awsCosts, trackingCosts);
+                updateInfrastructureCosts(awsCosts);
+                updateContentCosts(trackingCosts);
+                updateChannelBreakdown(trackingCosts);
+                updateOperationsBreakdown(trackingCosts);
+                updateBudgetAlerts(awsCosts);
+                updateCharts(awsCosts, trackingCosts);
+
+                console.log('✅ All data updated successfully');
+
             } catch (error) {
-                console.error('Error loading costs:', error);
-                document.getElementById('servicesList').innerHTML = `
-                    <div class="alert alert-danger">
-                        <i class="bi bi-exclamation-triangle"></i> Failed to load cost data: ${error.message}
-                    </div>
-                `;
+                console.error('❌ Error refreshing data:', error);
+                console.error('Error stack:', error.stack);
+                alert('Failed to load cost data: ' + error.message);
             }
         }
 
-        function updateCostSummary(summary) {
-            document.getElementById('monthToDate').textContent = `$${(summary.total_usd || 0).toFixed(4)}`;
-            document.getElementById('yesterday').textContent = `$${(summary.avg_daily_usd || 0).toFixed(4)}`;
-
-            // Get today's cost from daily_trend
-            const today = new Date().toISOString().split('T')[0];
-            const todayData = (summary.daily_trend || []).find(d => d.date === today);
-            const todayCost = todayData ? todayData.cost_usd : 0;
-            document.getElementById('today').textContent = `$${(todayCost || 0).toFixed(4)}`;
-
-            document.getElementById('lastMonth').textContent = `$${((summary.total_usd || 0) * 30 / (summary.period_days || 7)).toFixed(4)}`;
+        async function fetchAWSCosts() {
+            try {
+                const response = await fetch(`${AWS_COSTS_API}?days=30`);
+                if (!response.ok) {
+                    console.error('Failed to fetch AWS costs, using fallback');
+                    return getFallbackAWSCosts();
+                }
+                const data = await response.json();
+                const body = typeof data.body === 'string' ? JSON.parse(data.body) : data.body || data;
+                return body;
+            } catch (error) {
+                console.error('Error fetching AWS costs:', error);
+                return getFallbackAWSCosts();
+            }
         }
 
-        function displayServices(services) {
-            if (services.length === 0) {
-                document.getElementById('servicesList').innerHTML = `
-                    <div class="text-center text-secondary py-5">
-                        <i class="bi bi-inbox" style="font-size: 3rem;"></i>
-                        <p class="mt-3">No cost data available</p>
-                    </div>
-                `;
-                return;
-            }
+        function getFallbackAWSCosts() {
+            return {
+                summary: {
+                    period_total_usd: 0.003,
+                    month_to_date_usd: 0.00006,
+                    avg_daily_usd: 0.0004,
+                    month_forecast_usd: 0.0081
+                },
+                service_totals: [
+                    { service: 'EC2 - Other', cost_usd: 0.003, percentage: 100 }
+                ],
+                daily_breakdown: []
+            };
+        }
 
-            const maxCost = Math.max(...services.map(s => s.cost_usd || 0));
-            const html = services.map(service => `
+        async function fetchTrackingCosts(userId) {
+            try {
+                console.log(`📡 Calling dashboard-costs API for user ${userId}, ${historyPeriod} days...`);
+                const requestBody = { user_id: userId, days: historyPeriod };
+                console.log('Request body:', requestBody);
+
+                const response = await fetch(COSTS_API, {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                        ...authManager.getAuthHeaders()
+                    },
+                    body: JSON.stringify(requestBody)
+                });
+
+                console.log(`📡 Response status: ${response.status}`);
+
+                if (!response.ok) {
+                    const errorText = await response.text();
+                    console.error('API Error:', errorText);
+                    throw new Error(`Failed to fetch costs: ${response.status} - ${errorText}`);
+                }
+
+                const data = await response.json();
+                console.log('✅ Tracking costs received:', data);
+                return data;
+            } catch (error) {
+                console.error('❌ Error fetching tracking costs:', error);
+                throw error;
+            }
+        }
+
+        function changeHistoryPeriod(days) {
+            historyPeriod = days;
+            // Update button states
+            document.querySelectorAll('.card-header button').forEach(btn => btn.classList.remove('active'));
+            event.target.classList.add('active');
+            // Refresh data
+            refreshAllData();
+        }
+
+        function updateTopCards(awsCosts, trackingCosts) {
+            const monthToDate = awsCosts.summary.month_to_date_usd;
+            const dailyAvg = awsCosts.summary.avg_daily_usd;
+            const forecast = awsCosts.summary.month_forecast_usd;
+            const budgetLeft = MONTHLY_BUDGET - monthToDate;
+            const budgetPercent = (monthToDate / MONTHLY_BUDGET * 100).toFixed(1);
+
+            document.getElementById('monthToDate').textContent = `$${monthToDate.toFixed(2)}`;
+            document.getElementById('monthPercent').textContent = `${budgetPercent}% of $${MONTHLY_BUDGET} budget`;
+
+            document.getElementById('dailyAvg').textContent = `$${dailyAvg.toFixed(2)}`;
+
+            document.getElementById('budgetLeft').textContent = `$${budgetLeft.toFixed(2)}`;
+            document.getElementById('budgetPercent').textContent = `${(100 - budgetPercent).toFixed(1)}% remaining`;
+
+            document.getElementById('forecast').textContent = `$${forecast.toFixed(2)}`;
+
+            const forecastStatusElem = document.getElementById('forecastStatus');
+            if (forecast > MONTHLY_BUDGET) {
+                forecastStatusElem.textContent = '⚠️ Over Budget';
+                forecastStatusElem.style.color = 'var(--danger-color)';
+            } else if (forecast > MONTHLY_BUDGET * 0.9) {
+                forecastStatusElem.textContent = '⚠️ At Risk';
+                forecastStatusElem.style.color = 'var(--warning-color)';
+            } else {
+                forecastStatusElem.textContent = '✅ On Track';
+                forecastStatusElem.style.color = 'var(--success-color)';
+            }
+        }
+
+        function updateInfrastructureCosts(awsCosts) {
+            const maxCost = Math.max(...awsCosts.service_totals.map(s => s.cost_usd));
+
+            const html = awsCosts.service_totals.map(service => `
                 <div class="service-item">
                     <div style="flex: 1;">
                         <div class="service-name">
-                            <i class="bi bi-${getServiceIcon(service.name)}"></i> ${service.name}
+                            <i class="bi bi-${getServiceIcon(service.service)}"></i>
+                            ${simplifyServiceName(service.service)}
                         </div>
                         <div class="progress-custom">
-                            <div class="progress-bar-custom" style="width: ${((service.cost_usd || 0) / maxCost * 100)}%"></div>
+                            <div class="progress-bar-custom" style="width: ${(service.cost_usd / maxCost * 100)}%"></div>
                         </div>
                     </div>
-                    <div class="service-cost ms-3">
-                        $${(service.cost_usd || 0).toFixed(2)}
+                    <div class="service-cost">
+                        $${service.cost_usd.toFixed(2)}
                     </div>
                 </div>
             `).join('');
 
-            document.getElementById('servicesList').innerHTML = html;
-        }
+            document.getElementById('infrastructureCosts').innerHTML = html;
 
-        function updateCharts(data) {
-            // Cost Distribution Pie Chart
+            // Update pie chart
             if (costChart) costChart.destroy();
-            const costCtx = document.getElementById('costChart').getContext('2d');
-            costChart = new Chart(costCtx, {
+            const ctx = document.getElementById('costChart').getContext('2d');
+            costChart = new Chart(ctx, {
                 type: 'doughnut',
                 data: {
-                    labels: (data.services || []).map(s => s.name),
+                    labels: awsCosts.service_totals.map(s => simplifyServiceName(s.service)),
                     datasets: [{
-                        data: (data.services || []).map(s => s.cost_usd || 0),
+                        data: awsCosts.service_totals.map(s => s.cost_usd),
                         backgroundColor: [
                             '#667eea', '#764ba2', '#10b981', '#f59e0b', '#ef4444', '#3b82f6', '#8b5cf6'
-                        ]
+                        ],
+                        borderWidth: 0
                     }]
                 },
                 options: {
@@ -382,48 +667,190 @@
                     plugins: {
                         legend: {
                             position: 'bottom',
-                            labels: { color: '#e5e7eb' }
+                            labels: { color: '#e5e7eb', padding: 15 }
                         }
                     }
                 }
             });
+        }
 
-            // Operations Chart (replaces OpenAI chart)
-            if (openaiChart) openaiChart.destroy();
-            const openaiCtx = document.getElementById('openaiChart').getContext('2d');
-            openaiChart = new Chart(openaiCtx, {
-                type: 'bar',
-                data: {
-                    labels: (data.operations || []).map(o => o.name),
-                    datasets: [{
-                        label: 'Cost by Operation ($)',
-                        data: (data.operations || []).map(o => o.cost_usd || 0),
-                        backgroundColor: '#f59e0b'
-                    }]
-                },
-                options: {
-                    responsive: true,
-                    maintainAspectRatio: false,
-                    plugins: {
-                        legend: { labels: { color: '#e5e7eb' } }
-                    },
-                    scales: {
-                        x: { ticks: { color: '#9ca3af' } },
-                        y: { ticks: { color: '#9ca3af' } }
-                    }
-                }
-            });
+        function updateContentCosts(trackingCosts) {
+            const openai = (trackingCosts.services || []).find(s => s.name === 'OpenAI');
+            const polly = (trackingCosts.services || []).find(s => s.name === 'AWS Polly');
 
-            // Daily Trend Chart
+            const openaiCost = openai ? openai.cost_usd : 0;
+            const pollyCost = polly ? polly.cost_usd : 0;
+            const totalContent = openaiCost + pollyCost;
+            const totalAI = openaiCost + pollyCost;
+
+            const videoCount = trackingCosts.summary?.total_records || 0;
+            const costPerVideo = videoCount > 0 ? totalContent / videoCount : 0;
+
+            document.getElementById('totalContentCost').textContent = `$${totalContent.toFixed(2)}`;
+            document.getElementById('totalVideos').textContent = videoCount;
+            document.getElementById('costPerVideo').textContent = `$${costPerVideo.toFixed(2)}`;
+            document.getElementById('aiModelCost').textContent = `$${totalAI.toFixed(2)}`;
+
+            // AI Models breakdown
+            const aiHtml = `
+                <div class="service-item">
+                    <div class="service-name">
+                        <i class="bi bi-robot"></i> OpenAI (Narratives)
+                    </div>
+                    <div class="service-cost">
+                        $${openaiCost.toFixed(2)}
+                    </div>
+                </div>
+                <div class="service-item">
+                    <div class="service-name">
+                        <i class="bi bi-volume-up"></i> AWS Polly (Audio)
+                    </div>
+                    <div class="service-cost">
+                        $${pollyCost.toFixed(2)}
+                    </div>
+                </div>
+            `;
+            document.getElementById('aiModelsCosts').innerHTML = aiHtml;
+        }
+
+        function updateChannelBreakdown(trackingCosts) {
+            const channels = trackingCosts.top_channels || [];
+
+            if (channels.length === 0) {
+                document.getElementById('channelBreakdown').innerHTML = `
+                    <div class="text-center text-secondary py-5">
+                        <i class="bi bi-inbox"></i>
+                        <p class="mt-3">No channel data available</p>
+                    </div>
+                `;
+                return;
+            }
+
+            const maxCost = Math.max(...channels.map(c => c.cost_usd));
+            const html = channels.map(channel => `
+                <div class="service-item">
+                    <div style="flex: 1;">
+                        <div class="service-name">
+                            <i class="bi bi-play-circle"></i> Channel ${channel.channel_id.substring(0, 20)}...
+                        </div>
+                        <div class="progress-custom">
+                            <div class="progress-bar-custom" style="width: ${(channel.cost_usd / maxCost * 100)}%"></div>
+                        </div>
+                    </div>
+                    <div class="service-cost">
+                        $${channel.cost_usd.toFixed(2)}
+                    </div>
+                </div>
+            `).join('');
+
+            document.getElementById('channelBreakdown').innerHTML = html;
+        }
+
+        function updateOperationsBreakdown(trackingCosts) {
+            const operations = trackingCosts.operations || [];
+
+            if (operations.length === 0) {
+                document.getElementById('operationsBreakdown').innerHTML = `
+                    <div class="text-center text-secondary py-5">
+                        <i class="bi bi-inbox"></i>
+                        <p class="mt-3">No operations data available</p>
+                    </div>
+                `;
+                return;
+            }
+
+            // Define friendly names and icons for operations
+            const operationInfo = {
+                'audio_generation': { name: 'Audio Generation (TTS)', icon: 'volume-up', color: '#667eea' },
+                'image_generation': { name: 'Image Generation', icon: 'image', color: '#764ba2' },
+                'mega_narrative_generation': { name: 'Narrative Generation', icon: 'file-text', color: '#10b981' },
+                'theme_generation': { name: 'Theme Generation', icon: 'lightbulb', color: '#f59e0b' },
+                'cta_audio': { name: 'CTA Audio', icon: 'megaphone', color: '#ef4444' },
+                'video_assembly': { name: 'Video Assembly', icon: 'film', color: '#3b82f6' }
+            };
+
+            const maxCost = Math.max(...operations.map(o => o.cost_usd));
+            const html = operations.map(op => {
+                const info = operationInfo[op.name] || { name: op.name, icon: 'gear', color: '#6b7280' };
+                return `
+                    <div class="service-item">
+                        <div style="flex: 1;">
+                            <div class="service-name">
+                                <i class="bi bi-${info.icon}" style="color: ${info.color};"></i>
+                                ${info.name}
+                            </div>
+                            <div class="progress-custom">
+                                <div class="progress-bar-custom" style="width: ${(op.cost_usd / maxCost * 100)}%; background: linear-gradient(90deg, ${info.color}, ${info.color}dd);"></div>
+                            </div>
+                            <div class="cost-per-unit">${op.units || 0} operations</div>
+                        </div>
+                        <div class="service-cost">
+                            $${op.cost_usd.toFixed(4)}
+                            <div class="cost-per-unit">${op.percentage.toFixed(1)}%</div>
+                        </div>
+                    </div>
+                `;
+            }).join('');
+
+            document.getElementById('operationsBreakdown').innerHTML = html;
+        }
+
+        function updateBudgetAlerts(awsCosts) {
+            const monthToDate = awsCosts.summary.month_to_date_usd;
+            const forecast = awsCosts.summary.month_forecast_usd;
+            const budgetPercent = (monthToDate / MONTHLY_BUDGET * 100);
+
+            let alertsHtml = '';
+
+            if (forecast > MONTHLY_BUDGET) {
+                alertsHtml += `
+                    <div class="budget-alert">
+                        <div style="font-weight: 600; margin-bottom: 0.5rem;">
+                            <i class="bi bi-exclamation-triangle"></i> Budget Exceeded
+                        </div>
+                        <div class="text-secondary" style="font-size: 0.9rem;">
+                            Forecasted to exceed budget by $${(forecast - MONTHLY_BUDGET).toFixed(2)}
+                        </div>
+                    </div>
+                `;
+            } else if (budgetPercent > 75) {
+                alertsHtml += `
+                    <div class="budget-alert" style="background: rgba(245, 158, 11, 0.1); border-left-color: var(--warning-color);">
+                        <div style="font-weight: 600; margin-bottom: 0.5rem;">
+                            <i class="bi bi-exclamation-circle"></i> High Usage
+                        </div>
+                        <div class="text-secondary" style="font-size: 0.9rem;">
+                            ${budgetPercent.toFixed(1)}% of monthly budget used
+                        </div>
+                    </div>
+                `;
+            }
+
+            if (alertsHtml === '') {
+                alertsHtml = `
+                    <div class="text-center text-secondary py-3">
+                        <i class="bi bi-check-circle" style="font-size: 3rem; color: var(--success-color);"></i>
+                        <p class="mt-3">No alerts - Everything looks good!</p>
+                    </div>
+                `;
+            }
+
+            document.getElementById('budgetAlerts').innerHTML = alertsHtml;
+        }
+
+        function updateCharts(awsCosts, trackingCosts) {
+            // Daily trend chart
+            const dailyData = trackingCosts.daily_trend || [];
+
             if (trendChart) trendChart.destroy();
-            const trendCtx = document.getElementById('trendChart').getContext('2d');
-            trendChart = new Chart(trendCtx, {
+            const ctx = document.getElementById('trendChart').getContext('2d');
+            trendChart = new Chart(ctx, {
                 type: 'line',
                 data: {
-                    labels: (data.daily_trend || []).map(d => d.date),
+                    labels: dailyData.map(d => d.date),
                     datasets: [{
-                        label: 'Daily Total ($)',
-                        data: (data.daily_trend || []).map(d => d.cost_usd || 0),
+                        label: 'Daily Cost ($)',
+                        data: dailyData.map(d => d.cost_usd),
                         borderColor: '#667eea',
                         backgroundColor: 'rgba(102, 126, 234, 0.1)',
                         tension: 0.4,
@@ -438,49 +865,52 @@
                     },
                     scales: {
                         x: { ticks: { color: '#9ca3af' } },
-                        y: { ticks: { color: '#9ca3af' } }
+                        y: {
+                            ticks: {
+                                color: '#9ca3af',
+                                callback: v => '$' + v.toFixed(2)
+                            }
+                        }
                     }
                 }
             });
-
-            // Update OpenAI stats (calculated from services)
-            const openaiService = (data.services || []).find(s => s.name === 'OpenAI');
-            if (openaiService) {
-                document.getElementById('openaiCost').textContent = `$${(openaiService.cost_usd || 0).toFixed(2)}`;
-                document.getElementById('openaiRequests').textContent = (data.summary?.total_records || 0).toLocaleString();
-                document.getElementById('openaiTokens').textContent = '~';
-                document.getElementById('openaiAvgCost').textContent = `$${((openaiService.cost_usd || 0) / (data.summary?.total_records || 1)).toFixed(3)}`;
-            } else {
-                document.getElementById('openaiCost').textContent = '$0.00';
-                document.getElementById('openaiRequests').textContent = '0';
-                document.getElementById('openaiTokens').textContent = '0';
-                document.getElementById('openaiAvgCost').textContent = '$0.000';
-            }
         }
 
         function getServiceIcon(serviceName) {
             const icons = {
-                'Lambda': 'lightning',
-                'DynamoDB': 'database',
-                'S3': 'folder',
-                'CloudWatch': 'eye',
-                'API Gateway': 'globe',
-                'Step Functions': 'diagram-3',
-                'OpenAI': 'robot',
-                'AWS Polly': 'volume-up',
-                'AWS S3': 'folder',
-                'AWS Lambda': 'lightning'
+                'Amazon Elastic Compute Cloud': 'server',
+                'Amazon DynamoDB': 'database',
+                'Amazon Simple Storage Service': 'folder',
+                'AWS Lambda': 'lightning',
+                'AWS Step Functions': 'diagram-3',
+                'Amazon CloudWatch': 'eye',
+                'AWS API Gateway': 'globe'
             };
             return icons[serviceName] || 'cloud';
         }
 
+        function simplifyServiceName(name) {
+            const simple = {
+                'Amazon Elastic Compute Cloud': 'EC2 Compute',
+                'Amazon DynamoDB': 'DynamoDB',
+                'Amazon Simple Storage Service': 'S3 Storage',
+                'AWS Lambda': 'Lambda Functions',
+                'AWS Step Functions': 'Step Functions',
+                'Amazon CloudWatch': 'CloudWatch Logs',
+                'AWS API Gateway': 'API Gateway'
+            };
+            return simple[name] || name;
+        }
+
         // Initial load
-        refreshCosts();
+        loadBudget();
+        refreshAllData();
 
         // Auto-refresh every 5 minutes
-        setInterval(refreshCosts, 300000);
+        setInterval(refreshAllData, 300000);
     </script>
 
     <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+    <script src="js/navigation.js?v=20251130-0423"></script>
 </body>
 </html>

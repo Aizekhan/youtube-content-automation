@@ -44,29 +44,28 @@
     border-radius: 2px;
 }
 
-/* Top navigation links - higher specificity to override Bootstrap nav-pills */
-.nav-container .nav-bar .nav-link {
+.nav-link {
     color: rgba(226, 232, 240, 0.7);
     text-decoration: none;
     padding: 0.625rem 1.25rem;
     border-radius: 8px;
-    font-weight: 400 !important;
+    font-weight: 500;
     font-size: 0.9375rem;
     transition: all 0.2s ease;
     white-space: nowrap;
     border: 1px solid transparent;
 }
 
-.nav-container .nav-bar .nav-link:hover {
+.nav-link:hover {
     background: rgba(102, 126, 234, 0.15);
     color: #e5e7eb;
     border-color: rgba(102, 126, 234, 0.3);
 }
 
-.nav-container .nav-bar .nav-link.active {
-    background: linear-gradient(135deg, #667eea, #764ba2) !important;
-    color: white !important;
-    font-weight: 700 !important;
+.nav-link.active {
+    background: linear-gradient(135deg, #667eea, #764ba2);
+    color: white;
+    font-weight: 600;
     box-shadow: 0 2px 8px rgba(102, 126, 234, 0.3);
 }
 

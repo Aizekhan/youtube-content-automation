@@ -157,35 +157,12 @@
             color: var(--text-secondary);
             font-size: 0.9rem;
             margin-top: 0.5rem;
-        }
+        }n        .spinner-border-sm {n            height: 2rem;n        }
     </style>
 </head>
 <body>
-    <!-- Unified Navigation -->
-    <nav class="nav-container">
-        <div class="nav-wrapper">
-            <div class="nav-bar">
-                <a href="index.html" class="nav-link active">
-                    <i class="bi bi-house-door"></i> Home
-                </a>
-                <a href="dashboard.html" class="nav-link">
-                    <i class="bi bi-speedometer2"></i> Dashboard
-                </a>
-                <a href="channels.html" class="nav-link">
-                    <i class="bi bi-collection"></i> Channels
-                </a>
-                <a href="content.html" class="nav-link">
-                    <i class="bi bi-file-earmark-text"></i> Content
-                </a>
-                <a href="costs.html" class="nav-link">
-                    <i class="bi bi-currency-dollar"></i> Costs
-                </a>
-                <a href="prompts-editor.html" class="nav-link">
-                    <i class="bi bi-pencil-square"></i> Prompts
-                </a>
-            </div>
-        </div>
-    </nav>
+    <!-- Unified Navigation (loaded from js/navigation.js) -->
+    <div id="navigation-placeholder"></div>
 
     <!-- Hero Section -->
     <div class="hero-section">
@@ -208,8 +185,8 @@
                     <div class="stat-label">Згенеровано контенту</div>
                 </div>
                 <div class="col-md-3 stat-item">
-                    <div class="stat-value" id="aiAgents">2</div>
-                    <div class="stat-label">AI Агенти</div>
+                    <div class="stat-value" id="aiAgents">-</div>
+                    <div class="stat-label">AI Компоненти</div>
                 </div>
                 <div class="col-md-3 stat-item">
                     <div class="stat-value" id="systemStatus">
@@ -294,9 +271,37 @@
                 </a>
             </div>
 
+
+            <!-- Audio Library -->
+            <div class="col-md-6 col-lg-4">
+                <a href="audio-library.html" class="nav-card">
+                    <span class="status-badge badge-new">NEW</span>
+                    <div class="nav-card-icon">
+                        <i class="bi bi-music-note-list"></i>
+                    </div>
+                    <div class="nav-card-title">Audio Library</div>
+                    <div class="nav-card-description">
+                        Бібліотека фонової музики та звукових ефектів для відео
+                    </div>
+                </a>
+            </div>
+
+            <!-- Settings -->
+            <div class="col-md-6 col-lg-4">
+                <a href="settings.html" class="nav-card">
+                    <span class="status-badge badge-active">ACTIVE</span>
+                    <div class="nav-card-icon">
+                        <i class="bi bi-gear"></i>
+                    </div>
+                    <div class="nav-card-title">Settings</div>
+                    <div class="nav-card-description">
+                        Налаштування облікового запису та системи
+                    </div>
+                </a>
+            </div>
             <!-- System Documentation -->
             <div class="col-md-6 col-lg-4">
-                <a href="DOCUMENTATION.md" class="nav-card" target="_blank">
+                <a href="documentation.html" class="nav-card">
                     <span class="status-badge badge-active">ACTIVE</span>
                     <div class="nav-card-icon">
                         <i class="bi bi-book"></i>
@@ -317,21 +322,153 @@
         </p>
     </div>
 
+    <script src="js/auth.js"></script>
     <script>
-        // Load basic stats
-        async function loadStats() {
+        const CONTENT_API = 'https://32orjqvilkon6p62e34yvtbcm40znazv.lambda-url.eu-central-1.on.aws';
+        const CHANNELS_API = 'https://lr555ui3ycne6lj7opvpqjigce0cvkzu.lambda-url.eu-central-1.on.aws/';
+        const authManager = new AuthManager();
+
+        // Instant cache
+        const CACHE_KEY = 'home_stats';
+        const CACHE_TIME = 5 * 60 * 1000; // 5 min
+
+        function loadCache() {
             try {
-                // Placeholder - will be replaced with real API calls later
-                document.getElementById('activeChannels').textContent = '...';
-                document.getElementById('totalContent').textContent = '...';
-            } catch (error) {
-                console.error('Error loading stats:', error);
-            }
+                const c = localStorage.getItem(CACHE_KEY);
+                if (c) {
+                    const d = JSON.parse(c);
+                    if (Date.now() - d.t < CACHE_TIME) {
+                        document.getElementById('activeChannels').textContent = d.ac;
+                        document.getElementById('totalContent').textContent = d.tc;
+                        document.getElementById('aiAgents').textContent = '5';
+                        return true;
+                    }
+                }
+            } catch(e) {}
+            return false;
         }
 
-        loadStats();
+        function saveCache(ac, tc) {
+            try {
+                localStorage.setItem(CACHE_KEY, JSON.stringify({ac, tc, t: Date.now()}));
+            } catch(e) {}
+        }
+
+        async function loadStats() {
+            // Show cache instantly
+            const hadCache = loadCache();
+            if (hadCache) console.log('[CACHE] Instant load');
+
+            console.log('[1] Starting loadStats...');
+
+            const isAuth = await authManager.requireAuth();
+            if (!isAuth) {
+                console.log('[2] Not authenticated');
+                return;
+            }
+
+            const user = authManager.getUser();
+            const userId = authManager.getUserId();
+
+            console.log('[3] User:', user);
+            console.log('[4] UserId:', userId);
+
+            if (!userId) {
+                console.error('[5] ERROR: No userId found!');
+                console.log('[6] User object:', JSON.stringify(user, null, 2));
+                document.getElementById('activeChannels').textContent = 'No ID';
+                document.getElementById('totalContent').textContent = 'No ID';
+                return;
+            }
+
+            // Don't show loading if we have cache
+            if (!hadCache) {
+                document.getElementById('activeChannels').textContent = '...';
+                document.getElementById('totalContent').textContent = '...';
+            }
+            document.getElementById('aiAgents').textContent = '5';
+
+            try {
+                console.log('[7] Fetching channels...');
+                const channelsResponse = await fetch(CHANNELS_API, {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ action: 'get_channels', user_id: userId })
+                });
+                
+                console.log('[8] Channels response status:', channelsResponse.status);
+                const channelsData = await channelsResponse.json();
+                console.log('[9] Channels data:', channelsData);
+                console.log('[9.1] Is channelsData an array?', Array.isArray(channelsData));
+                console.log('[9.2] channelsData.channels exists?', !!channelsData.channels);
+                console.log('[9.3] Type of channelsData:', typeof channelsData);
+
+                // Handle both formats: {channels: [...]} or just [...]
+                const channels = Array.isArray(channelsData) ? channelsData : (channelsData.channels || []);
+                console.log('[9.5] Channel details:', channels.map(ch => ({
+                    name: ch.channel_name,
+                    is_active: ch.is_active,
+                    type: typeof ch.is_active
+                })));
+
+                const activeChannels = channels.filter(ch => {
+                    // Handle boolean, string 'true', or number 1
+                    return ch.is_active === true ||
+                           ch.is_active === 'true' ||
+                           ch.is_active === 1 ||
+                           ch.is_active === '1';
+                }).length;
+
+                document.getElementById('activeChannels').textContent = activeChannels;
+                console.log('[10] Active channels:', activeChannels);
+            } catch (error) {
+                console.error('[ERROR-CH] Channels error:', error);
+                document.getElementById('activeChannels').textContent = '?';
+            }
+
+            try {
+                console.log('[11] Fetching content...');
+                const contentResponse = await fetch(CONTENT_API, {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ user_id: userId })
+                });
+
+                console.log('[12] Content response status:', contentResponse.status);
+                const contentData = await contentResponse.json();
+                console.log('[13] Content data:', contentData);
+
+                const totalContent = contentData.stats?.total || 0;
+                document.getElementById('totalContent').textContent = totalContent;
+                console.log('[14] Total content:', totalContent);
+
+                // Save to cache
+                const ac = parseInt(document.getElementById('activeChannels').textContent) || 0;
+                saveCache(ac, totalContent);
+            } catch (error) {
+                console.error('[ERROR-CT] Content error:', error);
+                document.getElementById('totalContent').textContent = '?';
+            }
+
+            console.log('[15] Done!');
+        }
+
+        // Load on page ready
+        document.addEventListener('DOMContentLoaded', () => {
+            console.log('[0] DOM ready, loading stats...');
+            loadStats();
+        });
+
+        // Also reload when page becomes visible (e.g., returning from another tab)
+        document.addEventListener('visibilitychange', () => {
+            if (!document.hidden) {
+                console.log('[0] Page visible, reloading stats...');
+                loadStats();
+            }
+        });
     </script>
 
     <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+    <script src="js/navigation.js?v=20251130-0423"></script>
 </body>
 </html>

@@ -1,0 +1,38 @@
+{
+  "Version": "2012-10-17",
+  "Statement": [
+    {
+      "Sid": "StartStepFunctionsExecution",
+      "Effect": "Allow",
+      "Action": [
+        "states:StartExecution",
+        "states:DescribeExecution",
+        "states:DescribeStateMachine"
+      ],
+      "Resource": [
+        "arn:aws:states:eu-central-1:599297130956:stateMachine:ContentGenerator",
+        "arn:aws:states:eu-central-1:599297130956:execution:ContentGenerator:*"
+      ]
+    },
+    {
+      "Sid": "ReadChannelConfigs",
+      "Effect": "Allow",
+      "Action": [
+        "dynamodb:Scan",
+        "dynamodb:Query",
+        "dynamodb:GetItem"
+      ],
+      "Resource": "arn:aws:dynamodb:eu-central-1:599297130956:table/ChannelConfigs"
+    },
+    {
+      "Sid": "CloudWatchLogs",
+      "Effect": "Allow",
+      "Action": [
+        "logs:CreateLogGroup",
+        "logs:CreateLogStream",
+        "logs:PutLogEvents"
+      ],
+      "Resource": "arn:aws:logs:eu-central-1:599297130956:log-group:/aws/lambda/content-trigger:*"
+    }
+  ]
+}

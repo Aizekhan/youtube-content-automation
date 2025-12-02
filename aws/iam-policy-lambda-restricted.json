@@ -1,0 +1,33 @@
+{
+  "Version": "2012-10-17",
+  "Statement": [
+    {
+      "Effect": "Allow",
+      "Action": "lambda:InvokeFunction",
+      "Resource": [
+        "arn:aws:lambda:eu-central-1:599297130956:function:content-get-channels",
+        "arn:aws:lambda:eu-central-1:599297130956:function:content-theme-agent",
+        "arn:aws:lambda:eu-central-1:599297130956:function:content-narrative",
+        "arn:aws:lambda:eu-central-1:599297130956:function:content-audio-tts",
+        "arn:aws:lambda:eu-central-1:599297130956:function:content-save-result",
+        "arn:aws:lambda:eu-central-1:599297130956:function:content-generate-images",
+        "arn:aws:lambda:eu-central-1:599297130956:function:dashboard-content",
+        "arn:aws:lambda:eu-central-1:599297130956:function:dashboard-monitoring",
+        "arn:aws:lambda:eu-central-1:599297130956:function:dashboard-costs",
+        "arn:aws:lambda:eu-central-1:599297130956:function:ec2-sd35-control"
+      ]
+    },
+    {
+      "Effect": "Allow",
+      "Action": [
+        "lambda:GetFunction",
+        "lambda:GetFunctionConfiguration"
+      ],
+      "Resource": [
+        "arn:aws:lambda:eu-central-1:599297130956:function:content-*",
+        "arn:aws:lambda:eu-central-1:599297130956:function:dashboard-*",
+        "arn:aws:lambda:eu-central-1:599297130956:function:ec2-*"
+      ]
+    }
+  ]
+}
