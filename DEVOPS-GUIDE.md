@@ -345,6 +345,45 @@ aws s3 cp ./restored-state.tfstate s3://terraform-state-599297130956/production/
 
 ---
 
+## ⚙️ Налаштування GitHub Secrets
+
+### Telegram Notifications
+
+GitHub Actions вже налаштовані для відправки Telegram сповіщень про deployment. Потрібно додати secrets:
+
+**Крок 1:** Перейди на GitHub Settings
+```
+https://github.com/Aizekhan/youtube-content-automation/settings/secrets/actions
+```
+
+**Крок 2:** Додай 2 secrets
+
+1. **TELEGRAM_BOT_TOKEN**
+   - Name: `TELEGRAM_BOT_TOKEN`
+   - Value: `8222377088:AAGoRh5ST40ci05SbxS953_tnA5jD4lH2ts`
+
+2. **TELEGRAM_CHAT_ID**
+   - Name: `TELEGRAM_CHAT_ID`
+   - Value: `784661667`
+
+**Крок 3:** Перевір
+
+Після додавання secrets, кожен deployment автоматично буде відправляти повідомлення:
+- ✅ Успішний deployment
+- ❌ Помилка deployment
+- Список змінених Lambda функцій
+- Посилання на workflow run
+
+### AWS Credentials
+
+AWS credentials вже налаштовані в GitHub Secrets:
+- `AWS_ACCESS_KEY_ID`
+- `AWS_SECRET_ACCESS_KEY`
+
+⚠️ **ВАЖЛИВО:** Ніколи не commit'ь ці значення в Git!
+
+---
+
 ## 📞 Контакти і Ресурси
 
 **GitHub Repository:**
