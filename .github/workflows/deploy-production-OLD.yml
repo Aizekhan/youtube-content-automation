@@ -151,24 +151,8 @@ jobs:
         run: |
           cd aws/lambda/${{ matrix.function }}
 
-          # Check if create_zip.py exists (uses shared modules)
-          if [ -f "create_zip.py" ]; then
-            echo "Using create_zip.py script..."
-            python create_zip.py
-          else
-            # Copy shared modules if they exist and are needed
-            if grep -q "from shared\." *.py 2>/dev/null || grep -q "import shared\." *.py 2>/dev/null; then
-              echo "Copying shared modules..."
-              mkdir -p shared
-              cp -r ../shared/*.py shared/ 2>/dev/null || true
-            fi
-
-            # Create ZIP package
-            echo "Creating ZIP package..."
-            zip -r function.zip . -x "*.git*" "*.md" "test_*" "*__pycache__*" "create_zip.py"
-          fi
-
-          echo "Deployment package created: $(du -h function.zip | cut -f1)"
+          # Create ZIP package
+          zip -r function.zip . -x "*.git*" "*.md" "test_*" "*__pycache__*"
 
       - name: Deploy ${{ matrix.function }} to AWS Lambda
         if: steps.check_changes.outputs.changed == 'true'
@@ -231,9 +215,9 @@ jobs:
           echo "Frontend Deployment: ${{ needs.deploy-frontend.result }}"
 
           if [ "${{ needs.deploy-lambda.result }}" == "success" ]; then
-            echo "Lambda functions deployed successfully"
+            echo "✅ Lambda functions deployed successfully"
           else
-            echo "Lambda deployment had issues"
+            echo "❌ Lambda deployment had issues"
           fi
 
       - name: Send Telegram notification (optional)
@@ -245,9 +229,9 @@ jobs:
           if [ -n "$TELEGRAM_TOKEN" ] && [ -n "$TELEGRAM_CHAT_ID" ]; then
             STATUS="${{ needs.deploy-lambda.result }}"
             if [ "$STATUS" == "success" ]; then
-              MESSAGE="Production deployment completed successfully"
+              MESSAGE="✅ Production deployment completed successfully"
             else
-              MESSAGE="Production deployment failed"
+              MESSAGE="❌ Production deployment failed"
             fi
 
             curl -s -X POST "https://api.telegram.org/bot${TELEGRAM_TOKEN}/sendMessage" \
