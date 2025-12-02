@@ -1,0 +1,242 @@
+name: Deploy to Production
+
+on:
+  push:
+    branches:
+      - master
+  workflow_dispatch:  # Manual trigger
+
+env:
+  AWS_REGION: eu-central-1
+
+jobs:
+  # Job 1: Detect Changed Lambda Functions
+  detect-changes:
+    name: Detect Changed Files
+    runs-on: ubuntu-latest
+    outputs:
+      lambda_changed: ${{ steps.filter.outputs.lambda }}
+      frontend_changed: ${{ steps.filter.outputs.frontend }}
+      terraform_changed: ${{ steps.filter.outputs.terraform }}
+    steps:
+      - uses: actions/checkout@v3
+        with:
+          fetch-depth: 2
+
+      - name: Check for changes
+        id: filter
+        run: |
+          # Check if Lambda functions changed
+          if git diff --name-only HEAD^ HEAD | grep -q "^aws/lambda/"; then
+            echo "lambda=true" >> $GITHUB_OUTPUT
+          else
+            echo "lambda=false" >> $GITHUB_OUTPUT
+          fi
+
+          # Check if frontend changed
+          if git diff --name-only HEAD^ HEAD | grep -qE "\.(html|css|js)$"; then
+            echo "frontend=true" >> $GITHUB_OUTPUT
+          else
+            echo "frontend=false" >> $GITHUB_OUTPUT
+          fi
+
+          # Check if Terraform changed
+          if git diff --name-only HEAD^ HEAD | grep -q "^terraform/"; then
+            echo "terraform=true" >> $GITHUB_OUTPUT
+          else
+            echo "terraform=false" >> $GITHUB_OUTPUT
+          fi
+
+  # Job 2: Run Tests
+  test:
+    name: Run Tests
+    runs-on: ubuntu-latest
+    needs: detect-changes
+    if: needs.detect-changes.outputs.lambda_changed == 'true'
+    steps:
+      - uses: actions/checkout@v3
+
+      - name: Set up Python
+        uses: actions/setup-python@v4
+        with:
+          python-version: '3.11'
+
+      - name: Install dependencies
+        run: |
+          python -m pip install --upgrade pip
+          pip install boto3 pytest
+
+      - name: Run Python tests
+        run: |
+          # Add test commands here when tests are available
+          echo "Tests will be added in future iterations"
+          # Example: pytest aws/lambda/*/test_*.py
+
+  # Job 3: Deploy Lambda Functions
+  deploy-lambda:
+    name: Deploy Lambda Functions
+    runs-on: ubuntu-latest
+    needs: [detect-changes, test]
+    if: |
+      always() &&
+      (needs.test.result == 'success' || needs.test.result == 'skipped') &&
+      needs.detect-changes.outputs.lambda_changed == 'true'
+
+    strategy:
+      matrix:
+        function:
+          - content-narrative
+          - content-theme-agent
+          - content-audio-tts
+          - content-audio-polly
+          - content-audio-elevenlabs
+          - content-generate-images
+          - content-save-result
+          - content-get-channels
+          - content-trigger
+          - content-video-assembly
+          - dashboard-content
+          - dashboard-costs
+          - dashboard-monitoring
+          - prompts-api
+          - collect-all-image-prompts
+          - prepare-image-batches
+          - merge-image-batches
+          - distribute-images
+          - ec2-sd35-control
+          - save-phase1-to-s3
+          - load-phase1-from-s3
+          - telegram-error-notifier
+
+      fail-fast: false  # Continue deploying other functions even if one fails
+
+    steps:
+      - uses: actions/checkout@v3
+
+      - name: Configure AWS credentials
+        uses: aws-actions/configure-aws-credentials@v2
+        with:
+          aws-access-key-id: ${{ secrets.AWS_ACCESS_KEY_ID }}
+          aws-secret-access-key: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
+          aws-region: ${{ env.AWS_REGION }}
+
+      - name: Set up Python
+        uses: actions/setup-python@v4
+        with:
+          python-version: '3.11'
+
+      - name: Check if function changed
+        id: check_changes
+        run: |
+          if git diff --name-only HEAD^ HEAD | grep -q "aws/lambda/${{ matrix.function }}/"; then
+            echo "changed=true" >> $GITHUB_OUTPUT
+            echo "Function ${{ matrix.function }} has changes"
+          else
+            echo "changed=false" >> $GITHUB_OUTPUT
+            echo "Function ${{ matrix.function }} unchanged, skipping"
+          fi
+
+      - name: Install dependencies for ${{ matrix.function }}
+        if: steps.check_changes.outputs.changed == 'true'
+        run: |
+          cd aws/lambda/${{ matrix.function }}
+
+          # Check if requirements.txt exists
+          if [ -f "requirements.txt" ]; then
+            pip install -r requirements.txt -t .
+          fi
+
+      - name: Create deployment package for ${{ matrix.function }}
+        if: steps.check_changes.outputs.changed == 'true'
+        run: |
+          cd aws/lambda/${{ matrix.function }}
+
+          # Create ZIP package
+          zip -r function.zip . -x "*.git*" "*.md" "test_*" "*__pycache__*"
+
+      - name: Deploy ${{ matrix.function }} to AWS Lambda
+        if: steps.check_changes.outputs.changed == 'true'
+        run: |
+          aws lambda update-function-code \
+            --function-name ${{ matrix.function }} \
+            --zip-file fileb://aws/lambda/${{ matrix.function }}/function.zip \
+            --region ${{ env.AWS_REGION }}
+
+          echo "Deployed ${{ matrix.function }} successfully"
+
+      - name: Wait for function to update
+        if: steps.check_changes.outputs.changed == 'true'
+        run: |
+          aws lambda wait function-updated \
+            --function-name ${{ matrix.function }} \
+            --region ${{ env.AWS_REGION }}
+
+          echo "${{ matrix.function }} is now active"
+
+  # Job 4: Deploy Frontend (if changed)
+  deploy-frontend:
+    name: Deploy Frontend to S3
+    runs-on: ubuntu-latest
+    needs: detect-changes
+    if: needs.detect-changes.outputs.frontend_changed == 'true'
+
+    steps:
+      - uses: actions/checkout@v3
+
+      - name: Configure AWS credentials
+        uses: aws-actions/configure-aws-credentials@v2
+        with:
+          aws-access-key-id: ${{ secrets.AWS_ACCESS_KEY_ID }}
+          aws-secret-access-key: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
+          aws-region: ${{ env.AWS_REGION }}
+
+      - name: Sync HTML files to production server
+        run: |
+          # Note: This requires SSH access to production server
+          # For now, just show what would be deployed
+          echo "Frontend files changed:"
+          git diff --name-only HEAD^ HEAD | grep -E "\.(html|css|js)$"
+
+          # TODO: Add actual deployment via SSH or S3 sync
+          echo "Frontend deployment will be configured with production server details"
+
+  # Job 5: Notify on completion
+  notify:
+    name: Notify Deployment Status
+    runs-on: ubuntu-latest
+    needs: [deploy-lambda, deploy-frontend]
+    if: always()
+
+    steps:
+      - name: Deployment Summary
+        run: |
+          echo "=== Deployment Summary ==="
+          echo "Lambda Deployment: ${{ needs.deploy-lambda.result }}"
+          echo "Frontend Deployment: ${{ needs.deploy-frontend.result }}"
+
+          if [ "${{ needs.deploy-lambda.result }}" == "success" ]; then
+            echo "✅ Lambda functions deployed successfully"
+          else
+            echo "❌ Lambda deployment had issues"
+          fi
+
+      - name: Send Telegram notification (optional)
+        if: always()
+        env:
+          TELEGRAM_TOKEN: ${{ secrets.TELEGRAM_BOT_TOKEN }}
+          TELEGRAM_CHAT_ID: ${{ secrets.TELEGRAM_CHAT_ID }}
+        run: |
+          if [ -n "$TELEGRAM_TOKEN" ] && [ -n "$TELEGRAM_CHAT_ID" ]; then
+            STATUS="${{ needs.deploy-lambda.result }}"
+            if [ "$STATUS" == "success" ]; then
+              MESSAGE="✅ Production deployment completed successfully"
+            else
+              MESSAGE="❌ Production deployment failed"
+            fi
+
+            curl -s -X POST "https://api.telegram.org/bot${TELEGRAM_TOKEN}/sendMessage" \
+              -d chat_id="${TELEGRAM_CHAT_ID}" \
+              -d text="${MESSAGE}" || true
+          else
+            echo "Telegram notifications not configured"
+          fi

@@ -1,0 +1,195 @@
+name: CI/CD Pipeline - YouTube Content Automation
+
+on:
+  push:
+    branches: [master, main, develop]
+  pull_request:
+    branches: [master, main]
+  workflow_dispatch:  # Allow manual triggers
+
+env:
+  AWS_REGION: eu-central-1
+  PYTHON_VERSION: '3.11'
+
+jobs:
+  # Job 1: Run tests
+  test:
+    name: Run Tests
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Set up Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: ${{ env.PYTHON_VERSION }}
+          cache: 'pip'
+
+      - name: Install dependencies
+        run: |
+          python -m pip install --upgrade pip
+          pip install pytest pytest-cov boto3 moto
+
+      - name: Run tests
+        run: |
+          pytest tests/ -v --cov=aws/lambda/shared --cov=aws/lambda/dashboard-content --cov-report=xml --cov-report=term
+
+      - name: Upload coverage to Codecov
+        uses: codecov/codecov-action@v4
+        with:
+          files: ./coverage.xml
+          flags: unittests
+          name: codecov-umbrella
+          fail_ci_if_error: false
+
+      - name: Archive test results
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: test-results
+          path: coverage.xml
+
+  # Job 2: Lint and security checks
+  lint:
+    name: Lint & Security
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Set up Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: ${{ env.PYTHON_VERSION }}
+
+      - name: Install linting tools
+        run: |
+          pip install flake8 bandit
+
+      - name: Run Flake8
+        continue-on-error: true
+        run: |
+          flake8 aws/lambda/ --count --select=E9,F63,F7,F82 --show-source --statistics
+          flake8 aws/lambda/ --count --exit-zero --max-complexity=10 --max-line-length=127 --statistics
+
+      - name: Run Bandit (security)
+        continue-on-error: true
+        run: |
+          bandit -r aws/lambda/ -f json -o bandit-report.json || true
+          bandit -r aws/lambda/ -ll
+
+  # Job 3: Deploy Lambda functions (only on push to main/master)
+  deploy-lambda:
+    name: Deploy Lambda Functions
+    needs: [test, lint]
+    runs-on: ubuntu-latest
+    if: github.event_name == 'push' && (github.ref == 'refs/heads/master' || github.ref == 'refs/heads/main')
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Set up Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: ${{ env.PYTHON_VERSION }}
+
+      - name: Configure AWS credentials
+        uses: aws-actions/configure-aws-credentials@v4
+        with:
+          aws-access-key-id: ${{ secrets.AWS_ACCESS_KEY_ID }}
+          aws-secret-access-key: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
+          aws-region: ${{ env.AWS_REGION }}
+
+      - name: Deploy Lambda functions
+        run: |
+          chmod +x .github/scripts/deploy-lambdas.sh
+          .github/scripts/deploy-lambdas.sh
+
+      - name: Notify deployment status
+        if: always()
+        run: |
+          if [ ${{ job.status }} == 'success' ]; then
+            echo "✅ Deployment successful!"
+          else
+            echo "❌ Deployment failed!"
+          fi
+
+  # Job 4: Deploy CloudWatch Dashboard & Alarms (only on manual trigger or schedule)
+  deploy-monitoring:
+    name: Deploy Monitoring
+    needs: [test]
+    runs-on: ubuntu-latest
+    if: github.event_name == 'workflow_dispatch'
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Set up Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: ${{ env.PYTHON_VERSION }}
+
+      - name: Configure AWS credentials
+        uses: aws-actions/configure-aws-credentials@v4
+        with:
+          aws-access-key-id: ${{ secrets.AWS_ACCESS_KEY_ID }}
+          aws-secret-access-key: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
+          aws-region: ${{ env.AWS_REGION }}
+
+      - name: Install dependencies
+        run: |
+          pip install boto3
+
+      - name: Create CloudWatch Dashboard
+        run: |
+          python scripts/create-dashboard.py
+
+      - name: Create CloudWatch Alarms
+        run: |
+          python scripts/create-alarms.py
+
+  # Job 5: Run cost analysis (weekly schedule)
+  cost-analysis:
+    name: Weekly Cost Analysis
+    runs-on: ubuntu-latest
+    # Run every Monday at 9 AM UTC
+    # schedule:
+    #   - cron: '0 9 * * 1'
+    if: github.event_name == 'schedule' || github.event_name == 'workflow_dispatch'
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Set up Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: ${{ env.PYTHON_VERSION }}
+
+      - name: Configure AWS credentials
+        uses: aws-actions/configure-aws-credentials@v4
+        with:
+          aws-access-key-id: ${{ secrets.AWS_ACCESS_KEY_ID }}
+          aws-secret-access-key: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
+          aws-region: ${{ env.AWS_REGION }}
+
+      - name: Install dependencies
+        run: |
+          pip install boto3
+
+      - name: Run cost analysis
+        run: |
+          python scripts/analyze_costs.py > cost-report.txt
+
+      - name: Upload cost report
+        uses: actions/upload-artifact@v4
+        with:
+          name: cost-analysis-report
+          path: |
+            cost-report.txt
+            cost-analysis-report.json
