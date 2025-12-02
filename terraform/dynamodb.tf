@@ -1,10 +1,11 @@
-# DynamoDB Tables - Infrastructure as Code
+# DynamoDB Tables - Production Schemas (Auto-generated from AWS)
 
 # 1. GeneratedContent - Main content storage
 resource "aws_dynamodb_table" "generated_content" {
   name           = "GeneratedContent"
   billing_mode   = "PAY_PER_REQUEST"
-  hash_key       = "content_id"
+  hash_key       = "channel_id"
+  range_key      = "created_at"
 
   attribute {
     name = "content_id"
@@ -34,15 +35,7 @@ resource "aws_dynamodb_table" "generated_content" {
     projection_type = "ALL"
   }
 
-  # GSI for channel queries
-  global_secondary_index {
-    name            = "channel_id-created_at-index"
-    hash_key        = "channel_id"
-    range_key       = "created_at"
-    projection_type = "ALL"
-  }
-
-  # GSI for video assembly lookup (WEEK 5.3 FIX)
+  # GSI for video assembly lookup
   global_secondary_index {
     name            = "content_id-created_at-index"
     hash_key        = "content_id"
@@ -50,25 +43,22 @@ resource "aws_dynamodb_table" "generated_content" {
     projection_type = "ALL"
   }
 
-  # Point-in-Time Recovery
   point_in_time_recovery {
     enabled = true
   }
 
-  # Encryption at rest
   server_side_encryption {
     enabled = true
   }
 
-  # Auto-cleanup old content (90 days)
   ttl {
-    enabled        = true
-    attribute_name = "ttl_expiration"
+    enabled = false
   }
 
   tags = {
-    Name        = "GeneratedContent"
-    Description = "YouTube automation generated content storage"
+    Name    = "GeneratedContent"
+    Project = "n8n-creator"
+    Purpose = "content-storage"
   }
 }
 
@@ -76,7 +66,12 @@ resource "aws_dynamodb_table" "generated_content" {
 resource "aws_dynamodb_table" "channel_configs" {
   name           = "ChannelConfigs"
   billing_mode   = "PAY_PER_REQUEST"
-  hash_key       = "channel_id"
+  hash_key       = "config_id"
+
+  attribute {
+    name = "config_id"
+    type = "S"
+  }
 
   attribute {
     name = "channel_id"
@@ -88,16 +83,16 @@ resource "aws_dynamodb_table" "channel_configs" {
     type = "S"
   }
 
-  attribute {
-    name = "is_active"
-    type = "N"
+  global_secondary_index {
+    name            = "channel_id-index"
+    hash_key        = "channel_id"
+    projection_type = "ALL"
   }
 
-  # GSI for user's active channels
   global_secondary_index {
-    name            = "user_id-is_active-index"
+    name            = "user_id-channel_id-index"
     hash_key        = "user_id"
-    range_key       = "is_active"
+    range_key       = "channel_id"
     projection_type = "ALL"
   }
 
@@ -109,9 +104,12 @@ resource "aws_dynamodb_table" "channel_configs" {
     enabled = true
   }
 
+  ttl {
+    enabled = false
+  }
+
   tags = {
-    Name        = "ChannelConfigs"
-    Description = "YouTube channel configurations"
+    Name = "ChannelConfigs"
   }
 }
 
@@ -119,10 +117,16 @@ resource "aws_dynamodb_table" "channel_configs" {
 resource "aws_dynamodb_table" "cost_tracking" {
   name           = "CostTracking"
   billing_mode   = "PAY_PER_REQUEST"
-  hash_key       = "record_id"
+  hash_key       = "date"
+  range_key      = "timestamp"
 
   attribute {
-    name = "record_id"
+    name = "date"
+    type = "S"
+  }
+
+  attribute {
+    name = "timestamp"
     type = "S"
   }
 
@@ -131,12 +135,6 @@ resource "aws_dynamodb_table" "cost_tracking" {
     type = "S"
   }
 
-  attribute {
-    name = "date"
-    type = "S"
-  }
-
-  # GSI for user cost queries
   global_secondary_index {
     name            = "user_id-date-index"
     hash_key        = "user_id"
@@ -152,15 +150,12 @@ resource "aws_dynamodb_table" "cost_tracking" {
     enabled = true
   }
 
-  # Auto-cleanup old cost records (365 days)
   ttl {
-    enabled        = true
-    attribute_name = "ttl_expiration"
+    enabled = false
   }
 
   tags = {
-    Name        = "CostTracking"
-    Description = "AWS cost tracking for multi-tenant system"
+    Name = "CostTracking"
   }
 }
 
@@ -184,7 +179,6 @@ resource "aws_dynamodb_table" "ec2_instance_locks" {
   }
 
   tags = {
-    Name        = "EC2InstanceLocks"
-    Description = "EC2 instance optimistic locking"
+    Name = "EC2InstanceLocks"
   }
 }
