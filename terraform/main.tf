@@ -8,12 +8,14 @@ terraform {
     }
   }
 
-  # Remote state backend (S3) - uncomment after creating bucket
-  # backend "s3" {
-  #   bucket = "youtube-automation-terraform-state"
-  #   key    = "production/terraform.tfstate"
-  #   region = "eu-central-1"
-  # }
+  # Remote state backend (S3 + DynamoDB for locking)
+  backend "s3" {
+    bucket         = "terraform-state-599297130956"
+    key            = "production/terraform.tfstate"
+    region         = "eu-central-1"
+    dynamodb_table = "terraform-state-lock"
+    encrypt        = true
+  }
 }
 
 provider "aws" {
