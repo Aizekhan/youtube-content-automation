@@ -150,3 +150,5 @@ archive/
 credentials.json
 *-credentials.json
 *-secrets.json
+nul
+NUL
