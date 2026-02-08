@@ -152,3 +152,166 @@ credentials.json
 *-secrets.json
 nul
 NUL
+
+# ===== ADDITIONS FOR BETTER CLEANUP =====
+
+# Python cache
+__pycache__/
+*.pyc
+*.pyo
+*.pyd
+.Python
+*.so
+*.egg
+*.egg-info/
+dist/
+build/
+.coverage
+
+# IDE files
+.vscode/
+.idea/
+*.swp
+*.swo
+*~
+
+# OS files
+.DS_Store
+Thumbs.db
+desktop.ini
+
+# PowerShell scripts (temporary)
+add-*.ps1
+install-*.ps1
+
+# Nginx configs (temporary)
+nginx-*.conf
+
+# Shell scripts (keep only essential)
+deploy-*.sh
+setup-*.sh
+
+# Audit files
+audit-*.txt
+
+# JSON debug/test files (root level)
+/all-channels-export.json
+/backup-sf-*.json
+/channel-config-*.json
+/cloudwatch-dashboard.json
+/content-with-images.json
+/corrupted-*.json
+/current-*.json
+/dynamodb-policy-*.json
+/ec2-*.json
+/event-*.json
+/failed-*.json
+/fixed-*.json
+/found-*.json
+/item-*.json
+/lambda-*.json
+/narrative-*.json
+/recent-*.json
+/sample-*.json
+/save-*.json
+/sf-*.json
+/step-functions-*.json
+/today-*.json
+/user-*.json
+/video-*.json
+
+# Log files
+*.log
+
+# PHP test files
+get-channel-config-fixed.php
+
+# Markdown variations
+INCIDENT-*.md
+STEP-FUNCTIONS-*.md
+ADD-TO-*.md
+
+# Scripts directory
+scripts/
+
+# Tests directory
+tests/
+
+# Coverage reports
+htmlcov/
+.pytest_cache/
+
+# Lambda artifacts
+**/lambda/*/function.zip
+**/lambda/*/layer.zip
+
+# Lambda layer build artifacts
+aws/lambda-layers/*/python/
+aws/lambda-layers/*/nodejs/
+
+# Boto3/botocore in Lambda (use layers instead)
+**/lambda/*/boto3/
+**/lambda/*/boto3-*/
+**/lambda/*/botocore/
+**/lambda/*/botocore-*/
+**/lambda/*/dateutil/
+**/lambda/*/jmespath/
+**/lambda/*/jmespath-*/
+**/lambda/*/s3transfer/
+**/lambda/*/s3transfer-*/
+**/lambda/*/six.py
+**/lambda/*/six-*/
+**/lambda/*/urllib3/
+**/lambda/*/urllib3-*/
+**/lambda/*/python_dateutil-*/
+**/lambda/*/bin/
+
+# Test Lambda directory
+aws/lambda/collect-all-image-prompts/collect-image-prompts/
+
+# Lambda backup files
+**/lambda/*/*.py.backup
+**/lambda/*/*.py.backup-*
+**/lambda/*/*.py.before-*
+**/lambda/*/lambda_function_tmp.py
+
+# Lambda test/utility files
+**/lambda/content-audio-elevenlabs/elevenlabs_provider.py
+**/lambda/content-audio-elevenlabs/requirements.txt
+**/lambda/content-audio-polly/polly_provider.py
+**/lambda/content-video-assembly/add_cta_support.py
+**/lambda/content-video-assembly/cta_video_creator.py
+**/lambda/content-video-assembly/get_content_fixed.py
+**/lambda/content-generate-images/apply_optimization.py
+**/lambda/content-generate-images/fix_is_running.py
+**/lambda/ec2-sd35-control/cleanup_cache.py
+**/lambda/ssml-generator/test_ssml.py
+**/lambda/content-narrative/test_ssml_validator.py
+**/lambda/debug-test-runner/lambda_function_tmp.py
+
+# Shared module artifacts
+aws/lambda/shared/dynamodb_utils.py
+aws/lambda/shared/input_size_validator.py
+aws/lambda/shared/input_validator.py
+aws/lambda/shared/logging_utils.py
+aws/lambda/shared/response_utils.py
+aws/lambda/shared/validation_utils.py
+
+# HTML test files
+/check-*.html
+/debug-*.html
+/costs-v2.html
+/costs-hybrid.html
+/content-new.html
+
+# System settings API (if unused)
+aws/lambda/system-settings-api/
+
+# Auth security patches
+auth-security-patch.js
+
+# Temporary migration
+aws/migrate_phase1.py
+
+# S3 config
+s3-encryption-config.json
