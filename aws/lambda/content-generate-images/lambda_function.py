@@ -380,48 +380,59 @@ def handle_multi_channel_batch(all_prompts, provider, user_id=None):
     total_cost = 0.0
 
     # Load channel configs and thumbnail templates to get dimensions
-    channel_configs = {}  # Cache channel configs
-    thumbnail_dimensions = {}  # Cache thumbnail dimensions per channel
+    channel_configs = {}
+    thumbnail_dimensions = {}
 
-    # Pre-load all unique channel configs
-    unique_channels = set(p.get('channel_id') for p in all_prompts if p.get('channel_id'))
-    print(f"   Loading configs for {len(unique_channels)} unique channels...")
+    # 🚀 ОПТИМІЗОВАНО: Batch loading замість N+1 запитів до DynamoDB
+    # Старий спосіб: N запитів для configs + N запитів для templates = 2N запитів
+    # Новий спосіб: 1 batch запит для configs + 1 batch для templates = 2 запити!
+    print(f"   🚀 Using optimized batch loading...")
+    try:
+        from resource_pool_manager import optimize_channel_configs_loading
+        channel_configs, thumbnail_dimensions = optimize_channel_configs_loading(all_prompts, dynamodb)
+    except (ImportError, Exception) as e:
+        # Fallback to old method if module not available
+        print(f"   ⚠️  Batch loading failed ({e}), using legacy method...")
+        channel_configs = {}
+        thumbnail_dimensions = {}
+        unique_channels = set(p.get('channel_id') for p in all_prompts if p.get('channel_id'))
+        print(f"   Loading configs for {len(unique_channels)} unique channels...")
 
-    for channel_id in unique_channels:
-        try:
-            channel_table = dynamodb.Table('ChannelConfigs')
-            channel_response = channel_table.query(
-                IndexName='channel_id-index',
-                KeyConditionExpression=Key('channel_id').eq(channel_id)
-            )
-            if channel_response.get('Items'):
-                channel_config = channel_response['Items'][0]
-                channel_configs[channel_id] = channel_config
+        for channel_id in unique_channels:
+            try:
+                channel_table = dynamodb.Table('ChannelConfigs')
+                channel_response = channel_table.query(
+                    IndexName='channel_id-index',
+                    KeyConditionExpression=Key('channel_id').eq(channel_id)
+                )
+                if channel_response.get('Items'):
+                    channel_config = channel_response['Items'][0]
+                    channel_configs[channel_id] = channel_config
 
-                # Load thumbnail template for this channel
-                selected_thumbnail_template = channel_config.get('selected_thumbnail_template')
-                if selected_thumbnail_template:
-                    try:
-                        thumbnail_table = dynamodb.Table('ThumbnailTemplates')
-                        thumbnail_response = thumbnail_table.get_item(
-                            Key={'template_id': selected_thumbnail_template}
-                        )
-                        if 'Item' in thumbnail_response:
-                            thumbnail_template = thumbnail_response['Item']
-                            thumbnail_config = thumbnail_template.get('thumbnail_config', {})
-                            aspect_ratio = thumbnail_config.get('aspect_ratio', '16:9')
-                            resolution = thumbnail_config.get('resolution', '1920x1080')
+                    # Load thumbnail template for this channel
+                    selected_thumbnail_template = channel_config.get('selected_thumbnail_template')
+                    if selected_thumbnail_template:
+                        try:
+                            thumbnail_table = dynamodb.Table('ThumbnailTemplates')
+                            thumbnail_response = thumbnail_table.get_item(
+                                Key={'template_id': selected_thumbnail_template}
+                            )
+                            if 'Item' in thumbnail_response:
+                                thumbnail_template = thumbnail_response['Item']
+                                thumbnail_config = thumbnail_template.get('thumbnail_config', {})
+                                aspect_ratio = thumbnail_config.get('aspect_ratio', '16:9')
+                                resolution = thumbnail_config.get('resolution', '1920x1080')
 
-                            # Convert to actual dimensions
-                            width, height = get_dimensions_from_aspect_ratio(aspect_ratio, resolution)
-                            thumbnail_dimensions[channel_id] = (width, height)
-                            print(f"   ✅ {channel_id[-6:]}: Thumbnail {aspect_ratio} = {width}x{height}")
-                    except Exception as e:
-                        print(f"   ⚠️  Failed to load thumbnail template for {channel_id}: {e}")
-        except Exception as e:
-            print(f"   ⚠️  Failed to load channel config for {channel_id}: {e}")
+                                # Convert to actual dimensions
+                                width, height = get_dimensions_from_aspect_ratio(aspect_ratio, resolution)
+                                thumbnail_dimensions[channel_id] = (width, height)
+                                print(f"   ✅ {channel_id[-6:]}: Thumbnail {aspect_ratio} = {width}x{height}")
+                        except Exception as e:
+                            print(f"   ⚠️  Failed to load thumbnail template for {channel_id}: {e}")
+            except Exception as e:
+                print(f"   ⚠️  Failed to load channel config for {channel_id}: {e}")
 
-    # Default image config for scene images
+        # Default image config for scene images
     default_image_config = {
         'quality': 'standard',
         'width': 1024,
