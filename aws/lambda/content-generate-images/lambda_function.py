@@ -19,6 +19,13 @@ dynamodb = boto3.resource('dynamodb', region_name='eu-central-1')
 cost_table = dynamodb.Table('CostTracking')
 lambda_client = boto3.client('lambda', region_name='eu-central-1')
 
+# Helper function to convert DynamoDB Decimal to JSON-serializable types
+def decimal_default(obj):
+    """Convert Decimal to float for JSON serialization"""
+    if isinstance(obj, Decimal):
+        return float(obj)
+    raise TypeError(f"Object of type {type(obj)} is not JSON serializable")
+
 # Global variable for EC2 endpoint (passed from Step Functions state)
 EC2_ENDPOINT = None
 
@@ -102,7 +109,7 @@ def generate_with_bedrock_sdxl(prompt, image_config):
         # Call Bedrock
         response = bedrock_runtime.invoke_model(
             modelId='stability.stable-diffusion-xl-v1',
-            body=json.dumps(request_body)
+            body=json.dumps(request_body, default=decimal_default)
         )
 
         response_body = json.loads(response['body'].read())
@@ -646,7 +653,7 @@ def lambda_handler(event, context):
     }
     """
     print(f"🎨 Image Generator - Multi-Provider Version with BATCHING")
-    print(f"Event: {json.dumps(event, ensure_ascii=False, default=str)}")
+    print(f"Event: {json.dumps(event, ensure_ascii=False, default=decimal_default)}")
 
     # Extract user_id for multi-tenant cost tracking
     user_id = event.get('user_id')
