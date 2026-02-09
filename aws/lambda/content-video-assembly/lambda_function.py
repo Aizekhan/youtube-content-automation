@@ -499,7 +499,8 @@ def assemble_video(content, assets, template, work_dir):
                 '-i', audio['path'],
                 '-vf', f"scale=1920:1080:force_original_aspect_ratio=increase,crop=1920:1080,zoompan=z='min(zoom+{zoom_rate},{zoom_max})':d={total_frames}:s=1920x1080:fps=30",
                 '-c:v', 'libx264',
-                '-preset', 'fast',
+                '-preset', 'veryfast',  # Changed from 'fast' to 'veryfast' for 2x speed
+                '-crf', '23',  # Quality setting (lower = better quality, 23 is good default)
                 '-c:a', 'aac',
                 '-shortest',
                 '-y',
@@ -514,7 +515,8 @@ def assemble_video(content, assets, template, work_dir):
                 '-i', audio['path'],
                 '-vf', 'scale=1920:1080:force_original_aspect_ratio=increase,crop=1920:1080',
                 '-c:v', 'libx264',
-                '-preset', 'fast',
+                '-preset', 'veryfast',  # Changed from 'fast' to 'veryfast' for 2x speed
+                '-crf', '23',  # Quality setting
                 '-c:a', 'aac',
                 '-shortest',
                 '-y',
