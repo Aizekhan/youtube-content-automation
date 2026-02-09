@@ -306,3 +306,87 @@ aws lambda update-function-code --function-name content-video-assembly --zip-fil
 ### Verification
 Ready for testing with next content generation run.
 
+---
+
+## 🛠️ Automated Deployment Scripts (Prevention System)
+
+### Timeline
+- **Created**: 2026-02-09 05:15 UTC
+- **Purpose**: Prevent recurring ImportModuleError issues
+
+### Problem
+Lambda deployment issues kept recurring:
+1. content-narrative missing mega_config_merger.py (3 times)
+2. prompts-api missing node_modules
+3. No automated validation after deployment
+
+### Solution
+Created 3 automated scripts for deployment workflow:
+
+#### 1. deploy-content-lambdas.sh
+Automated Lambda deployment with validation:
+```bash
+bash deploy-content-lambdas.sh
+```
+
+**Features:**
+- Builds function.zip using create_zip.py
+- Verifies mega_config_merger.py is included
+- Validates CodeSize (must be 20KB+)
+- Deploys to AWS with confirmation
+- Fails fast if validation fails
+
+#### 2. fix-dynamodb-lock.sh
+Fixes stale DynamoDB EC2InstanceLocks state:
+```bash
+bash fix-dynamodb-lock.sh
+```
+
+**Features:**
+- Compares actual EC2 state vs DynamoDB state
+- Auto-updates DynamoDB if mismatch detected
+- Prevents "EC2 already starting" errors
+
+#### 3. test-content-generation.sh
+Quick end-to-end test with monitoring:
+```bash
+bash test-content-generation.sh
+```
+
+**Features:**
+- Starts Step Functions execution
+- Monitors progress every 30 seconds
+- Shows final duration and status
+- Timeout: 10 minutes
+
+### Usage Workflow
+
+**When deploying Lambda changes:**
+```bash
+# 1. Deploy with validation
+bash deploy-content-lambdas.sh
+
+# 2. Fix DynamoDB if needed
+bash fix-dynamodb-lock.sh
+
+# 3. Test end-to-end
+bash test-content-generation.sh
+```
+
+### Files Created
+- `deploy-content-lambdas.sh` - Automated Lambda deployment
+- `fix-dynamodb-lock.sh` - DynamoDB lock synchronization
+- `test-content-generation.sh` - End-to-end testing
+
+### Prevention Strategy
+These scripts prevent the recurring issues by:
+1. **Validation**: Always verify deployment package contents
+2. **Automation**: Reduce manual steps and human error
+3. **Testing**: Immediate feedback after deployment
+4. **Documentation**: Clear workflow for future deployments
+
+### Next Steps
+- Add GitHub Actions workflow for CI/CD
+- Create Lambda Layers for shared Python modules
+- Add pre-commit hooks for validation
+
