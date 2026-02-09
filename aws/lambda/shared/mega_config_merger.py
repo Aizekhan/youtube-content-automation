@@ -88,9 +88,9 @@ def merge_mega_configuration(
 
         # Constraints
         'constraints': {
-            'target_character_count': int(channel_config.get('target_character_count', 8000)),
-            'scene_count_target': int(channel_config.get('scene_count_target', 18)),
-            'video_duration_target': int(channel_config.get('video_duration_target', 10))
+            'target_character_count': int(channel_config.get('target_character_count', 5000)),
+            'scene_count_target': int(channel_config.get('scene_count_target', 10)),
+            'video_duration_target': int(channel_config.get('video_duration_target', 5))
         }
     }
 
