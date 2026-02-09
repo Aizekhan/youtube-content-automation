@@ -96,8 +96,12 @@ def lambda_handler(event, context):
             })
             print(f"   ✅ Added thumbnail for {channel_id}")
 
-    # Determine unified provider
-    if len(providers_count) == 1:
+    # Determine unified provider - FIX: Handle empty providers_count
+    if len(providers_count) == 0:
+        # No channels, no images needed
+        unified_provider = 'none'
+        print(f"ℹ️  No channels found, no images to generate")
+    elif len(providers_count) == 1:
         # All channels use same provider
         unified_provider = list(providers_count.keys())[0]
         print(f"✅ All channels use unified provider: {unified_provider}")
