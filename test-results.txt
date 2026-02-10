@@ -1,0 +1,26 @@
+======================================================================
+TEST: Qwen3-TTS with Voice Description (Tone + Narration Style)
+======================================================================
+
+1. Test Payload:
+   Channel: test_voice_desc
+   Scenes: 2
+   Voice Profile: deep_male
+   Tone: Epic, mysterious, powerful
+   Narration Style: Omniscient narrator with dramatic flair
+
+2. Invoking content-audio-tts router...
+
+3. Router Response:
+{
+  "errorMessage": "Unable to import module 'lambda_function': No module named 'requests'",
+  "errorType": "Runtime.ImportModuleError",
+  "requestId": "",
+  "stackTrace": []
+}
+
+[FAIL] No audio files generated
+
+======================================================================
+[FAILED] Voice description test failed!
+======================================================================

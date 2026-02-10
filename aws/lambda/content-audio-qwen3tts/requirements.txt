@@ -1,0 +1,3 @@
+# content-audio-qwen3tts Lambda dependencies
+# Built-in boto3 is sufficient
+requests==2.31.0

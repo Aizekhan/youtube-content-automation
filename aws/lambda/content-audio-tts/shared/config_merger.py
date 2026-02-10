@@ -343,49 +343,86 @@ def map_voice_profile_to_actual_voice(voice_profile, tts_service):
             'aws_polly_neural': 'Matthew',
             'aws_polly_standard': 'Matthew',
             'elevenlabs': 'Adam',
-            'google_tts': 'en-US-Neural2-D'
+            'google_tts': 'en-US-Neural2-D',
+            'qwen3_tts': 'Ryan'  # NEW: Qwen3-TTS
         },
         'authoritative_male': {
             'aws_polly_neural': 'Matthew',
             'aws_polly_standard': 'Matthew',
             'elevenlabs': 'Josh',
-            'google_tts': 'en-US-Neural2-D'
+            'google_tts': 'en-US-Neural2-D',
+            'qwen3_tts': 'Ryan'  # NEW: Qwen3-TTS
         },
         'neutral_male': {
             'aws_polly_neural': 'Joey',
             'aws_polly_standard': 'Joey',
             'elevenlabs': 'Sam',
-            'google_tts': 'en-US-Neural2-A'
+            'google_tts': 'en-US-Neural2-A',
+            'qwen3_tts': 'Mark'  # NEW: Qwen3-TTS
         },
         'young_male': {
             'aws_polly_neural': 'Justin',
             'aws_polly_standard': 'Justin',
             'elevenlabs': 'Antoni',
-            'google_tts': 'en-US-Neural2-A'
+            'google_tts': 'en-US-Neural2-A',
+            'qwen3_tts': 'Mark'  # NEW: Qwen3-TTS
         },
         'soft_female': {
             'aws_polly_neural': 'Joanna',
             'aws_polly_standard': 'Joanna',
             'elevenlabs': 'Bella',
-            'google_tts': 'en-US-Neural2-C'
+            'google_tts': 'en-US-Neural2-C',
+            'qwen3_tts': 'Lily'  # NEW: Qwen3-TTS
         },
         'gentle_female': {
             'aws_polly_neural': 'Salli',
             'aws_polly_standard': 'Salli',
             'elevenlabs': 'Rachel',
-            'google_tts': 'en-US-Neural2-E'
+            'google_tts': 'en-US-Neural2-E',
+            'qwen3_tts': 'Lily'  # NEW: Qwen3-TTS
         },
         'neutral_female': {
             'aws_polly_neural': 'Kendra',
             'aws_polly_standard': 'Kendra',
             'elevenlabs': 'Domi',
-            'google_tts': 'en-US-Neural2-F'
+            'google_tts': 'en-US-Neural2-F',
+            'qwen3_tts': 'Emily'  # NEW: Qwen3-TTS
         },
         'warm_female': {
             'aws_polly_neural': 'Joanna',
             'aws_polly_standard': 'Joanna',
             'elevenlabs': 'Bella',
-            'google_tts': 'en-US-Neural2-C'
+            'google_tts': 'en-US-Neural2-C',
+            'qwen3_tts': 'Emily'  # NEW: Qwen3-TTS
+        },
+
+        # ============================================
+        # Qwen3-TTS Speakers (NEW)
+        # ============================================
+        'qwen3_ryan': {
+            'qwen3_tts': 'Ryan',
+            'aws_polly_neural': 'Matthew',  # Fallback
+            'aws_polly_standard': 'Matthew'
+        },
+        'qwen3_lily': {
+            'qwen3_tts': 'Lily',
+            'aws_polly_neural': 'Joanna',
+            'aws_polly_standard': 'Joanna'
+        },
+        'qwen3_emily': {
+            'qwen3_tts': 'Emily',
+            'aws_polly_neural': 'Emma',
+            'aws_polly_standard': 'Emma'
+        },
+        'qwen3_mark': {
+            'qwen3_tts': 'Mark',
+            'aws_polly_neural': 'Joey',
+            'aws_polly_standard': 'Joey'
+        },
+        'qwen3_jane': {
+            'qwen3_tts': 'Jane',
+            'aws_polly_neural': 'Kendra',
+            'aws_polly_standard': 'Kendra'
         }
     }
 

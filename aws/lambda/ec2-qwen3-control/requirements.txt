@@ -1,0 +1,4 @@
+# ec2-qwen3-control Lambda dependencies
+# Built-in boto3 is sufficient for EC2 operations
+# requests library needed for health checks (included in Lambda runtime)
+requests==2.31.0
