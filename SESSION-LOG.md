@@ -314,3 +314,29 @@ aws stepfunctions list-executions \
 **Last Updated:** 2026-02-10 04:56 UTC
 **Status:** Qwen3-TTS deployed, testing in progress
 **Next Action:** Check test-qwen3-real-1770691936 execution result
+
+---
+
+## 🔧 Session Update - prompts-api Fixed
+
+**Time:** 2026-02-10 05:05 UTC
+
+### Problem:
+- prompts-api Lambda returning 502 Bad Gateway
+- Error: `Cannot find module 'index'`
+- Handler configured as `index.handler` but deployment package missing index.js
+
+### Solution:
+1. Repackaged Lambda with index.js + node_modules
+2. Redeployed: `aws lambda update-function-code --function-name prompts-api`
+3. Verified: API now returns TTS templates correctly
+
+### Test Result:
+```bash
+curl "https://djpb4ue6wv2ohfjey32lfnhcre0zppqd.lambda-url.eu-central-1.on.aws/?type=tts"
+# Returns: 5 Qwen3-TTS templates (Emily, Mark, Lily, Ryan, Jane)
+```
+
+**Status:** ✅ FIXED - UI can now load templates
+
+---
