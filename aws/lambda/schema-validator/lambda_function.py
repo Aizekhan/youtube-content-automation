@@ -68,16 +68,25 @@ REQUIRED_LAMBDA_FUNCTIONS = [
     'content-query-titles',
     'content-theme-agent',
     'content-narrative',
-    'content-audio-tts',
+    'content-audio-qwen3tts',
     'content-save-result',
     'content-generate-images',
     'collect-image-prompts',
     'distribute-images',
-    'ec2-sd35-control',
+    'ec2-zimage-control',
+    'ec2-qwen3-control',
     'content-video-assembly',
     'dashboard-content',
     'dashboard-monitoring',
-    'dashboard-costs'
+    'dashboard-costs',
+    'distribute-audio',
+    'collect-audio-scenes',
+    'check-qwen3-health',
+    'content-cta-audio',
+    'save-final-content',
+    'merge-channel-data',
+    'log-execution-error',
+    'validate-step-functions-input'
 ]
 
 REQUIRED_DYNAMODB_TABLES = [
@@ -358,13 +367,14 @@ def check_step_functions() -> Dict[str, Any]:
 
         # Check if key states exist
         required_states = [
+            'ValidateInput',
             'GetActiveChannels',
             'Phase1ContentGeneration',
             'CollectAllImagePrompts',
-            'StartEC2ForAllImages',
-            'GenerateAllImagesBatched',
-            'DistributeImagesToChannels',
-            'Phase3AudioAndSave'
+            'Phase2ParallelGeneration',
+            'Phase3AudioAndSave',
+            'MergeChannelData',
+            'StopEC2Qwen3AfterPhase3'
         ]
 
         states = definition.get('States', {})
