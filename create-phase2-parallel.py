@@ -19,6 +19,18 @@ for state_name in ['CheckIfAnyImages', 'PreparePhase3WithoutImages', 'StartEC2Fo
         # Remove from top level (will be in branch)
         del sf['States'][state_name]
 
+# FIX: Branch states cannot reference states outside the branch
+# Change all "Next: Phase3AudioAndSave" to "End: true"
+for state_name, state_def in image_states.items():
+    if state_def.get('Next') == 'Phase3AudioAndSave':
+        del state_def['Next']
+        state_def['End'] = True
+    # Also fix Catch clauses
+    if 'Catch' in state_def:
+        for catch in state_def['Catch']:
+            if catch.get('Next') == 'Phase3AudioAndSave':
+                catch['Next'] = 'PreparePhase3WithoutImages'  # Stay within branch
+
 # Create Branch A: Images
 branch_a_images = {
     "StartAt": "CheckIfAnyImages",
@@ -247,6 +259,9 @@ sf['States']['StopEC2Qwen3AfterPhase3'] = {
 }
 
 # Update Phase3AudioAndSave to continue to StopEC2Qwen3AfterPhase3
+# Remove 'End' if it exists (can't have both Next and End)
+if 'End' in sf['States']['Phase3AudioAndSave']:
+    del sf['States']['Phase3AudioAndSave']['End']
 sf['States']['Phase3AudioAndSave']['Next'] = 'StopEC2Qwen3AfterPhase3'
 
 # Save modified Step Function
