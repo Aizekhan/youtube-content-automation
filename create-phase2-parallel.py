@@ -2,12 +2,20 @@
 """
 Create Phase2ParallelGeneration for Step Function
 Adds parallel processing of Images and Audio
+
+ARCHITECTURE: Always reads LIVE state from AWS (single source of truth)
 """
 import json
+import boto3
 
-# Read current Step Function
-with open('/tmp/current-sf.json', 'r') as f:
-    sf = json.load(f)
+# Read LIVE Step Function from AWS (NOT from backup files)
+stepfunctions = boto3.client('stepfunctions', region_name='eu-central-1')
+sm_arn = 'arn:aws:states:eu-central-1:599297130956:stateMachine:ContentGenerator'
+
+print("Reading LIVE Step Function definition from AWS...")
+sm_details = stepfunctions.describe_state_machine(stateMachineArn=sm_arn)
+sf = json.loads(sm_details['definition'])
+print(f"Loaded {len(sf['States'])} states from AWS")
 
 # Extract current image generation states (to move into Branch A)
 image_states = {}
