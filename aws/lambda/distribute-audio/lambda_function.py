@@ -37,9 +37,10 @@ def lambda_handler(event, context):
     print(f"Distributing audio files back to channels")
 
     generated_audio = event.get('generated_audio', [])
+    cta_generated_audio = event.get('cta_generated_audio', [])  # NEW: CTA audio
     channels_data = event.get('channels_data', [])
 
-    # Group audio by channel
+    # Group scene audio by channel
     audio_by_channel = {}
     for audio in generated_audio:
         channel_id = audio.get('channel_id')
@@ -49,6 +50,17 @@ def lambda_handler(event, context):
         if channel_id not in audio_by_channel:
             audio_by_channel[channel_id] = []
         audio_by_channel[channel_id].append(audio)
+
+    # NEW: Group CTA audio by channel
+    cta_audio_by_channel = {}
+    for audio in cta_generated_audio:
+        channel_id = audio.get('channel_id')
+        if not channel_id:
+            print(f"WARNING: Skipping CTA audio without channel_id: {audio.get('s3_url', 'unknown')}")
+            continue
+        if channel_id not in cta_audio_by_channel:
+            cta_audio_by_channel[channel_id] = []
+        cta_audio_by_channel[channel_id].append(audio)
 
     # Attach audio to channel data (SKIP channels marked as {"skipped": true})
     channels_with_audio = []
@@ -70,9 +82,11 @@ def lambda_handler(event, context):
             continue
 
         channel_audio = audio_by_channel.get(channel_id, [])
+        channel_cta_audio = cta_audio_by_channel.get(channel_id, [])  # NEW: CTA audio
 
-        # Calculate total duration
+        # Calculate total duration (scenes + CTA)
         total_duration_ms = sum(a.get('duration_ms', 0) for a in channel_audio)
+        cta_duration_ms = sum(a.get('duration_ms', 0) for a in channel_cta_audio)
 
         # Flatten structure: extract channel_item to top level to avoid double nesting
         if 'channel_item' in channel and isinstance(channel['channel_item'], dict):
@@ -89,26 +103,32 @@ def lambda_handler(event, context):
                     'scene_images': channel.get('scene_images', []),  # Preserve images from previous step
                     'images_count': channel.get('images_count', 0),
                     'audio_files': channel_audio,
-                    'total_duration_ms': total_duration_ms
+                    'cta_audio_files': channel_cta_audio,  # NEW: CTA audio
+                    'total_duration_ms': total_duration_ms,
+                    'cta_duration_ms': cta_duration_ms  # NEW
                 }
             else:
                 # Single level nesting - already correct structure
                 flattened = {
                     **channel,
                     'audio_files': channel_audio,
-                    'total_duration_ms': total_duration_ms
+                    'cta_audio_files': channel_cta_audio,  # NEW
+                    'total_duration_ms': total_duration_ms,
+                    'cta_duration_ms': cta_duration_ms  # NEW
                 }
         else:
             # No nesting at all
             flattened = {
                 **channel,
                 'audio_files': channel_audio,
-                'total_duration_ms': total_duration_ms
+                'cta_audio_files': channel_cta_audio,  # NEW
+                'total_duration_ms': total_duration_ms,
+                'cta_duration_ms': cta_duration_ms  # NEW
             }
 
         channels_with_audio.append(flattened)
 
-        print(f"Channel {channel_id}: {len(channel_audio)} audio files attached, {total_duration_ms}ms total")
+        print(f"Channel {channel_id}: {len(channel_audio)} scene audio + {len(channel_cta_audio)} CTA audio, {total_duration_ms + cta_duration_ms}ms total")
 
     print(f"Total: {len(channels_with_audio)} valid channels, {skipped_count} skipped")
 

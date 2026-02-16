@@ -51,6 +51,7 @@ def lambda_handler(event, context):
 
     channels_data = event.get('channels_data', [])
     all_scenes = []
+    all_cta_segments = []  # NEW: Collect CTA segments
 
     # FIX 2026-02-14: Get EC2 endpoint from event parameter (passed from State Machine)
     ec2_endpoint = event.get('ec2_endpoint', '')
@@ -105,16 +106,53 @@ def lambda_handler(event, context):
                 'text': text,
                 'language': language,
                 'speaker': speaker,
-                'voice_description': voice_description
+                'voice_description': voice_description,
+                'audio_type': 'scene'  # NEW: Mark as scene audio
             })
 
+        # NEW: Collect CTA segments for this channel
+        cta_data = narrative_payload.get('cta_data', {})
+        cta_segments = cta_data.get('cta_segments', [])
+
+        print(f"Channel {channel_id}: {len(cta_segments)} CTA segments")
+
+        for idx, cta_segment in enumerate(cta_segments):
+            cta_audio_segment = cta_segment.get('cta_audio_segment', {})
+            cta_text = cta_audio_segment.get('ssml_text', '')
+
+            # Strip SSML tags for Qwen3-TTS
+            if cta_text:
+                import re
+                cta_text_plain = re.sub(r'<[^>]+>', '', cta_text)
+
+                all_cta_segments.append({
+                    'channel_id': channel_id,
+                    'content_id': content_id,
+                    'narrative_id': narrative_id,
+                    'scene_index': idx,
+                    'scene_id': f"cta_{cta_segment.get('type', idx)}",
+                    'text': cta_text_plain,
+                    'language': language,
+                    'speaker': speaker,
+                    'voice_description': voice_description,
+                    'audio_type': 'cta',  # NEW: Mark as CTA audio
+                    'cta_type': cta_segment.get('type', 'generic')
+                })
+
     print(f"Collected {len(all_scenes)} audio scenes from {len(channels_data)} channels")
+    print(f"Collected {len(all_cta_segments)} CTA segments from {len(channels_data)} channels")
     print(f"EC2 endpoint: {ec2_endpoint}")
+
+    # NEW: Combine scenes and CTA for batch processing
+    total_audio_files = len(all_scenes) + len(all_cta_segments)
 
     return {
         'statusCode': 200,
         'all_audio_scenes': all_scenes,
+        'all_cta_segments': all_cta_segments,  # NEW
         'total_scenes': len(all_scenes),
+        'total_cta': len(all_cta_segments),  # NEW
+        'total_audio_files': total_audio_files,  # NEW
         'channels_count': len(channels_data),
         'ec2_endpoint': ec2_endpoint
     }

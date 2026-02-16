@@ -76,6 +76,7 @@ def process_single_scene(scene, ec2_endpoint):
     """
     Worker function for BATCHED processing
     All params extracted from scene object
+    Handles both scene narration and CTA audio
 
     Returns: audio_file_dict or None
     """
@@ -87,16 +88,18 @@ def process_single_scene(scene, ec2_endpoint):
     speaker = scene.get('speaker', 'default')
     voice_description = scene.get('voice_description')
     text = scene.get('text') or scene.get('scene_narration') or scene.get('narration', '')
+    audio_type = scene.get('audio_type', 'scene')  # NEW: 'scene' or 'cta'
+    cta_type = scene.get('cta_type', '')  # NEW: for CTA segments
 
     if not text:
-        print(f"Scene {scene_id}: no text")
+        print(f"{audio_type.upper()} {scene_id}: no text")
         return None
 
     if not channel_id or not narrative_id:
-        print(f"Scene {scene_id}: missing channel_id or narrative_id")
+        print(f"{audio_type.upper()} {scene_id}: missing channel_id or narrative_id")
         return None
 
-    print(f"Scene {scene_id}...")
+    print(f"{audio_type.upper()} {scene_id}...")
 
     try:
         # Call Qwen3-TTS API on EC2
@@ -108,8 +111,12 @@ def process_single_scene(scene, ec2_endpoint):
             voice_description=voice_description
         )
 
-        # Upload to S3
-        s3_key = f"narratives/{channel_id}/{narrative_id}/scene_{scene_id}.wav"
+        # Upload to S3 with different paths for scene vs CTA
+        if audio_type == 'cta':
+            s3_key = f"narratives/{channel_id}/{narrative_id}/cta_{scene_id}.wav"
+        else:
+            s3_key = f"narratives/{channel_id}/{narrative_id}/scene_{scene_id}.wav"
+
         s3_url = upload_to_s3(audio_data, s3_key, content_type='audio/wav')
 
         audio_file = {
@@ -117,14 +124,19 @@ def process_single_scene(scene, ec2_endpoint):
             'scene_id': scene_id,
             's3_url': s3_url,
             's3_key': s3_key,
-            'duration_ms': duration_ms
+            'duration_ms': duration_ms,
+            'audio_type': audio_type  # NEW: Mark type in result
         }
 
-        print(f"Scene {scene_id}: {duration_ms}ms")
+        # Add CTA type if present
+        if cta_type:
+            audio_file['cta_type'] = cta_type
+
+        print(f"{audio_type.upper()} {scene_id}: {duration_ms}ms")
         return audio_file
 
     except Exception as scene_error:
-        print(f"Scene {scene_id} error: {scene_error}")
+        print(f"{audio_type.upper()} {scene_id} error: {scene_error}")
         return None
 
 
@@ -379,36 +391,42 @@ def lambda_handler(event, context):
     try:
         # Parse BATCHED input from collect-audio-scenes Lambda
         all_audio_scenes = event.get('all_audio_scenes', [])
+        all_cta_segments = event.get('all_cta_segments', [])  # NEW: CTA segments
         ec2_endpoint = event.get('ec2_endpoint')
 
-        print(f"Batch processing: {len(all_audio_scenes)} scenes")
+        print(f"Batch processing: {len(all_audio_scenes)} scenes + {len(all_cta_segments)} CTA segments")
         print(f"EC2 endpoint: {ec2_endpoint}")
 
-        if not all_audio_scenes:
-            print("No scenes to process")
+        # NEW: Combine scenes and CTA for batch processing
+        all_audio_tasks = all_audio_scenes + all_cta_segments
+
+        if not all_audio_tasks:
+            print("No audio to process")
             return {
                 'audio_files': [],
+                'cta_audio_files': [],  # NEW
                 'total_files': 0,
                 'total_duration_ms': 0,
-                'scene_count': 0
+                'scene_count': 0,
+                'cta_count': 0  # NEW
             }
 
         if not ec2_endpoint:
             raise Exception("ec2_endpoint is required")
 
-        # Generate audio for all scenes in parallel
-        audio_files = []
+        # Generate audio for all tasks (scenes + CTA) in parallel
+        all_results = []
         generation_start = datetime.utcnow()
 
         # Use ThreadPoolExecutor for parallel generation
-        max_workers = min(8, len(all_audio_scenes))
-        print(f"Generating {len(all_audio_scenes)} scenes with {max_workers} workers...")
+        max_workers = min(8, len(all_audio_tasks))
+        print(f"Generating {len(all_audio_tasks)} audio files with {max_workers} workers...")
 
         with ThreadPoolExecutor(max_workers=max_workers) as executor:
-            # Submit all scenes for processing
+            # Submit all tasks for processing
             futures = [
-                executor.submit(process_single_scene, scene, ec2_endpoint)
-                for scene in all_audio_scenes
+                executor.submit(process_single_scene, task, ec2_endpoint)
+                for task in all_audio_tasks
             ]
 
             # Collect results as they complete
@@ -416,34 +434,40 @@ def lambda_handler(event, context):
                 try:
                     audio_file = future.result()
                     if audio_file:
-                        audio_files.append(audio_file)
+                        all_results.append(audio_file)
                 except Exception as exc:
-                    print(f"Scene exception: {exc}")
+                    print(f"Audio task exception: {exc}")
 
-        print(f"Complete: {len(audio_files)}/{len(all_audio_scenes)} successful")
+        # NEW: Separate scene audio from CTA audio
+        scene_audio_files = [f for f in all_results if f.get('audio_type') == 'scene']
+        cta_audio_files = [f for f in all_results if f.get('audio_type') == 'cta']
+
+        print(f"Complete: {len(scene_audio_files)} scenes + {len(cta_audio_files)} CTA / {len(all_audio_tasks)} total")
 
         # Calculate total generation time
         generation_end = datetime.utcnow()
         generation_time_sec = (generation_end - generation_start).total_seconds()
 
-        # Calculate total duration
-        total_duration_ms = sum(af['duration_ms'] for af in audio_files)
+        # Calculate total duration (scenes + CTA)
+        total_duration_ms = sum(af['duration_ms'] for af in all_results)
         total_duration_sec = total_duration_ms / 1000
 
         # Cost logging handled per-channel in distribute-audio
         cost_usd = 0.0
 
-        print(f"✅ Generated {len(audio_files)} audio files in {generation_time_sec:.2f}s")
+        print(f"✅ Generated {len(all_results)} audio files ({len(scene_audio_files)} scenes + {len(cta_audio_files)} CTA) in {generation_time_sec:.2f}s")
         print(f"Total audio duration: {total_duration_sec:.2f}s, Cost: ${cost_usd:.6f}")
 
         return {
             'message': 'Audio generated successfully',
             'tts_service': 'qwen3_tts',
-            'audio_files': audio_files,
-            'total_files': len(audio_files),
+            'audio_files': scene_audio_files,  # NEW: Only scene audio
+            'cta_audio_files': cta_audio_files,  # NEW: CTA audio separately
+            'total_files': len(all_results),
             'total_duration_ms': total_duration_ms,
             'total_duration_sec': round(total_duration_sec, 2),
-            'scene_count': len(audio_files),
+            'scene_count': len(scene_audio_files),  # NEW: Scene count
+            'cta_count': len(cta_audio_files),  # NEW: CTA count
             'cost_usd': cost_usd,
             'generation_time_sec': round(generation_time_sec, 2),
             'provider': 'Qwen3-TTS-0.6B',
