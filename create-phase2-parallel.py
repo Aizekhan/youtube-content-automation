@@ -286,14 +286,24 @@ if 'End' in sf['States']['Phase3AudioAndSave']:
     del sf['States']['Phase3AudioAndSave']['End']
 sf['States']['Phase3AudioAndSave']['Next'] = 'StopEC2Qwen3AfterPhase3'
 
-# Save modified Step Function
-with open('/tmp/new-sf.json', 'w') as f:
+# Save modified Step Function temporarily for deployment
+# WARNING: Delete this file after deployment to avoid stale state issues
+temp_file = '/tmp/new-sf.json'
+with open(temp_file, 'w') as f:
     json.dump(sf, f, indent=2)
 
-print("Created new Step Function definition")
-print("Added Phase2ParallelGeneration with Images + Audio branches")
-print("Moved audio generation to Phase2B")
-print("Removed old audio states from Phase3")
-print("Added MergeChannelData and StopEC2Qwen3AfterPhase3")
+print("=" * 80)
+print("Step Function Definition Generated")
+print("=" * 80)
 print()
-print("File saved: /tmp/new-sf.json")
+print("Changes made:")
+print("  - Added Phase2ParallelGeneration with Images + Audio branches")
+print("  - Moved audio generation to Phase2B (batched)")
+print("  - Removed old audio states from Phase3")
+print("  - Added MergeChannelData and StopEC2Qwen3AfterPhase3")
+print("  - Removed obsolete retry logic (queue-failed-ec2)")
+print()
+print(f"Saved to: {temp_file}")
+print()
+print("IMPORTANT: Delete this file after deployment:")
+print(f"  rm {temp_file}")
