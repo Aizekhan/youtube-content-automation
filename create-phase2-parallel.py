@@ -31,6 +31,20 @@ for state_name, state_def in image_states.items():
             if catch.get('Next') == 'Phase3AudioAndSave':
                 catch['Next'] = 'PreparePhase3WithoutImages'  # Stay within branch
 
+# FIX 2026-02-16: Remove obsolete retry logic (queue-failed-ec2 was deleted)
+# Replace QueueForRetry with simple Fail state
+if 'QueueForRetry' in image_states:
+    image_states['QueueForRetry'] = {
+        "Type": "Fail",
+        "Comment": "EC2 failed to start - execution will fail (retry logic removed)",
+        "Error": "EC2StartFailed",
+        "Cause": "Failed to start EC2 instance for image generation"
+    }
+
+# Remove WaitForRetrySystem (obsolete)
+if 'WaitForRetrySystem' in image_states:
+    del image_states['WaitForRetrySystem']
+
 # Create Branch A: Images
 branch_a_images = {
     "StartAt": "CheckIfAnyImages",
