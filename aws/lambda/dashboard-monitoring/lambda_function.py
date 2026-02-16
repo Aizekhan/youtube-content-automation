@@ -112,24 +112,53 @@ def handle_execution_details(params):
         steps = []
         state_stack = {}
 
+        # ARCHITECTURAL FIX: Dynamic state tracking for ANY Step Functions state type
+        # Maps event types to their state types automatically
+        STATE_TYPE_MAP = {
+            'TaskStateEntered': 'Task',
+            'MapStateEntered': 'Map',
+            'ParallelStateEntered': 'Parallel',  # NEW: Auto-detect Parallel states
+            'ChoiceStateEntered': 'Choice',
+            'PassStateEntered': 'Pass',
+            'WaitStateEntered': 'Wait',
+            'SucceedStateEntered': 'Succeed',
+            'FailStateEntered': 'Fail'
+        }
+
         for event in all_events:
             event_type = event['type']
             event_id = event['id']
             timestamp = event['timestamp'].isoformat()
 
-            if event_type == 'TaskStateEntered':
+            # Generic StateEntered handler - works for ANY state type
+            if event_type.endswith('StateEntered'):
                 details = event.get('stateEnteredEventDetails', {})
+                state_type = STATE_TYPE_MAP.get(event_type, event_type.replace('StateEntered', ''))
+
                 state_stack[event_id] = {
                     'name': details.get('name', 'Unknown'),
-                    'type': 'Task',
+                    'type': state_type,
                     'status': 'running',
                     'startTime': timestamp,
                     'input': safe_json_parse(details.get('input', '{}'))
                 }
 
-            elif event_type == 'TaskSucceeded':
-                details = event.get('taskSucceededEventDetails', {})
-                enter_id = find_matching_entered_state(state_stack, event_id, 'TaskStateEntered', event_lookup)
+                # Instant-complete states (Choice, Pass, etc.)
+                if state_type in ['Choice', 'Pass']:
+                    state = state_stack[event_id]
+                    state['status'] = 'completed'
+                    state['endTime'] = timestamp
+                    if state_type == 'Pass':
+                        state['output'] = state['input']
+                    steps.append(state.copy())
+
+            # Generic success handler - works for ANY state type
+            elif event_type.endswith('Succeeded') or event_type.endswith('StateSucceeded'):
+                details = event.get('taskSucceededEventDetails') or event.get('stateExitedEventDetails', {})
+                # Find matching entered event
+                enter_event_type = event_type.replace('Succeeded', 'Entered').replace('StateSucceeded', 'StateEntered')
+                enter_id = find_matching_entered_state(state_stack, event_id, enter_event_type, event_lookup)
+
                 if enter_id:
                     state = state_stack[enter_id]
                     state['status'] = 'succeeded'
@@ -137,9 +166,12 @@ def handle_execution_details(params):
                     state['output'] = safe_json_parse(details.get('output', '{}'))
                     steps.append(state.copy())
 
-            elif event_type == 'TaskFailed':
-                details = event.get('taskFailedEventDetails', {})
-                enter_id = find_matching_entered_state(state_stack, event_id, 'TaskStateEntered', event_lookup)
+            # Generic failure handler - works for ANY state type
+            elif event_type.endswith('Failed') or event_type.endswith('StateFailed'):
+                details = event.get('taskFailedEventDetails') or event.get('stateExitedEventDetails', {})
+                enter_event_type = event_type.replace('Failed', 'Entered').replace('StateFailed', 'StateEntered')
+                enter_id = find_matching_entered_state(state_stack, event_id, enter_event_type, event_lookup)
+
                 if enter_id:
                     state = state_stack[enter_id]
                     state['status'] = 'failed'
@@ -147,60 +179,6 @@ def handle_execution_details(params):
                     state['error'] = details.get('error', 'Unknown')
                     state['cause'] = details.get('cause', '')
                     steps.append(state.copy())
-
-            elif event_type == 'MapStateEntered':
-                details = event.get('stateEnteredEventDetails', {})
-                state_stack[event_id] = {
-                    'name': details.get('name', 'Unknown'),
-                    'type': 'Map',
-                    'status': 'running',
-                    'startTime': timestamp,
-                    'input': safe_json_parse(details.get('input', '{}'))
-                }
-
-            elif event_type == 'MapStateSucceeded':
-                details = event.get('stateExitedEventDetails', {})
-                enter_id = find_matching_entered_state(state_stack, event_id, 'MapStateEntered', event_lookup)
-                if enter_id:
-                    state = state_stack[enter_id]
-                    state['status'] = 'succeeded'
-                    state['endTime'] = timestamp
-                    state['output'] = safe_json_parse(details.get('output', '{}'))
-                    steps.append(state.copy())
-
-            elif event_type == 'MapStateFailed':
-                details = event.get('stateExitedEventDetails', {})
-                enter_id = find_matching_entered_state(state_stack, event_id, 'MapStateEntered', event_lookup)
-                if enter_id:
-                    state = state_stack[enter_id]
-                    state['status'] = 'failed'
-                    state['endTime'] = timestamp
-                    state['error'] = details.get('error', 'Map failed')
-                    steps.append(state.copy())
-
-            elif event_type == 'ChoiceStateEntered':
-                details = event.get('stateEnteredEventDetails', {})
-                steps.append({
-                    'name': details.get('name', 'Unknown'),
-                    'type': 'Choice',
-                    'status': 'completed',
-                    'startTime': timestamp,
-                    'endTime': timestamp,
-                    'input': safe_json_parse(details.get('input', '{}'))
-                })
-
-            elif event_type == 'PassStateEntered':
-                details = event.get('stateEnteredEventDetails', {})
-                input_data = safe_json_parse(details.get('input', '{}'))
-                steps.append({
-                    'name': details.get('name', 'Unknown'),
-                    'type': 'Pass',
-                    'status': 'completed',
-                    'startTime': timestamp,
-                    'endTime': timestamp,
-                    'input': input_data,
-                    'output': input_data
-                })
 
         print(f"Parsed {len(steps)} steps")
 
@@ -282,19 +260,72 @@ def handle_executions(params):
     }
 
 
+def get_lambda_functions_from_step_function():
+    """
+    ARCHITECTURAL FIX: Dynamically extract ALL Lambda functions from Step Function definition
+    This ensures monitoring automatically picks up ANY new Lambda functions
+    """
+    try:
+        # Get Step Function definition
+        sm_response = stepfunctions.list_state_machines()
+        state_machines = sm_response.get('stateMachines', [])
+
+        if not state_machines:
+            return []
+
+        # Get first state machine (ContentGenerator)
+        sm_arn = state_machines[0]['stateMachineArn']
+        sm_details = stepfunctions.describe_state_machine(stateMachineArn=sm_arn)
+        definition = json.loads(sm_details['definition'])
+
+        # Recursively extract all Lambda function names from definition
+        lambda_functions = set()
+
+        def extract_lambdas(obj):
+            if isinstance(obj, dict):
+                # Check if this is a Lambda invoke task
+                if obj.get('Resource') == 'arn:aws:states:::lambda:invoke':
+                    params = obj.get('Parameters', {})
+                    func_name = params.get('FunctionName', '')
+                    if func_name:
+                        # Extract function name from ARN or use as-is
+                        if 'arn:aws:lambda' in func_name:
+                            func_name = func_name.split(':')[-1]
+                        lambda_functions.add(func_name)
+
+                # Recurse into nested objects
+                for value in obj.values():
+                    extract_lambdas(value)
+            elif isinstance(obj, list):
+                for item in obj:
+                    extract_lambdas(item)
+
+        extract_lambdas(definition)
+        return list(lambda_functions)
+
+    except Exception as e:
+        print(f"Error extracting Lambda functions from Step Function: {str(e)}")
+        # Fallback to empty list - will show no logs instead of crashing
+        return []
+
+
 def handle_logs(params):
     limit = int(params.get('limit', 50))
 
-    log_groups_response = logs_client.describe_log_groups(logGroupNamePrefix='/aws/lambda/content-', limit=10)
-    log_groups = log_groups_response.get('logGroups', [])
+    # ARCHITECTURAL FIX: Get Lambda functions dynamically from Step Function
+    lambda_functions = get_lambda_functions_from_step_function()
 
-    if not log_groups:
+    if not lambda_functions:
+        print("WARNING: No Lambda functions found in Step Function definition")
         return {'statusCode': 200, 'body': json.dumps({'logs': []})}
+
+    print(f"Found {len(lambda_functions)} Lambda functions in Step Function: {lambda_functions[:5]}...")
 
     all_logs = []
 
-    for log_group in log_groups[:1]:
-        log_group_name = log_group['logGroupName']
+    # Get logs from each Lambda function
+    for func_name in lambda_functions[:5]:  # Limit to first 5 to avoid timeouts
+        log_group_name = f'/aws/lambda/{func_name}'
 
         try:
             streams_response = logs_client.describe_log_streams(
@@ -310,7 +341,11 @@ def handle_logs(params):
 
             for event in events_response.get('events', []):
                 timestamp = datetime.fromtimestamp(event['timestamp'] / 1000).strftime('%Y-%m-%d %H:%M:%S')
-                all_logs.append({'timestamp': timestamp, 'message': event['message'].strip()})
+                all_logs.append({
+                    'timestamp': timestamp,
+                    'message': event['message'].strip(),
+                    'source': func_name  # NEW: Show which Lambda emitted this log
+                })
 
         except Exception as e:
             print(f"Error getting logs from {log_group_name}: {str(e)}")
