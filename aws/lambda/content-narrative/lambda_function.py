@@ -370,7 +370,7 @@ def lambda_handler(event, context):
             # SECURITY FIX: Add SSL/TLS verification and timeout
             import ssl
             ssl_context = ssl.create_default_context()
-            conn = http.client.HTTPSConnection('api.openai.com', context=ssl_context, timeout=60)
+            conn = http.client.HTTPSConnection('api.openai.com', context=ssl_context, timeout=240)
             headers = {
                 'Authorization': f'Bearer {api_key}',
                 'Content-Type': 'application/json'

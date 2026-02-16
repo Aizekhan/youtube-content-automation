@@ -8,11 +8,11 @@ ec2 = boto3.client('ec2', region_name='eu-central-1')
 # EC2 Configuration
 INSTANCE_NAME = 'qwen3-tts-server'
 INSTANCE_TYPE = 'g4dn.xlarge'
-AMI_ID = 'ami-0b7fd829e7758b06d'  # Deep Learning OSS Nvidia Driver AMI GPU PyTorch 2.7 (Ubuntu 22.04)
-KEY_NAME = 'your-key-name'  # TODO: Update with your key
-SECURITY_GROUP_ID = 'sg-xxxxxxxxx'  # TODO: Update with your security group
-SUBNET_ID = 'subnet-xxxxxxxxx'  # TODO: Update with your subnet
-IAM_INSTANCE_PROFILE = 'arn:aws:iam::599297130956:instance-profile/ec2-qwen3-tts-role'
+AMI_ID = 'ami-015b956468289e022'  # Qwen3-TTS Production with auto-start service (2026-02-12)
+KEY_NAME = 'n8n-key'
+SECURITY_GROUP_ID = 'sg-08aee4fb3504062dc'
+SUBNET_ID = 'subnet-0ac0c300488c280ff'
+IAM_INSTANCE_PROFILE = 'arn:aws:iam::599297130956:instance-profile/qwen3-ec2-instance-profile'
 
 # Health check configuration
 HEALTH_CHECK_URL = 'http://{ip}:5000/health'
@@ -43,7 +43,7 @@ def lambda_handler(event, context):
 
     action = event.get('action', 'status')
 
-    print(f"🎤 EC2 Qwen3-TTS Control - Action: {action}")
+    print(f" EC2 Qwen3-TTS Control - Action: {action}")
 
     try:
         if action == 'start':
@@ -59,7 +59,7 @@ def lambda_handler(event, context):
             }
 
     except Exception as e:
-        print(f"❌ Error: {str(e)}")
+        print(f" Error: {str(e)}")
         import traceback
         traceback.print_exc()
 
@@ -101,40 +101,30 @@ def start_instance():
         instance_id = instance['InstanceId']
         state = instance['State']['Name']
 
-        print(f"✅ Found existing instance: {instance_id} (state: {state})")
+        print(f" Found existing instance: {instance_id} (state: {state})")
 
         if state == 'running':
-            # Already running, get endpoint
+            # Already running, return endpoint immediately (Step Functions will check health)
             public_ip = instance.get('PublicIpAddress')
             if not public_ip:
-                print("⚠️  Instance running but no public IP yet, waiting...")
+                print("  Instance running but no public IP yet, waiting...")
                 time.sleep(5)
                 instance = get_instance_by_id(instance_id)
                 public_ip = instance.get('PublicIpAddress')
 
             endpoint = f"http://{public_ip}:5000"
 
-            # Verify health
-            if check_health(endpoint):
-                return {
-                    'statusCode': 200,
-                    'status': 'running',
-                    'endpoint': endpoint,
-                    'instance_id': instance_id,
-                    'message': 'Instance already running and healthy'
-                }
-            else:
-                return {
-                    'statusCode': 202,
-                    'status': 'starting',
-                    'endpoint': endpoint,
-                    'instance_id': instance_id,
-                    'message': 'Instance running but service not ready yet'
-                }
+            return {
+                'statusCode': 202,
+                'status': 'starting',
+                'endpoint': endpoint,
+                'instance_id': instance_id,
+                'message': 'Instance running, service starting (wait 2-3 min)'
+            }
 
         elif state == 'stopped':
             # Start existing instance
-            print(f"🔄 Starting stopped instance: {instance_id}")
+            print(f" Starting stopped instance: {instance_id}")
             ec2.start_instances(InstanceIds=[instance_id])
 
             # Wait for running state
@@ -146,32 +136,57 @@ def start_instance():
             public_ip = instance.get('PublicIpAddress')
             endpoint = f"http://{public_ip}:5000"
 
-            print(f"✅ Instance started: {endpoint}")
+            print(f" Instance started: {endpoint}")
 
-            return {
-                'statusCode': 200,
-                'status': 'running',
-                'endpoint': endpoint,
-                'instance_id': instance_id,
-                'message': 'Instance started successfully'
-            }
-
-        elif state in ['pending', 'stopping']:
             return {
                 'statusCode': 202,
-                'status': state,
+                'status': 'starting',
+                'endpoint': endpoint,
                 'instance_id': instance_id,
-                'message': f'Instance is {state}, wait and retry'
+                'message': 'Instance started, service starting (wait 2-3 min)'
+            }
+
+        elif state == 'stopping':
+            # Wait for instance to fully stop, then start it
+            print(f"Instance is stopping, waiting for stopped state...")
+            waiter = ec2.get_waiter('instance_stopped')
+            waiter.wait(InstanceIds=[instance_id], WaiterConfig={'Delay': 5, 'MaxAttempts': 60})
+
+            print(f"Instance stopped, now starting...")
+            ec2.start_instances(InstanceIds=[instance_id])
+
+            # Wait for running state
+            waiter = ec2.get_waiter('instance_running')
+            waiter.wait(InstanceIds=[instance_id])
+
+            # Get public IP
+            instance = get_instance_by_id(instance_id)
+            public_ip = instance.get('PublicIpAddress')
+            endpoint = f"http://{public_ip}:5000"
+
+            print(f"Instance started: {endpoint}")
+
+            return {
+                'statusCode': 202,
+                'status': 'starting',
+                'endpoint': endpoint,
+                'instance_id': instance_id,
+                'message': 'Instance was stopping, waited and started'
+            }
+
+        elif state == 'pending':
+            return {
+                'statusCode': 202,
+                'status': 'pending',
+                'instance_id': instance_id,
+                'message': 'Instance is pending, wait and retry'
             }
 
     else:
         # Create new instance
-        print(f"🆕 Creating new instance: {INSTANCE_NAME}")
+        print(f" Creating new instance: {INSTANCE_NAME}")
 
-        # Read UserData script
-        userdata_script = get_userdata_script()
-
-        # Launch instance
+        # Launch instance (UserData not needed - service auto-starts from AMI)
         response = ec2.run_instances(
             ImageId=AMI_ID,
             InstanceType=INSTANCE_TYPE,
@@ -181,7 +196,6 @@ def start_instance():
             IamInstanceProfile={'Arn': IAM_INSTANCE_PROFILE},
             MinCount=1,
             MaxCount=1,
-            UserData=userdata_script,
             TagSpecifications=[
                 {
                     'ResourceType': 'instance',
@@ -196,7 +210,7 @@ def start_instance():
                 {
                     'DeviceName': '/dev/sda1',
                     'Ebs': {
-                        'VolumeSize': 40,
+                        'VolumeSize': 80,
                         'VolumeType': 'gp3',
                         'DeleteOnTermination': True
                     }
@@ -205,10 +219,10 @@ def start_instance():
         )
 
         instance_id = response['Instances'][0]['InstanceId']
-        print(f"✅ Instance created: {instance_id}")
+        print(f" Instance created: {instance_id}")
 
         # Wait for running state
-        print("⏳ Waiting for instance to start...")
+        print(" Waiting for instance to start...")
         waiter = ec2.get_waiter('instance_running')
         waiter.wait(InstanceIds=[instance_id])
 
@@ -217,8 +231,8 @@ def start_instance():
         public_ip = instance.get('PublicIpAddress')
         endpoint = f"http://{public_ip}:5000"
 
-        print(f"✅ Instance running: {endpoint}")
-        print("⏳ Waiting for Qwen3-TTS service to start (may take 2-3 minutes)...")
+        print(f" Instance running: {endpoint}")
+        print(" Waiting for Qwen3-TTS service to start (may take 2-3 minutes)...")
 
         return {
             'statusCode': 202,
@@ -253,7 +267,7 @@ def stop_instance():
         }
 
     elif state == 'running':
-        print(f"⏹️  Stopping instance: {instance_id}")
+        print(f"  Stopping instance: {instance_id}")
         ec2.stop_instances(InstanceIds=[instance_id])
 
         return {
@@ -317,13 +331,16 @@ def get_instance_by_id(instance_id):
 def check_health(endpoint):
     """Check if Qwen3-TTS service is healthy"""
     try:
-        import requests
-        health_url = f"{endpoint}/health"
-        response = requests.get(health_url, timeout=5)
+        import urllib.request
+        import json as json_module
 
-        if response.status_code == 200:
-            data = response.json()
-            return data.get('status') == 'healthy' and data.get('models_loaded', 0) >= 3
+        health_url = f"{endpoint}/health"
+        req = urllib.request.Request(health_url, method='GET')
+
+        with urllib.request.urlopen(req, timeout=5) as response:
+            if response.status == 200:
+                data = json_module.loads(response.read().decode('utf-8'))
+                return data.get('status') == 'healthy' and data.get('models_loaded', 0) >= 3
 
         return False
 

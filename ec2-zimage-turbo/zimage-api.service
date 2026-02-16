@@ -1,0 +1,18 @@
+[Unit]
+Description=Z-Image-Turbo API Server
+After=network.target
+
+[Service]
+Type=simple
+User=ubuntu
+WorkingDirectory=/home/ubuntu/zimage-api
+Environment="PATH=/home/ubuntu/zimage-api/venv/bin"
+ExecStart=/home/ubuntu/zimage-api/venv/bin/python /home/ubuntu/zimage-api/api_server.py
+Restart=always
+RestartSec=10
+StandardOutput=journal
+StandardError=journal
+SyslogIdentifier=zimage-api
+
+[Install]
+WantedBy=multi-user.target

@@ -17,14 +17,14 @@ def create_zip():
         # Add lambda function
         zf.write('lambda_function.py')
 
-        print(f"✅ Created {zip_file}")
+        print(f" Created {zip_file}")
         print(f"   - lambda_function.py")
 
     # Print file size
     size_mb = os.path.getsize(zip_file) / 1024 / 1024
-    print(f"\n📦 Package size: {size_mb:.2f} MB")
+    print(f"\n Package size: {size_mb:.2f} MB")
 
-    print("\n🚀 Deploy with:")
+    print("\n Deploy with:")
     print(f"   aws lambda update-function-code --function-name ec2-qwen3-control --zip-file fileb://{zip_file}")
 
 if __name__ == '__main__':

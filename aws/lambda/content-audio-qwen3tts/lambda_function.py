@@ -1,10 +1,12 @@
 import json
 import boto3
 import hashlib
-import requests
+import urllib.request
+import urllib.parse
 from datetime import datetime
 from decimal import Decimal
 from boto3.dynamodb.conditions import Key
+from concurrent.futures import ThreadPoolExecutor, as_completed
 
 lambda_client = boto3.client('lambda', region_name='eu-central-1')
 s3 = boto3.client('s3', region_name='eu-central-1')
@@ -68,6 +70,276 @@ def log_qwen3_cost(channel_id, content_id, generation_time_sec, scene_count, use
         return 0.0
 
 
+
+
+def process_single_scene(scene, ec2_endpoint):
+    """
+    Worker function for BATCHED processing
+    All params extracted from scene object
+
+    Returns: audio_file_dict or None
+    """
+    # Extract from scene object
+    channel_id = scene.get('channel_id')
+    narrative_id = scene.get('narrative_id')
+    scene_id = scene.get('scene_id') or scene.get('id') or scene.get('scene_number', 0)
+    language = scene.get('language', 'en')
+    speaker = scene.get('speaker', 'default')
+    voice_description = scene.get('voice_description')
+    text = scene.get('text') or scene.get('scene_narration') or scene.get('narration', '')
+
+    if not text:
+        print(f"Scene {scene_id}: no text")
+        return None
+
+    if not channel_id or not narrative_id:
+        print(f"Scene {scene_id}: missing channel_id or narrative_id")
+        return None
+
+    print(f"Scene {scene_id}...")
+
+    try:
+        # Call Qwen3-TTS API on EC2
+        audio_data, duration_ms = generate_with_qwen3(
+            ec2_endpoint=ec2_endpoint,
+            text=text,
+            language=language,
+            speaker=speaker,
+            voice_description=voice_description
+        )
+
+        # Upload to S3
+        s3_key = f"narratives/{channel_id}/{narrative_id}/scene_{scene_id}.wav"
+        s3_url = upload_to_s3(audio_data, s3_key, content_type='audio/wav')
+
+        audio_file = {
+            'channel_id': channel_id,
+            'scene_id': scene_id,
+            's3_url': s3_url,
+            's3_key': s3_key,
+            'duration_ms': duration_ms
+        }
+
+        print(f"Scene {scene_id}: {duration_ms}ms")
+        return audio_file
+
+    except Exception as scene_error:
+        print(f"Scene {scene_id} error: {scene_error}")
+        return None
+
+
+
+
+def process_single_scene(scene, ec2_endpoint, channel_id, narrative_id, language, speaker, voice_description):
+    """
+    Worker function to process a single scene in parallel
+
+    Returns: (scene_id, audio_file_dict) or (scene_id, None) on error
+    """
+    scene_id = scene.get('id') or scene.get('scene_number', 0)
+
+    # Get text - prefer plain text over SSML for Qwen3-TTS
+    text = scene.get('scene_narration') or scene.get('text', '')
+
+    # Strip SSML tags if present (Qwen3 uses plain text)
+    if not text and 'text_with_ssml' in scene:
+        import re
+        text = re.sub(r'<[^>]+>', '', scene['text_with_ssml'])
+
+    if not text:
+        print(f"⚠️ Scene {scene_id} has no text, skipping")
+        return (scene_id, None)
+
+    print(f"Generating audio for scene {scene_id}...")
+
+    try:
+        # Call Qwen3-TTS API on EC2
+        audio_data, duration_ms = generate_with_qwen3(
+            ec2_endpoint=ec2_endpoint,
+            text=text,
+            language=language,
+            speaker=speaker,
+            voice_description=voice_description
+        )
+
+        # Upload to S3
+        s3_key = f"narratives/{channel_id}/{narrative_id}/scene_{scene_id}.wav"
+        s3_url = upload_to_s3(audio_data, s3_key, content_type='audio/wav')
+
+        audio_file = {
+            'scene_id': scene_id,
+            's3_url': s3_url,
+            's3_key': s3_key,
+            'duration_ms': duration_ms
+        }
+
+        print(f"✅ Scene {scene_id} audio generated: {duration_ms}ms")
+        return (scene_id, audio_file)
+
+    except Exception as scene_error:
+        print(f"❌ Error generating scene {scene_id}: {scene_error}")
+        return (scene_id, None)
+
+
+
+
+def process_single_scene(scene, ec2_endpoint, channel_id, narrative_id, language, speaker, voice_description):
+    """
+    Worker function to process a single scene in parallel
+
+    Returns: (scene_id, audio_file_dict) or (scene_id, None) on error
+    """
+    scene_id = scene.get('id') or scene.get('scene_number', 0)
+
+    # Get text - prefer plain text over SSML for Qwen3-TTS
+    text = scene.get('scene_narration') or scene.get('text', '')
+
+    # Strip SSML tags if present (Qwen3 uses plain text)
+    if not text and 'text_with_ssml' in scene:
+        import re
+        text = re.sub(r'<[^>]+>', '', scene['text_with_ssml'])
+
+    if not text:
+        print(f"⚠️ Scene {scene_id} has no text, skipping")
+        return (scene_id, None)
+
+    print(f"Generating audio for scene {scene_id}...")
+
+    try:
+        # Call Qwen3-TTS API on EC2
+        audio_data, duration_ms = generate_with_qwen3(
+            ec2_endpoint=ec2_endpoint,
+            text=text,
+            language=language,
+            speaker=speaker,
+            voice_description=voice_description
+        )
+
+        # Upload to S3
+        s3_key = f"narratives/{channel_id}/{narrative_id}/scene_{scene_id}.wav"
+        s3_url = upload_to_s3(audio_data, s3_key, content_type='audio/wav')
+
+        audio_file = {
+            'scene_id': scene_id,
+            's3_url': s3_url,
+            's3_key': s3_key,
+            'duration_ms': duration_ms
+        }
+
+        print(f"✅ Scene {scene_id} audio generated: {duration_ms}ms")
+        return (scene_id, audio_file)
+
+    except Exception as scene_error:
+        print(f"❌ Error generating scene {scene_id}: {scene_error}")
+        return (scene_id, None)
+
+
+
+
+def process_single_scene(scene, ec2_endpoint, channel_id, narrative_id, language, speaker, voice_description):
+    """
+    Worker function to process a single scene in parallel
+
+    Returns: (scene_id, audio_file_dict) or (scene_id, None) on error
+    """
+    scene_id = scene.get('id') or scene.get('scene_number', 0)
+
+    # Get text - prefer plain text over SSML for Qwen3-TTS
+    text = scene.get('scene_narration') or scene.get('text', '')
+
+    # Strip SSML tags if present (Qwen3 uses plain text)
+    if not text and 'text_with_ssml' in scene:
+        import re
+        text = re.sub(r'<[^>]+>', '', scene['text_with_ssml'])
+
+    if not text:
+        print(f"⚠️ Scene {scene_id} has no text, skipping")
+        return (scene_id, None)
+
+    print(f"Generating audio for scene {scene_id}...")
+
+    try:
+        # Call Qwen3-TTS API on EC2
+        audio_data, duration_ms = generate_with_qwen3(
+            ec2_endpoint=ec2_endpoint,
+            text=text,
+            language=language,
+            speaker=speaker,
+            voice_description=voice_description
+        )
+
+        # Upload to S3
+        s3_key = f"narratives/{channel_id}/{narrative_id}/scene_{scene_id}.wav"
+        s3_url = upload_to_s3(audio_data, s3_key, content_type='audio/wav')
+
+        audio_file = {
+            'scene_id': scene_id,
+            's3_url': s3_url,
+            's3_key': s3_key,
+            'duration_ms': duration_ms
+        }
+
+        print(f"✅ Scene {scene_id} audio generated: {duration_ms}ms")
+        return (scene_id, audio_file)
+
+    except Exception as scene_error:
+        print(f"❌ Error generating scene {scene_id}: {scene_error}")
+        return (scene_id, None)
+
+
+
+
+def process_single_scene(scene, ec2_endpoint, channel_id, narrative_id, language, speaker, voice_description):
+    """
+    Worker function to process a single scene in parallel
+
+    Returns: (scene_id, audio_file_dict) or (scene_id, None) on error
+    """
+    scene_id = scene.get('id') or scene.get('scene_number', 0)
+
+    # Get text - prefer plain text over SSML for Qwen3-TTS
+    text = scene.get('scene_narration') or scene.get('text', '')
+
+    # Strip SSML tags if present (Qwen3 uses plain text)
+    if not text and 'text_with_ssml' in scene:
+        import re
+        text = re.sub(r'<[^>]+>', '', scene['text_with_ssml'])
+
+    if not text:
+        print(f"⚠️ Scene {scene_id} has no text, skipping")
+        return (scene_id, None)
+
+    print(f"Generating audio for scene {scene_id}...")
+
+    try:
+        # Call Qwen3-TTS API on EC2
+        audio_data, duration_ms = generate_with_qwen3(
+            ec2_endpoint=ec2_endpoint,
+            text=text,
+            language=language,
+            speaker=speaker,
+            voice_description=voice_description
+        )
+
+        # Upload to S3
+        s3_key = f"narratives/{channel_id}/{narrative_id}/scene_{scene_id}.wav"
+        s3_url = upload_to_s3(audio_data, s3_key, content_type='audio/wav')
+
+        audio_file = {
+            'scene_id': scene_id,
+            's3_url': s3_url,
+            's3_key': s3_key,
+            'duration_ms': duration_ms
+        }
+
+        print(f"✅ Scene {scene_id} audio generated: {duration_ms}ms")
+        return (scene_id, audio_file)
+
+    except Exception as scene_error:
+        print(f"❌ Error generating scene {scene_id}: {scene_error}")
+        return (scene_id, None)
+
+
 def lambda_handler(event, context):
     """
     Generate audio files using Qwen3-TTS on EC2
@@ -104,94 +376,51 @@ def lambda_handler(event, context):
     print(f"🎤 Qwen3-TTS Audio Generation")
     print(f"Event: {json.dumps(event, default=str)}")
 
-    # Extract user_id for multi-tenant cost isolation
-    user_id = event.get('user_id')
-    if not user_id:
-        print("⚠️ WARNING: No user_id provided")
-
     try:
-        # Parse input
-        channel_id = event.get('channel_id')
-        narrative_id = event.get('narrative_id', hashlib.md5(str(datetime.utcnow()).encode()).hexdigest())
-        scenes = event.get('scenes', [])
-        story_title = event.get('story_title', 'Untitled')
-        language = event.get('language', 'English')
-        speaker = event.get('speaker', 'Ryan')  # Default Qwen3 speaker
-        voice_description = event.get('voice_description')  # NEW: Tone + Narration Style
+        # Parse BATCHED input from collect-audio-scenes Lambda
+        all_audio_scenes = event.get('all_audio_scenes', [])
+        ec2_endpoint = event.get('ec2_endpoint')
 
-        if not channel_id:
+        print(f"Batch processing: {len(all_audio_scenes)} scenes")
+        print(f"EC2 endpoint: {ec2_endpoint}")
+
+        if not all_audio_scenes:
+            print("No scenes to process")
             return {
-                'error': 'channel_id is required',
                 'audio_files': [],
+                'total_files': 0,
                 'total_duration_ms': 0,
                 'scene_count': 0
             }
 
-        if not scenes:
-            print("⚠️ No scenes provided, returning empty result")
-            return {
-                'audio_files': [],
-                'total_duration_ms': 0,
-                'scene_count': 0,
-                'message': 'No scenes to process'
-            }
-
-        # 1. Ensure EC2 is running
-        print("🔄 Starting EC2 Qwen3-TTS instance...")
-        ec2_endpoint = start_ec2_instance()
-
         if not ec2_endpoint:
-            raise Exception("Failed to start EC2 instance")
+            raise Exception("ec2_endpoint is required")
 
-        print(f"✅ EC2 endpoint: {ec2_endpoint}")
-
-        # 2. Generate audio for each scene
+        # Generate audio for all scenes in parallel
         audio_files = []
         generation_start = datetime.utcnow()
 
-        for scene in scenes:
-            scene_id = scene.get('id') or scene.get('scene_number', 0)
+        # Use ThreadPoolExecutor for parallel generation
+        max_workers = min(8, len(all_audio_scenes))
+        print(f"Generating {len(all_audio_scenes)} scenes with {max_workers} workers...")
 
-            # Get text - prefer plain text over SSML for Qwen3-TTS
-            text = scene.get('scene_narration') or scene.get('text', '')
+        with ThreadPoolExecutor(max_workers=max_workers) as executor:
+            # Submit all scenes for processing
+            futures = [
+                executor.submit(process_single_scene, scene, ec2_endpoint)
+                for scene in all_audio_scenes
+            ]
 
-            # Strip SSML tags if present (Qwen3 uses plain text)
-            if not text and 'text_with_ssml' in scene:
-                import re
-                text = re.sub(r'<[^>]+>', '', scene['text_with_ssml'])
+            # Collect results as they complete
+            for future in as_completed(futures):
+                try:
+                    audio_file = future.result()
+                    if audio_file:
+                        audio_files.append(audio_file)
+                except Exception as exc:
+                    print(f"Scene exception: {exc}")
 
-            if not text:
-                print(f"⚠️ Scene {scene_id} has no text, skipping")
-                continue
-
-            print(f"Generating audio for scene {scene_id}...")
-
-            try:
-                # Call Qwen3-TTS API on EC2
-                audio_data, duration_ms = generate_with_qwen3(
-                    ec2_endpoint=ec2_endpoint,
-                    text=text,
-                    language=language,
-                    speaker=speaker,
-                    voice_description=voice_description
-                )
-
-                # Upload to S3
-                s3_key = f"narratives/{channel_id}/{narrative_id}/scene_{scene_id}.wav"
-                s3_url = upload_to_s3(audio_data, s3_key, content_type='audio/wav')
-
-                audio_files.append({
-                    'scene_id': scene_id,
-                    's3_url': s3_url,
-                    's3_key': s3_key,
-                    'duration_ms': duration_ms
-                })
-
-                print(f"✅ Scene {scene_id} audio generated: {duration_ms}ms")
-
-            except Exception as scene_error:
-                print(f"❌ Error generating scene {scene_id}: {scene_error}")
-                continue
+        print(f"Complete: {len(audio_files)}/{len(all_audio_scenes)} successful")
 
         # Calculate total generation time
         generation_end = datetime.utcnow()
@@ -201,28 +430,17 @@ def lambda_handler(event, context):
         total_duration_ms = sum(af['duration_ms'] for af in audio_files)
         total_duration_sec = total_duration_ms / 1000
 
-        # Log Qwen3-TTS cost
-        cost_usd = log_qwen3_cost(
-            channel_id=channel_id,
-            content_id=narrative_id,
-            generation_time_sec=generation_time_sec,
-            scene_count=len(audio_files),
-            user_id=user_id
-        )
+        # Cost logging handled per-channel in distribute-audio
+        cost_usd = 0.0
 
         print(f"✅ Generated {len(audio_files)} audio files in {generation_time_sec:.2f}s")
         print(f"Total audio duration: {total_duration_sec:.2f}s, Cost: ${cost_usd:.6f}")
 
         return {
             'message': 'Audio generated successfully',
-            'narrative_id': narrative_id,
-            'channel_id': channel_id,
-            'story_title': story_title,
-            'voice_id': speaker,
-            'voice_profile': speaker.lower() + '_voice',  # Map to profile
             'tts_service': 'qwen3_tts',
-            'language': language,
             'audio_files': audio_files,
+            'total_files': len(audio_files),
             'total_duration_ms': total_duration_ms,
             'total_duration_sec': round(total_duration_sec, 2),
             'scene_count': len(audio_files),
@@ -309,12 +527,13 @@ def check_service_health(endpoint):
     """Check if Qwen3-TTS service is healthy"""
     try:
         health_url = f"{endpoint}/health"
-        response = requests.get(health_url, timeout=5)
+        req = urllib.request.Request(health_url, method='GET')
 
-        if response.status_code == 200:
-            data = response.json()
-            models_loaded = data.get('models_loaded', 0)
-            return models_loaded >= 3
+        with urllib.request.urlopen(req, timeout=5) as response:
+            if response.status == 200:
+                data = json.loads(response.read().decode('utf-8'))
+                models_loaded = data.get('models_loaded', 0)
+                return models_loaded >= 3
 
         return False
 
@@ -344,12 +563,15 @@ def generate_with_qwen3(ec2_endpoint, text, language='English', speaker='Ryan', 
 
         print(f"Calling Qwen3-TTS API: {url}")
 
-        response = requests.post(url, json=payload, timeout=120)
+        data = json.dumps(payload).encode('utf-8')
+        req = urllib.request.Request(url, data=data, headers={'Content-Type': 'application/json'}, method='POST')
 
-        if response.status_code != 200:
-            raise Exception(f"Qwen3-TTS API error: {response.status_code} - {response.text}")
+        with urllib.request.urlopen(req, timeout=120) as response:
+            if response.status != 200:
+                error_text = response.read().decode('utf-8')
+                raise Exception(f"Qwen3-TTS API error: {response.status} - {error_text}")
 
-        result = response.json()
+            result = json.loads(response.read().decode('utf-8'))
 
         audio_files = result.get('audio_files', [])
         if not audio_files:

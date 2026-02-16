@@ -1,0 +1,18 @@
+[Unit]
+Description=Qwen3-TTS Production API Server
+After=network.target
+
+[Service]
+Type=simple
+User=ubuntu
+WorkingDirectory=/home/ubuntu/qwen3-tts
+Environment="PATH=/home/ubuntu/qwen3-tts/venv/bin"
+ExecStart=/home/ubuntu/qwen3-tts/venv/bin/python /home/ubuntu/qwen3-tts/api_server.py
+Restart=always
+RestartSec=10
+StandardOutput=journal
+StandardError=journal
+SyslogIdentifier=qwen3-tts
+
+[Install]
+WantedBy=multi-user.target

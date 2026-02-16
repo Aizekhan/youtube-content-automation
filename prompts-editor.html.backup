@@ -939,7 +939,7 @@ Your prompts are painterly, evocative, and designed for AI image generation.</te
                                 <div class="mb-3">
                                     <label class="form-label">Image Provider *</label>
                                     <select class="form-select" id="image_provider">
-                                        <option value="ec2-zimage">EC2 Stable Diffusion 3.5 (Current)</option>
+                                        <option value="ec2-sd35">EC2 Stable Diffusion 3.5 (Current)</option>
                                         <option value="aws-bedrock-sdxl">AWS Bedrock SDXL</option>
                                         <option value="aws-bedrock-nova-canvas">AWS Bedrock Nova Canvas</option>
                                     </select>
@@ -1251,11 +1251,36 @@ Your prompts are painterly, evocative, and designed for AI image generation.</te
                                     <div class="col-md-6">
                                         <label class="form-label">TTS Service</label>
                                         <select class="form-select" id="tts_service">
-                                            <option value="qwen3_tts" selected>Qwen3-TTS (FREE - Self-hosted) ⭐</option>
+                                            <option value="aws_polly_neural" selected>AWS Polly Neural ($16/1M chars) ⭐</option>
+                                            <option value="aws_polly_standard">AWS Polly Standard ($4/1M chars)</option>
+                                            <option value="elevenlabs">ElevenLabs (Premium)</option>
+                                            <option value="google_tts">Google Cloud TTS</option>
                                         </select>
                                         <small class="text-muted">Neural має кращу якість і більше природний голос</small>
                                     </div>
-<div class="col-md-6">                                        <label class="form-label">Voice Mode (Qwen3-TTS)</label>                                        <select class="form-select" id="tts_voice_profile">                                            <option value="auto" selected>Auto Voice Selection ⭐</option>                                        </select>                                        <small class="text-muted">Qwen3-TTS автоматично обирає найкращий голос для вашого тексту</small>                                    </div>
+                                    <div class="col-md-6">
+                                        <label class="form-label">Voice Profile (AWS Neural)</label>
+                                        <select class="form-select" id="tts_voice_profile">
+                                            <optgroup label="🎙️ Жіночі голоси">
+                                                <option value="joanna_female">Joanna - Жіночий (чіткий, професійний)</option>
+                                                <option value="salli_female">Salli - Жіночий (теплий, дружній)</option>
+                                                <option value="kimberly_female">Kimberly - Жіночий (енергійний, молодий)</option>
+                                                <option value="kendra_female">Kendra - Жіночий (впевнений, професійний)</option>
+                                                <option value="ivy_female">Ivy - Жіночий (молодий, дружній)</option>
+                                                <option value="ruth_female">Ruth - Жіночий (авторитетний)</option>
+                                                <option value="danielle_female">Danielle - Жіночий (м'який, приємний)</option>
+                                            </optgroup>
+                                            <optgroup label="🎤 Чоловічі голоси">
+                                                <option value="matthew_male" selected>Matthew - Чоловічий (авторитетний, глибокий)</option>
+                                                <option value="joey_male">Joey - Чоловічий (нейтральний, чіткий)</option>
+                                                <option value="justin_male">Justin - Чоловічий (молодий, енергійний)</option>
+                                                <option value="gregory_male">Gregory - Чоловічий (британський, авторитетний)</option>
+                                                <option value="kevin_male">Kevin - Чоловічий (молодий, дружній)</option>
+                                                <option value="stephen_male">Stephen - Чоловічий (професійний)</option>
+                                            </optgroup>
+                                        </select>
+                                        <small class="text-muted">Виберіть голос AWS Polly Neural для озвучки</small>
+                                    </div>
                                 </div>
                             </div>
 
@@ -1430,7 +1455,7 @@ Your prompts are painterly, evocative, and designed for AI image generation.</te
                                             <option value="ogg_vorbis">OGG Vorbis (open source)</option>
                                             <option value="pcm">PCM (uncompressed, large)</option>
                                         </select>
-                                        <small class="text-muted">Qwen3-TTS підтримує ці формати</small>
+                                        <small class="text-muted">AWS Polly підтримує ці формати</small>
                                     </div>
                                     <div class="col-md-4">
                                         <label class="form-label">Sample Rate</label>
@@ -1949,13 +1974,13 @@ Slow down during tense moments.</textarea>
         let allChannels = [];
 
         const API_BASE = 'https://djpb4ue6wv2ohfjey32lfnhcre0zppqd.lambda-url.eu-central-1.on.aws';
-        const EC2_ZIMAGE_API_URL = 'https://s3meswqh3twvgvfffsrv5cpheq0xsfxb.lambda-url.eu-central-1.on.aws/';  // ec2-zimage-control Lambda Function URL
-        let ec2ZImageStatusInterval = null;
-        let ec2ZImageUserAction = null; // Track user action: 'starting', 'stopping', null
+        const EC2_SD35_API_URL = 'https://smhnyrluhutva5epkljlbd6kxe0cvykf.lambda-url.eu-central-1.on.aws/';  // ec2-sd35-control Lambda Function URL
+        let ec2SD35StatusInterval = null;
+        let ec2SD35UserAction = null; // Track user action: 'starting', 'stopping', null
 
         // VERSION: 2.3 - Fixed state tracking for start/stop (2025-11-09)
         console.log('🚀 Prompts Editor loaded - Version 2.3');
-        console.log('📡 EC2 SD35 Control API URL:', EC2_ZIMAGE_API_URL);
+        console.log('📡 EC2 SD35 Control API URL:', EC2_SD35_API_URL);
 
         // Initialize
         document.addEventListener('DOMContentLoaded', () => {
@@ -2174,7 +2199,7 @@ Slow down during tense moments.</textarea>
                     description: 'Image generation settings for FLUX/SDXL',
                     is_active: true,
                     image_settings: {
-                        provider: 'ec2-zimage',
+                        provider: 'ec2-sd35',
                         service: 'sd35-medium',
                         width: 1024,
                         height: 576,
@@ -2226,11 +2251,11 @@ Slow down during tense moments.</textarea>
                 'tts': {
                     template_type: 'tts',
                     template_name: 'New TTS/Voice Template',
-                    description: 'Qwen3-TTS with Auto Voice Selection',
+                    description: 'AWS Polly TTS with SSML settings',
                     is_active: true,
                     tts_settings: {
                         // TTS Service & Engine
-                        tts_service: 'qwen3_tts',
+                        tts_service: 'aws_polly_neural',
                         tts_voice_profile: 'neutral_male',
 
                         // SSML Prosody
@@ -2421,7 +2446,7 @@ Slow down during tense moments.</textarea>
 
 
                     // Provider field
-                    const provider = template.provider || 'ec2-zimage';
+                    const provider = template.provider || 'ec2-sd35';
                     document.getElementById('image_provider').value = provider;
 
                     // Load core rules
@@ -2520,7 +2545,7 @@ Slow down during tense moments.</textarea>
                     const ttsSettings = template.tts_settings || {};
 
                     // TTS Service & Engine
-                    document.getElementById('tts_service').value = ttsSettings.tts_service || 'qwen3_tts';
+                    document.getElementById('tts_service').value = ttsSettings.tts_service || 'aws_polly_neural';
                     document.getElementById('tts_voice_profile').value = ttsSettings.tts_voice_profile || 'neutral_male';
 
                     // SSML Prosody
@@ -2679,7 +2704,7 @@ Slow down during tense moments.</textarea>
             const serviceSelect = document.getElementById('image_service');
 
             // Update service options based on provider
-            if (provider.startsWith('ec2-zimage') || provider.startsWith('ec2-flux') || provider.startsWith('replicate-flux')) {
+            if (provider.startsWith('ec2-sd35') || provider.startsWith('ec2-flux') || provider.startsWith('replicate-flux')) {
                 serviceSelect.innerHTML = `
                     <option value="sd35-medium">SD 3.5 Medium (28 steps)</option>
                     <option value="flux-schnell">FLUX Schnell (4 steps, fast)</option>
@@ -2970,7 +2995,7 @@ Slow down during tense moments.</textarea>
                     voiceover_text: document.getElementById('cta_voiceover_text').value
                 };
             } else if (currentTemplateType === 'tts') {
-                // TTS Template - save TTS settings (Qwen3-TTS + Voice Selection)
+                // TTS Template - save TTS settings (AWS Polly + SSML)
                 templateData.tts_settings = {
                     // TTS Service & Engine
                     tts_service: document.getElementById('tts_service').value,
@@ -3386,7 +3411,7 @@ Slow down during tense moments.</textarea>
             }
 
             try {
-                const response = await fetch(`${EC2_ZIMAGE_API_URL}`, {
+                const response = await fetch(`${EC2_SD35_API_URL}`, {
                     method: 'POST',
                     mode: 'cors',
                     headers: {
@@ -3430,23 +3455,23 @@ Slow down during tense moments.</textarea>
 
                 // Update status
                 const statusEl = document.getElementById('ec2SD35Status');
-                if (ec2ZImageUserAction === 'starting' && !isRunning) {
+                if (ec2SD35UserAction === 'starting' && !isRunning) {
                     statusEl.textContent = '🟡 Starting...';
                     statusEl.style.color = '#f59e0b';
-                } else if (ec2ZImageUserAction === 'stopping' && !isStopped) {
+                } else if (ec2SD35UserAction === 'stopping' && !isStopped) {
                     statusEl.textContent = '🟡 Stopping...';
                     statusEl.style.color = '#f59e0b';
                 } else if (isRunning) {
                     statusEl.textContent = '🟢 Running';
                     statusEl.style.color = '#10b981';
-                    if (ec2ZImageUserAction === 'starting') {
-                        ec2ZImageUserAction = null;
+                    if (ec2SD35UserAction === 'starting') {
+                        ec2SD35UserAction = null;
                     }
                 } else if (isStopped) {
                     statusEl.textContent = '🔴 Stopped';
                     statusEl.style.color = '#ef4444';
-                    if (ec2ZImageUserAction === 'stopping') {
-                        ec2ZImageUserAction = null;
+                    if (ec2SD35UserAction === 'stopping') {
+                        ec2SD35UserAction = null;
                     }
                 } else {
                     statusEl.textContent = `⚠️ ${status}`;
@@ -3467,19 +3492,19 @@ Slow down during tense moments.</textarea>
                 }
 
                 // Update button states
-                document.getElementById('ec2SD35StartBtn').disabled = isRunning || ec2ZImageUserAction === 'starting';
-                document.getElementById('ec2SD35StopBtn').disabled = isStopped || ec2ZImageUserAction === 'stopping';
+                document.getElementById('ec2SD35StartBtn').disabled = isRunning || ec2SD35UserAction === 'starting';
+                document.getElementById('ec2SD35StopBtn').disabled = isStopped || ec2SD35UserAction === 'stopping';
 
                 // Auto-refresh management
-                const shouldPoll = isRunning || ec2ZImageUserAction === 'starting' || ec2ZImageUserAction === 'stopping';
+                const shouldPoll = isRunning || ec2SD35UserAction === 'starting' || ec2SD35UserAction === 'stopping';
 
-                if (shouldPoll && !ec2ZImageStatusInterval) {
+                if (shouldPoll && !ec2SD35StatusInterval) {
                     console.log('🔄 Starting EC2 auto-refresh');
-                    ec2ZImageStatusInterval = setInterval(refreshEC2SD35Status, 10000);  // Every 10 seconds
-                } else if (!shouldPoll && ec2ZImageStatusInterval) {
+                    ec2SD35StatusInterval = setInterval(refreshEC2SD35Status, 10000);  // Every 10 seconds
+                } else if (!shouldPoll && ec2SD35StatusInterval) {
                     console.log('🛑 Stopping EC2 auto-refresh');
-                    clearInterval(ec2ZImageStatusInterval);
-                    ec2ZImageStatusInterval = null;
+                    clearInterval(ec2SD35StatusInterval);
+                    ec2SD35StatusInterval = null;
                 }
 
                 // Restore Refresh button
@@ -3511,7 +3536,7 @@ Slow down during tense moments.</textarea>
 
             try {
                 console.log('Starting EC2 SD35 instance...');
-                const response = await fetch(`${EC2_ZIMAGE_API_URL}`, {
+                const response = await fetch(`${EC2_SD35_API_URL}`, {
                     method: 'POST',
                     mode: 'cors',
                     headers: {
@@ -3542,7 +3567,7 @@ Slow down during tense moments.</textarea>
                     console.log('✅ Instance starting');
 
                     // Set user action state
-                    ec2ZImageUserAction = 'starting';
+                    ec2SD35UserAction = 'starting';
 
                     // Update UI immediately
                     document.getElementById('ec2SD35Status').textContent = '🟡 Starting...';
@@ -3581,7 +3606,7 @@ Slow down during tense moments.</textarea>
 
             try {
                 console.log('Stopping EC2 SD35 instance...');
-                const response = await fetch(`${EC2_ZIMAGE_API_URL}`, {
+                const response = await fetch(`${EC2_SD35_API_URL}`, {
                     method: 'POST',
                     mode: 'cors',
                     headers: {
@@ -3612,7 +3637,7 @@ Slow down during tense moments.</textarea>
                     console.log('✅ Instance stopping');
 
                     // Set user action state
-                    ec2ZImageUserAction = 'stopping';
+                    ec2SD35UserAction = 'stopping';
 
                     // Update UI immediately
                     document.getElementById('ec2SD35Status').textContent = '🟡 Stopping...';

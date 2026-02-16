@@ -44,7 +44,11 @@ PRICING = {
         'standard-2048': 0.06,
         'premium-2048': 0.08
     },
-    # Deprecated: replicate-flux and vast-ai-flux removed
+    'ec2-zimage': {
+        'hourly_rate': 1.006,  # g5.xlarge
+        'images_per_hour': 720  # ~5 seconds per image (10x faster than SD3.5)
+    },
+    # Deprecated: SD3.5 replaced by Z-Image-Turbo
     'ec2-sd35': {
         'hourly_rate': 1.006,  # g5.xlarge
         'images_per_hour': 85.7  # ~42 seconds per image (28 steps)
@@ -144,7 +148,12 @@ def generate_with_bedrock_sdxl(prompt, image_config):
 
 def generate_with_ec2_sd35(prompt, image_config):
     """Generate image using EC2 SD 3.5 Medium (g5.xlarge)"""
-    return generate_with_ec2_flux(prompt, image_config)
+    return generate_with_ec2_flux(prompt, image_config, provider='ec2-sd35')
+
+
+def generate_with_ec2_zimage(prompt, image_config):
+    """Generate image using EC2 Z-Image-Turbo (g5.xlarge - 10x faster than SD3.5)"""
+    return generate_with_ec2_flux(prompt, image_config, provider='ec2-zimage')
 
 
 # DEPRECATED: Vast.ai functions removed
@@ -203,8 +212,15 @@ def stop_ec2_sd35():
     except Exception as e:
         print(f"⚠️  Failed to stop EC2 (non-critical): {e}")
 
-def generate_with_ec2_flux(prompt, image_config):
-    """Generate image using EC2 g5.xlarge with SD 3.5 Medium"""
+def generate_with_ec2_flux(prompt, image_config, provider='ec2-flux-schnell'):
+    """
+    Generate image using EC2 instance (SD3.5, Z-Image, or FLUX)
+
+    Args:
+        prompt: Image generation prompt
+        image_config: Image configuration (width, height, steps, etc.)
+        provider: Provider identifier for cost calculation (e.g., 'ec2-sd35', 'ec2-zimage')
+    """
     global EC2_ENDPOINT
     try:
         # Get EC2 endpoint from global variable (Step Functions) or Secrets Manager
@@ -269,15 +285,20 @@ def generate_with_ec2_flux(prompt, image_config):
         else:
             raise Exception(f"Unexpected content type: {content_type}")
 
-        # EC2 cost: ~$1.006/hour, ~45 images/hour = $0.022/image
-        cost = 0.0117  # Updated from real test: 42sec/image, 85.7 images/hour
+        # Calculate cost dynamically based on provider pricing
+        if provider in PRICING and 'hourly_rate' in PRICING[provider]:
+            provider_config = PRICING[provider]
+            cost = provider_config['hourly_rate'] / provider_config['images_per_hour']
+        else:
+            # Fallback to ec2-sd35 pricing if provider not found
+            cost = PRICING['ec2-sd35']['hourly_rate'] / PRICING['ec2-sd35']['images_per_hour']
 
         print(f"✅ Image generated successfully ({width}x{height}, cost: ${cost:.6f})")
 
         return {
             'image_bytes': image_bytes,
             'cost': cost,
-            'provider': 'ec2-flux-schnell',
+            'provider': provider,  # Use the passed provider parameter
             'width': width,
             'height': height
         }
@@ -497,14 +518,16 @@ def handle_multi_channel_batch(all_prompts, provider, user_id=None):
         try:
             # Generate image based on provider
             if provider == 'ec2-flux' or provider.startswith('ec2-flux'):
-                result = generate_with_ec2_flux(prompt, image_config)
+                result = generate_with_ec2_flux(prompt, image_config, provider=provider)
             elif provider == 'ec2-sd35' or provider.startswith('ec2-sd35'):
                 result = generate_with_ec2_sd35(prompt, image_config)
+            elif provider == 'ec2-zimage' or provider.startswith('ec2-zimage'):
+                result = generate_with_ec2_zimage(prompt, image_config)
             elif provider == 'aws-bedrock-sdxl':
                 result = generate_with_bedrock_sdxl(prompt, image_config)
             else:
                 print(f"⚠️  Unknown provider '{provider}', falling back to EC2 FLUX")
-                result = generate_with_ec2_flux(prompt, image_config)
+                result = generate_with_ec2_flux(prompt, image_config, provider=provider)
 
             # Upload to S3
             upload_result = upload_to_s3(
