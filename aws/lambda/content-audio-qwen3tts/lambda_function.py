@@ -204,6 +204,24 @@ def lambda_handler(event, context):
         if not ec2_endpoint:
             raise Exception("ec2_endpoint is required")
 
+        # Wait for EC2 Qwen3-TTS service to be ready (EC2 starts in ~30s but service needs 2-3 min)
+        import time
+        print(f"Waiting for Qwen3-TTS service at {ec2_endpoint}...")
+        max_wait = 300
+        wait_interval = 15
+        waited = 0
+        service_ready = False
+        while waited < max_wait:
+            if check_service_health(ec2_endpoint):
+                print(f"Qwen3-TTS service ready after {waited}s")
+                service_ready = True
+                break
+            print(f"Service not ready, waiting {wait_interval}s... ({waited}/{max_wait}s)")
+            time.sleep(wait_interval)
+            waited += wait_interval
+        if not service_ready:
+            print(f"WARNING: Service not ready after {max_wait}s, attempting anyway")
+
         # Generate audio for all tasks (scenes + CTA) in parallel
         all_results = []
         generation_start = datetime.utcnow()
