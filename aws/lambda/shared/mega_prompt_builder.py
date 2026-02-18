@@ -245,6 +245,12 @@ You MUST return valid JSON following this exact schema:
 ```
 """
 
+    
+    # Inject Story Blueprint section if present
+    blueprint = config.get('story_blueprint')
+    if blueprint:
+        blueprint_section = format_story_blueprint(blueprint)
+        system = system.replace('## 1. NARRATIVE GENERATION', blueprint_section + '## 1. NARRATIVE GENERATION', 1)
     return system
 
 
@@ -274,6 +280,22 @@ Remember:
 
 Return valid JSON only, no additional text.
 """
+
+
+    # Add blueprint-specific scene count hint to user message
+    blueprint = config.get('story_blueprint')
+    if blueprint:
+        scene_blueprints = blueprint.get('scene_blueprints', [])
+        if scene_blueprints:
+            scene_count = len(scene_blueprints)
+            override_parts = [
+                chr(10) + chr(10),
+                '**STORY BLUEPRINT OVERRIDE**: Generate exactly ',
+                str(scene_count),
+                ' scenes. Follow the emotional curve in the Story Blueprint section above.',
+                ' Each scene must match its designated purpose and intensity level.',
+            ]
+            user += ''.join(override_parts)
 
     return user
 
@@ -418,3 +440,105 @@ Examples:
 
 Use wordplay, puns, or thematic hooks. Make it FUN and IN-CHARACTER!
 """
+
+
+
+def format_story_blueprint(blueprint):
+    """Format Story Blueprint into prompt instructions for OpenAI."""
+    if not blueprint:
+        return None
+
+    name = blueprint.get("name", "Unknown")
+    pacing = blueprint.get("pacing_profile", "")
+    opening = blueprint.get("opening_strategy", "")
+    ending = blueprint.get("ending_type", "")
+    scenes = blueprint.get("scene_blueprints", [])
+    retention_map = blueprint.get("retention_map", {})
+    scene_instructions = blueprint.get("scene_instructions", {})
+
+    # DynamoDB may store lists as JSON strings - parse if needed
+    if isinstance(scenes, str):
+        scenes = json.loads(scenes)
+    if isinstance(retention_map, str):
+        retention_map = json.loads(retention_map)
+    if isinstance(scene_instructions, str):
+        scene_instructions = json.loads(scene_instructions)
+
+    # Build emotion curve table
+    emotion_rows = []
+    for s in scenes:
+        n = s.get("n", "?")
+        purpose = s.get("purpose", "")
+        emotion = s.get("emotion", "")
+        intensity = int(s.get("intensity", 5))
+        retention = s.get("retention")
+        if retention in (None, "null", ""):
+            retention = ""
+        voice = s.get("voice", "normal")
+        visual = s.get("visual", "medium")
+        bar = chr(9608) * intensity + chr(9617) * (10 - intensity)
+        retention_note = " -> " + retention if retention else ""
+        row = "  Scene {:>2} [{:<12}] {} ({}/10) | {:<18} | voice:{:<9} | visual:{}{}".format(
+            n, purpose, bar, intensity, emotion, voice, visual, retention_note
+        )
+        emotion_rows.append(row)
+
+    emotion_table = chr(10).join(emotion_rows)
+
+    # Build per-scene writing instructions
+    instruction_lines = []
+    for s in scenes:
+        purpose = s.get("purpose", "")
+        instruction = scene_instructions.get(purpose, "")
+        if instruction:
+            instruction_lines.append("  **Scene {} ({})**:".format(s.get("n"), purpose))
+            instruction_lines.append("    " + instruction)
+
+    instructions_text = chr(10).join(instruction_lines) if instruction_lines else "  (Use default narrative judgment)"
+
+    # Retention devices
+    hook_scene = retention_map.get("hook_scene", 1)
+    micro_hooks = retention_map.get("micro_hooks", [])
+    cliffhanger = retention_map.get("cliffhanger", "")
+    climax = retention_map.get("climax", "")
+    cta_after = retention_map.get("cta_after_scene", "")
+
+    opening_hint = ""
+    if opening == "in_medias_res":
+        opening_hint = "Start IN the middle of action. No intro or setup. Drop viewer into the most intense moment."
+    elif opening == "shocking_fact":
+        opening_hint = "Open with a fact so shocking it demands explanation. State it bare, without context."
+    elif opening == "open_question":
+        opening_hint = "Open with a question the viewer cannot resist answering."
+    elif opening == "false_start":
+        opening_hint = "Open with a misleading scenario, then pivot to the real story."
+
+    lines_out = [
+        "## STORY BLUEPRINT: " + name.upper(),
+        "",
+        "**Template**: {} | **Pacing**: {} | **Opening**: {} | **Ending**: {}".format(name, pacing, opening, ending),
+        "",
+        "### Emotional Curve (FOLLOW THIS EXACTLY)",
+        emotion_table,
+        "",
+        "### Retention Engineering",
+        "- **Hook Scene**: Scene {} - Open with maximum impact".format(hook_scene),
+        "- **Micro-Hooks**: Scenes {} - End WITHOUT resolving tension".format(micro_hooks),
+        "- **Cliffhanger**: Scene {} - Full stop at max tension, NO resolution".format(cliffhanger),
+        "- **Climax**: Scene {} - Peak intensity, decisive moment".format(climax),
+        "- **CTA Placement**: After Scene {}".format(cta_after),
+        "",
+        "### Per-Scene Writing Instructions",
+        instructions_text,
+        "",
+        "### Opening Strategy: " + opening.upper(),
+        opening_hint,
+        "",
+        "**CRITICAL**: Follow the emotional curve above. Each scene must match its purpose and intensity.",
+        "**DO NOT** write all scenes at equal intensity. The variation IS the engagement.",
+        "",
+        "---",
+        "",
+    ]
+
+    return chr(10).join(lines_out)

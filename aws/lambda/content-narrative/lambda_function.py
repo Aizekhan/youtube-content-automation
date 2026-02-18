@@ -194,6 +194,29 @@ def parse_known_json_fields(template):
     return template
 
 
+def load_story_blueprint(channel_config):
+    """Load Story Blueprint from StoryTemplates based on channel story_template field.
+    Returns None if no template set (AI decides freely)."""
+    template_id = (channel_config.get('story_template') or '').strip()
+    if not template_id:
+        print('📖 No story_template set — AI generates freely')
+        return None
+
+    try:
+        table = dynamodb.Table('StoryTemplates')
+        response = table.get_item(Key={'template_id': template_id})
+        blueprint = response.get('Item')
+        if blueprint:
+            print(f"📖 Story blueprint loaded: {blueprint.get('name', template_id)}")
+            print(f"   Pacing: {blueprint.get('pacing_profile')} | Opening: {blueprint.get('opening_strategy')}")
+            print(f"   Scenes: {len(blueprint.get('scene_blueprints', []))}")
+        else:
+            print(f"⚠️ Story template '{template_id}' not found — skipping blueprint")
+        return blueprint
+    except Exception as e:
+        print(f"⚠️ Failed to load story blueprint: {e} — continuing without blueprint")
+        return None
+
 def load_all_templates(channel_config):
     """Load all 7 templates for MEGA generation"""
 
@@ -300,6 +323,10 @@ def lambda_handler(event, context):
 
         print(f"✅ Channel loaded: {channel_config.get('channel_name', 'Unknown')}")
 
+        # 2.5. Load Story Blueprint
+        print(chr(10) + '📖 Loading story blueprint...')
+        story_blueprint = load_story_blueprint(channel_config)
+
         # 3. Load ALL 7 Templates
         print("\n📦 Loading templates...")
         templates = load_all_templates(channel_config)
@@ -315,7 +342,8 @@ def lambda_handler(event, context):
                 templates['thumbnail_template'],
                 templates['tts_template'],
                 templates['sfx_template'],
-                templates['description_template']
+                templates['description_template'],
+                story_blueprint=story_blueprint
             )
         except Exception as merge_error:
             print(f"ERROR in merge_mega_configuration: {merge_error}")

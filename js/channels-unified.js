@@ -793,6 +793,8 @@ function populateForm(config) {
         'channel_theme', 'core_idea', 'tone', 'narration_style', 'emotional_temperature', 'meta_theme',
         // Content Focus
         'content_focus', 'narrative_keywords', 'story_structure_pattern', 'preferred_ending_tone', 'hook_enabled', 'factual_mode',
+        // Story Blueprint
+        'story_template',
         // Story Elements (Visual fields moved to Image Template)
         'story_character_types',
         // AI Templates

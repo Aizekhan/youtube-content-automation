@@ -34,7 +34,8 @@ def merge_mega_configuration(
     thumbnail_template,
     tts_template,
     sfx_template,
-    description_template
+    description_template,
+    story_blueprint=None
 ):
     """
     Merge ALL templates + ChannelConfig into mega_config
@@ -48,6 +49,7 @@ def merge_mega_configuration(
         tts_template (dict): TTSTemplate
         sfx_template (dict): SFXTemplate
         description_template (dict): DescriptionTemplate
+        story_blueprint (dict|None): StoryBlueprint from StoryTemplates table, or None
 
     Returns:
         dict: Merged mega_config with all instructions
@@ -85,6 +87,9 @@ def merge_mega_configuration(
         'tts_instructions': extract_tts_instructions(tts_template, channel_config),
         'sfx_instructions': extract_sfx_instructions(sfx_template, channel_config),
         'description_instructions': extract_description_instructions(description_template, channel_config),
+
+        # Story Blueprint (retention template engine)
+        'story_blueprint': story_blueprint,
 
         # Constraints
         'constraints': {

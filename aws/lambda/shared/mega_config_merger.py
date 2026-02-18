@@ -34,7 +34,8 @@ def merge_mega_configuration(
     thumbnail_template,
     tts_template,
     sfx_template,
-    description_template
+    description_template,
+    story_blueprint=None
 ):
     """
     Merge ALL templates + ChannelConfig into mega_config
@@ -48,6 +49,7 @@ def merge_mega_configuration(
         tts_template (dict): TTSTemplate
         sfx_template (dict): SFXTemplate
         description_template (dict): DescriptionTemplate
+        story_blueprint (dict|None): StoryBlueprint from StoryTemplates table, or None
 
     Returns:
         dict: Merged mega_config with all instructions
@@ -70,9 +72,9 @@ def merge_mega_configuration(
         'channel_theme': channel_config.get('channel_theme'),
 
         # Model config
-        'model': narrative_ai.get('model', 'gpt-4o-mini'),  # From template (default)
+        'model': narrative_ai.get('model', 'gpt-4o-mini'),  # WEEK 5: Changed to gpt-4o-mini (16x cheaper)
         'temperature': float(narrative_ai.get('temperature', 0.8)),  # From template (default)
-        'max_tokens': int(channel_config.get('max_tokens', 16000)),  # ONLY from ChannelConfig (GPT-4o max: 16384)
+        'max_tokens': int(channel_config.get('max_tokens', 16000)),  # GPT-4o-mini max: 128k tokens
 
         # Channel context (WHAT to generate about)
         'channel_context': extract_channel_context(channel_config),
@@ -86,11 +88,14 @@ def merge_mega_configuration(
         'sfx_instructions': extract_sfx_instructions(sfx_template, channel_config),
         'description_instructions': extract_description_instructions(description_template, channel_config),
 
+        # Story Blueprint (retention template engine)
+        'story_blueprint': story_blueprint,
+
         # Constraints
         'constraints': {
-            'target_character_count': int(channel_config.get('target_character_count', 5000)),
-            'scene_count_target': int(channel_config.get('scene_count_target', 10)),
-            'video_duration_target': int(channel_config.get('video_duration_target', 5))
+            'target_character_count': int(channel_config.get('target_character_count', 8000)),
+            'scene_count_target': int(channel_config.get('scene_count_target', 18)),
+            'video_duration_target': int(channel_config.get('video_duration_target', 10))
         }
     }
 
