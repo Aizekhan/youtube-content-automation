@@ -429,6 +429,69 @@
             background: #cbd5e0;
         }
 
+        /* Advanced Settings Toggle */
+        .advanced-settings {
+            border: 1px solid #e2e8f0;
+            border-radius: 10px;
+            margin-bottom: 30px;
+            overflow: hidden;
+        }
+
+        .advanced-settings > summary {
+            padding: 16px 20px;
+            background: #f8fafc;
+            cursor: pointer;
+            font-weight: 600;
+            font-size: 15px;
+            color: #4a5568;
+            list-style: none;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            user-select: none;
+            border-radius: 10px;
+            transition: background 0.2s;
+        }
+
+        .advanced-settings > summary:hover {
+            background: #edf2f7;
+        }
+
+        .advanced-settings[open] > summary {
+            border-radius: 10px 10px 0 0;
+            border-bottom: 1px solid #e2e8f0;
+        }
+
+        .advanced-settings > summary::after {
+            content: '▼';
+            margin-left: auto;
+            font-size: 12px;
+            transition: transform 0.2s;
+        }
+
+        .advanced-settings[open] > summary::after {
+            transform: rotate(180deg);
+        }
+
+        .advanced-settings-body {
+            padding: 24px;
+        }
+
+        .advanced-settings .form-section {
+            border-bottom: 1px solid #f0f4f8;
+            margin-bottom: 24px;
+            padding-bottom: 20px;
+        }
+
+        .advanced-settings .form-section:last-child {
+            border-bottom: none;
+            margin-bottom: 0;
+        }
+
+        .advanced-settings .section-title {
+            font-size: 16px;
+        }
+
         /* Filter button styles */
         .filter-btn {
             transition: all 0.3s ease !important;
@@ -536,453 +599,390 @@
             <form id="configForm">
                 <input type="hidden" id="channel_id">
 
-                <!-- SECTION 0: AI TEMPLATES -->
-                <div class="form-section">
-                    <h3 class="section-title">🤖 AI Шаблони</h3>
-                    <div class="form-grid">
-                        <div class="form-group">
-                            <label>Theme Template (генерація тем)</label>
-                            <select id="selected_theme_template">
-                                <option value="">Loading...</option>
-                            </select>
-                            <span class="field-hint">Який AI шаблон використовувати для генерації тем відео</span>
-                        </div>
+                <!-- ═══ SECTION 1: ОСНОВНЕ ═══ -->
+                <details class="advanced-settings" open>
+                    <summary>📺 Основне</summary>
+                    <div class="advanced-settings-body">
+                        <div class="form-grid">
+                            <div class="form-group">
+                                <label>Назва каналу</label>
+                                <input type="text" id="channel_name" placeholder="My Awesome Channel">
+                            </div>
 
-                        <div class="form-group">
-                            <label>Narrative Template (генерація сценаріїв)</label>
-                            <select id="selected_narrative_template">
-                                <option value="">Loading...</option>
-                            </select>
-                            <span class="field-hint">Який AI шаблон використовувати для генерації наративу</span>
-                        </div>
+                            <div class="form-group">
+                                <label>Жанр</label>
+                                <input type="text" id="genre" placeholder="Mythology / Fantasy / True Crime">
+                                <span class="field-hint">Жанр визначає тематику, тон і стиль контенту</span>
+                            </div>
 
-                        <div class="form-group">
-                            <label>Image Template (генерація зображень)</label>
-                            <select id="selected_image_template">
-                                <option value="">Loading...</option>
-                            </select>
-                            <span class="field-hint">Який шаблон використовувати для генерації промптів зображень</span>
-                        </div>
+                            <div class="form-group">
+                                <label>Мова контенту</label>
+                                <select id="language">
+                                    <option value="uk">Українська (uk)</option>
+                                    <option value="en">English (en)</option>
+                                    <option value="ru">Русский (ru)</option>
+                                    <option value="pl">Polski (pl)</option>
+                                </select>
+                            </div>
 
-                        <div class="form-group">
-                            <label>Video Template (монтаж відео)</label>
-                            <select id="selected_video_template">
-                                <option value="">Loading...</option>
-                            </select>
-                            <span class="field-hint">Який шаблон використовувати для параметрів монтажу відео</span>
-                        </div>
-
-                        <div class="form-group">
-                            <label>CTA Template (заклики до дії)</label>
-                            <select id="selected_cta_template">
-                                <option value="">Loading...</option>
-                            </select>
-                            <span class="field-hint">Який шаблон CTA використовувати в кінці відео</span>
-                        </div>
-
-                        <div class="form-group">
-                            <label>TTS Template (озвучка і SSML)</label>
-                            <select id="selected_tts_template">
-                                <option value="">Loading...</option>
-                            </select>
-                            <span class="field-hint">Який шаблон озвучки та SSML налаштувань використовувати</span>
-                        </div>
-
-                        <div class="form-group">
-                            <label>SFX Template (звукові ефекти)</label>
-                            <select id="selected_sfx_template">
-                                <option value="">Loading...</option>
-                            </select>
-                            <span class="field-hint">Шаблон для звукових ефектів і фонової музики</span>
-                        </div>
-
-                        <div class="form-group">
-                            <label>Thumbnail Template (обкладинка відео)</label>
-                            <select id="selected_thumbnail_template">
-                                <option value="">Loading...</option>
-                            </select>
-                            <span class="field-hint">Шаблон для дизайну YouTube обкладинки</span>
-                        </div>
-
-                        <div class="form-group">
-                            <label>Description Template (опис і SEO)</label>
-                            <select id="selected_description_template">
-                                <option value="">Loading...</option>
-                            </select>
-                            <span class="field-hint">Шаблон для опису відео, тегів і SEO оптимізації</span>
+                            <div class="form-group">
+                                <label>Тривалість відео (хвилини)</label>
+                                <input type="number" id="video_duration_target" min="5" max="20" value="10">
+                                <span class="field-hint">Ціль: 5–20 хвилин</span>
+                            </div>
                         </div>
                     </div>
-                </div>
+                </details>
 
-                <!-- SECTION 1: BASIC IDENTITY -->
-                <div class="form-section">
-                    <h3 class="section-title">🆔 Основна Інформація</h3>
-                    <div class="form-grid">
-                        <div class="form-group">
-                            <label>Назва каналу</label>
-                            <input type="text" id="channel_name" placeholder="My Awesome Channel">
-                            <span class="field-hint">Назва вашого YouTube каналу</span>
-                        </div>
+                <!-- ═══ SECTION 2: ГОЛОС І СТИЛЬ ═══ -->
+                <details class="advanced-settings" open>
+                    <summary>🎙️ Голос і Стиль</summary>
+                    <div class="advanced-settings-body">
+                        <div class="form-grid">
+                            <div class="form-group">
+                                <label>Тон оповіді</label>
+                                <input type="text" id="tone" placeholder="Epic / Dark / Investigative / Calm">
+                                <span class="field-hint">Загальний настрій контенту</span>
+                            </div>
 
-                        <div class="form-group">
-                            <label>Мова контенту</label>
-                            <select id="language">
-                                <option value="uk">Українська (uk)</option>
-                                <option value="en">English (en)</option>
-                                <option value="ru">Русский (ru)</option>
-                                <option value="pl">Polski (pl)</option>
-                            </select>
-                            <span class="field-hint">Мова в якій генерується контент</span>
-                        </div>
+                            <div class="form-group">
+                                <label>Стиль наррації</label>
+                                <input type="text" id="narration_style" placeholder="Third-person documentary">
+                                <span class="field-hint">Наприклад: Third-person, First-person narrator</span>
+                            </div>
 
-                        <div class="form-group">
-                            <label>Часовий пояс</label>
-                            <input type="text" id="timezone" placeholder="Europe/Kyiv" value="Europe/Kyiv">
-                            <span class="field-hint">Часовий пояс для публікацій (наприклад: Europe/Kyiv, America/New_York)</span>
-                        </div>
+                            <div class="form-group">
+                                <label>Тип кінцівки</label>
+                                <input type="text" id="preferred_ending_tone" placeholder="Cliffhanger / Closure / Unresolved">
+                                <span class="field-hint">Як зазвичай закінчуються відео</span>
+                            </div>
 
-                        <div class="form-group">
-                            <label>Жанр</label>
-                            <input type="text" id="genre" placeholder="Mythology / Fantasy">
-                            <span class="field-hint">Жанр контенту каналу</span>
-                        </div>
-                    </div>
-                </div>
+                            <div class="form-group">
+                                <label>Персонажі в історіях</label>
+                                <input type="text" id="story_character_types" placeholder="detectives, victims, suspects, witnesses">
+                                <span class="field-hint">Типові персонажі для цього каналу</span>
+                            </div>
 
-                <!-- SECTION 2: VIDEO DURATION -->
-                <div class="form-section">
-                    <h3 class="section-title">⏱️ Тривалість і Структура</h3>
-                    <div class="form-grid">
-                        <div class="form-group">
-                            <label>Тривалість відео (хвилини)</label>
-                            <input type="number" id="video_duration_target" min="5" max="20" value="10">
-                            <span class="field-hint">Цільова тривалість відео (5-20 хв)</span>
-                        </div>
+                            <div class="form-group full">
+                                <label>Теми контенту <span style="color:#a0aec0; font-weight:400;">(через кому — AI обирає одну для кожного відео)</span></label>
+                                <input type="text" id="content_focus" placeholder="ancient myths, forgotten empires, divine prophecies">
+                            </div>
 
-                        <div class="form-group">
-                            <label>Цільова к-ть символів</label>
-                            <input type="number" id="target_character_count" min="5000" max="16000" value="8000">
-                            <span class="field-hint">Максимум 16000 (обмеження GPT-4o). Для 10 хв: slow=7700, medium=8800, fast=9900</span>
-                        </div>
+                            <div class="form-group full">
+                                <label>Ключові слова для AI <span style="color:#a0aec0; font-weight:400;">(через кому)</span></label>
+                                <textarea id="narrative_keywords" rows="2" placeholder="mystery, ancient power, forgotten legends, epic battles"></textarea>
+                                <span class="field-hint">Слова які AI використовує при написанні сценаріїв</span>
+                            </div>
 
-                        <div class="form-group">
-                            <label>Кількість сцен</label>
-                            <input type="number" id="scene_count_target" min="10" max="30" value="18">
-                            <span class="field-hint">К-ть окремих сцен/картинок у відео</span>
-                        </div>
-
-                        <div class="form-group">
-                            <label>Max Tokens (OpenAI)</label>
-                            <input type="number" id="max_tokens" min="8000" max="16000" step="1000" value="16000">
-                            <span class="field-hint">⚠️ МАКСИМУМ 16000 (обмеження GPT-4o: 16384 токенів). Більше значення = помилка!</span>
-                        </div>
-
-                        <div class="form-group">
-                            <label>Narrative Pace</label>
-                            <select id="narrative_pace">
-                                <option value="slow">Slow (повільний)</option>
-                                <option value="medium">Medium (середній)</option>
-                                <option value="fast">Fast (швидкий)</option>
-                            </select>
-                            <span class="field-hint">Швидкість наррації</span>
+                            <div class="form-group">
+                                <label style="display:flex; align-items:center; gap:8px; cursor:pointer;">
+                                    <input type="checkbox" id="hook_enabled" style="width:auto;" checked>
+                                    Генерувати хуки на початку відео
+                                </label>
+                                <span class="field-hint">Перші ~30 секунд — attention-grabbing підводка</span>
+                            </div>
                         </div>
                     </div>
-                </div>
+                </details>
 
-                <!-- SECTION 3: CONTENT IDENTITY -->
-                <div class="form-section">
-                    <h3 class="section-title">🧠 Ідентичність Контенту</h3>
-                    <div class="form-grid">
-                        <div class="form-group full">
-                            <label>Channel Theme (основна тема каналу)</label>
-                            <textarea id="channel_theme" rows="3" placeholder="Наприклад: Документальні історії про нерозкриті злочини..."></textarea>
-                            <span class="field-hint">Опис основної теми та напрямку контенту каналу</span>
+                <!-- ═══ SECTION 3: VARIATION SETS ═══ -->
+                <details class="advanced-settings" open>
+                    <summary>🔄 Візуальні Стилі</summary>
+                    <div class="advanced-settings-body">
+                        <div style="background: #f0f4ff; padding: 14px 16px; border-radius: 8px; margin-bottom: 20px; border-left: 3px solid #667eea;">
+                            <strong style="color:#4a5568;">Як це працює:</strong>
+                            <span style="color:#4a5568;"> Кожен стиль — це унікальний візуальний "всесвіт" для відео (наприклад: Ancient Egypt, Nordic Mythology, Cyberpunk). Система автоматично чергує їх.</span>
                         </div>
 
-                        <div class="form-group full">
-                            <label>Core Idea (ключова ідея)</label>
-                            <textarea id="core_idea" rows="3" placeholder="Наприклад: Розкриваємо таємниці минулого через призму сучасних розслідувань"></textarea>
-                            <span class="field-hint">Ключова ідея яка об'єднує весь контент каналу</span>
+                        <div class="form-grid" style="margin-bottom: 16px;">
+                            <div class="form-group">
+                                <label>Ротація стилів</label>
+                                <select id="rotation_mode">
+                                    <option value="sequential">По черзі (1→2→3→...→1)</option>
+                                    <option value="random">Випадково</option>
+                                    <option value="manual">Вручну</option>
+                                </select>
+                            </div>
+
+                            <div class="form-group">
+                                <label>Відео згенеровано (автоматично)</label>
+                                <input type="number" id="generation_count" readonly style="background:#f5f5f5; color:#718096;">
+                            </div>
+
+                            <div class="form-group" id="manual_set_selector" style="display:none;">
+                                <label>Активний стиль (індекс)</label>
+                                <input type="number" id="manual_set_index" min="0" max="99" value="0">
+                            </div>
                         </div>
 
-                        <div class="form-group">
-                            <label>Tone (тон оповіді)</label>
-                            <input type="text" id="tone" placeholder="Epic / Investigative / Calm">
-                            <span class="field-hint">Загальний тон оповіді (наприклад: Epic, Investigative, Calm)</span>
-                        </div>
-
-                        <div class="form-group">
-                            <label>Narration Style (стиль наррації)</label>
-                            <input type="text" id="narration_style" placeholder="Third-person documentary">
-                            <span class="field-hint">Стиль оповіді (наприклад: Third-person documentary, First-person narrator)</span>
-                        </div>
-
-                        <div class="form-group">
-                            <label>Emotional Temperature (емоційна температура)</label>
-                            <select id="emotional_temperature">
-                                <option value="Low">Low (низька)</option>
-                                <option value="Medium">Medium (середня)</option>
-                                <option value="High">High (висока)</option>
-                            </select>
-                            <span class="field-hint">Рівень емоційної насиченості контенту</span>
-                        </div>
-
-                        <div class="form-group full">
-                            <label>Meta Theme (філософський підтекст)</label>
-                            <textarea id="meta_theme" rows="2" placeholder="Наприклад: Пошук правди у світі де історія пишеться переможцями"></textarea>
-                            <span class="field-hint">Глибинний філософський або загальний підтекст контенту</span>
-                        </div>
-                    </div>
-                </div>
-
-                <!-- SECTION 4: CONTENT FOCUS -->
-                <div class="form-section">
-                    <h3 class="section-title">🎯 Фокус Контенту</h3>
-                    <div class="form-grid">
-                        <div class="form-group full">
-                            <label>Content Focus (основні теми)</label>
-                            <input type="text" id="content_focus" placeholder="murders, myths, unsolved cases">
-                            <span class="field-hint">Основні теми які висвітлюються (через кому)</span>
-                        </div>
-
-                        <div class="form-group full">
-                            <label>Narrative Keywords (ключові терміни)</label>
-                            <textarea id="narrative_keywords" rows="3" placeholder="investigation, evidence, mystery, revelation"></textarea>
-                            <span class="field-hint">Ключові терміни які використовуються у сценаріях</span>
-                        </div>
-
-                        <div class="form-group">
-                            <label>Story Structure Pattern</label>
-                            <input type="text" id="story_structure_pattern" placeholder="Hook → Build → Twist → Resolution">
-                            <span class="field-hint">Структура побудови історій</span>
-                        </div>
-
-                        <div class="form-group">
-                            <label>Preferred Ending (тип кінцівки)</label>
-                            <input type="text" id="preferred_ending_tone" placeholder="Cliffhanger / Unresolved / Closure">
-                            <span class="field-hint">Бажаний тип закінчення історій</span>
-                        </div>
-
-                        <div class="form-group">
-                            <label>
-                                <input type="checkbox" id="hook_enabled" style="margin-right: 8px; width: auto;" checked>
-                                Hook Enabled (генерувати хуки)
-                            </label>
-                            <span class="field-hint">Чи генерувати attention-grabbing хуки на початку відео</span>
-                        </div>
-
-                        <div class="form-group">
-                            <label>Factual Mode (тип контенту)</label>
-                            <select id="factual_mode">
-                                <option value="fictional">Вигаданий (Fictional)</option>
-                                <option value="factual">Документальний (Factual)</option>
-                                <option value="semi-factual">Напів-документальний (Semi-factual)</option>
-                            </select>
-                            <span class="field-hint">Чи базується контент на реальних подіях</span>
-                        </div>
-                    </div>
-                </div>
-
-                <!-- SECTION 5: STORY ELEMENTS (Visual fields moved to Image Template) -->
-                <div class="form-section">
-                    <h3 class="section-title">👥 Елементи Історій</h3>
-                    <div class="form-grid">
-                        <div class="form-group full">
-                            <label>Story Character Types (типові персонажі)</label>
-                            <input type="text" id="story_character_types" placeholder="detectives, victims, suspects, witnesses">
-                            <span class="field-hint">Типи персонажів які з'являються в історіях</span>
-                        </div>
-                    </div>
-                </div>
-
-                <!-- SECTION 4.6: VARIATION SETS (Ротація Візуальних Стилів) -->
-                <div class="form-section">
-                    <h3 class="section-title">🔄 Variation Sets - Автоматична Ротація Стилів</h3>
-
-                    <div class="alert" style="background: #fff3cd; padding: 15px; border-radius: 8px; margin-bottom: 20px; color: #856404;">
-                        <strong>💡 Концепція:</strong> Створіть до 100 різних візуальних стилів для одного каналу.
-                        Система автоматично ротуватиме їх для розмаїття контенту (кожні 10 відео повертається до початку).
-                        <br><br>
-                        <strong>Приклад:</strong> Відео 1 → Egypt стиль, Відео 2 → Greece стиль, ..., Відео 100 → Mesopotamia, Відео 101 → Egypt знову
-                    </div>
-
-                    <div class="form-grid">
-                        <div class="form-group">
-                            <label>Rotation Mode</label>
-                            <select id="rotation_mode">
-                                <option value="sequential">Sequential (1→2→3→...→10→1)</option>
-                                <option value="random">Random (випадковий вибір)</option>
-                                <option value="manual">Manual (ручний вибір)</option>
-                            </select>
-                            <span class="field-hint">Як система обирає наступний візуальний стиль</span>
-                        </div>
-
-                        <div class="form-group">
-                            <label>Generation Count (автоматично)</label>
-                            <input type="number" id="generation_count" readonly style="background: #f5f5f5;">
-                            <span class="field-hint">Скільки разів згенеровано контент (автоматично інкрементується)</span>
-                        </div>
-
-                        <div class="form-group" id="manual_set_selector" style="display:none;">
-                            <label>Manual Set Index</label>
-                            <input type="number" id="manual_set_index" min="0" max="9" value="0">
-                            <span class="field-hint">Який set використовувати (0-9) в manual режимі</span>
-                        </div>
-                    </div>
-
-                    <!-- Variation Sets List -->
-                    <div style="margin-top: 20px;">
                         <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 15px;">
-                            <h4 id="variation-sets-counter" style="margin: 0; color: #667eea;">Variation Sets (0/100)</h4>
-                            <button type="button" class="btn-primary" onclick="openVariationSetModal('new')" style="padding: 8px 16px; background: #667eea; color: white; border: none; border-radius: 6px; cursor: pointer;">
-                                ➕ Додати Variation Set
+                            <h4 id="variation-sets-counter" style="margin: 0; color: #667eea; font-size:15px;">Стилі (0)</h4>
+                            <button type="button" class="btn-primary" onclick="openVariationSetModal('new')" style="padding: 8px 16px; background: #667eea; color: white; border: none; border-radius: 6px; cursor: pointer; font-size:14px;">
+                                ➕ Додати стиль
                             </button>
                         </div>
 
                         <div id="variation-sets-list" style="display: grid; gap: 15px;">
-                            <div style="text-align: center; padding: 40px; background: #f8f9fa; border-radius: 8px; color: #6c757d;">
-                                Немає variation sets. Натисніть "➕ Додати Variation Set" щоб створити перший стиль.
+                            <div style="text-align: center; padding: 32px; background: #f8f9fa; border-radius: 8px; color: #6c757d;">
+                                Немає стилів. Натисніть "➕ Додати стиль" щоб створити перший.
                             </div>
                         </div>
                     </div>
-                </div>
+                </details>
 
-                <!-- SECTION 5: MONETIZATION & SETTINGS -->
-                <div class="form-section">
-                    <h3 class="section-title">💰 Монетизація & Налаштування</h3>
-                    <div class="form-grid">
-                        <div class="form-group">
-                            <label>
-                                <input type="checkbox" id="monetization_enabled" style="margin-right: 8px; width: auto;">
-                                Монетизація увімкнена
-                            </label>
-                            <span class="field-hint">Дозволити монетизацію контенту на YouTube</span>
+                <!-- ═══ SECTION 4: ГРАФІК ПУБЛІКАЦІЙ ═══ -->
+                <details class="advanced-settings" open>
+                    <summary>📅 Графік Публікацій</summary>
+                    <div class="advanced-settings-body">
+                        <div class="form-group full" style="margin-bottom: 20px;">
+                            <label style="display: block; margin-bottom: 8px; font-weight: 500;">⏰ Час публікацій</label>
+                            <div id="publishTimesList" style="display: flex; flex-wrap: wrap; gap: 8px; margin-bottom: 10px;"></div>
+                            <div style="display: flex; gap: 8px; align-items: center;">
+                                <input type="time" id="newPublishTime" style="padding: 8px; border: 1px solid #ddd; border-radius: 4px;">
+                                <button type="button" onclick="addPublishTime()" style="padding: 8px 16px; background: #3b82f6; color: white; border: none; border-radius: 4px; cursor: pointer;">
+                                    <i class="bi bi-plus-circle"></i> Додати час
+                                </button>
+                            </div>
                         </div>
 
-                        <div class="form-group">
-                            <label>
-                                <input type="checkbox" id="adsense_enabled" style="margin-right: 8px; width: auto;">
-                                AdSense увімкнено
-                            </label>
-                            <span class="field-hint">Використовувати Google AdSense для монетизації</span>
+                        <div class="form-group full" style="margin-bottom: 20px;">
+                            <label style="display: block; margin-bottom: 12px; font-weight: 500;">📆 Дні публікацій</label>
+                            <div style="display: flex; gap: 12px; flex-wrap: wrap;">
+                                <label style="display: flex; align-items: center; gap: 6px; cursor: pointer; padding: 8px 12px; border: 1px solid #ddd; border-radius: 4px; background: white;">
+                                    <input type="checkbox" class="publish-day" value="Mon" style="cursor: pointer;"><span>Пн</span>
+                                </label>
+                                <label style="display: flex; align-items: center; gap: 6px; cursor: pointer; padding: 8px 12px; border: 1px solid #ddd; border-radius: 4px; background: white;">
+                                    <input type="checkbox" class="publish-day" value="Tue" style="cursor: pointer;"><span>Вт</span>
+                                </label>
+                                <label style="display: flex; align-items: center; gap: 6px; cursor: pointer; padding: 8px 12px; border: 1px solid #ddd; border-radius: 4px; background: white;">
+                                    <input type="checkbox" class="publish-day" value="Wed" style="cursor: pointer;"><span>Ср</span>
+                                </label>
+                                <label style="display: flex; align-items: center; gap: 6px; cursor: pointer; padding: 8px 12px; border: 1px solid #ddd; border-radius: 4px; background: white;">
+                                    <input type="checkbox" class="publish-day" value="Thu" style="cursor: pointer;"><span>Чт</span>
+                                </label>
+                                <label style="display: flex; align-items: center; gap: 6px; cursor: pointer; padding: 8px 12px; border: 1px solid #ddd; border-radius: 4px; background: white;">
+                                    <input type="checkbox" class="publish-day" value="Fri" style="cursor: pointer;"><span>Пт</span>
+                                </label>
+                                <label style="display: flex; align-items: center; gap: 6px; cursor: pointer; padding: 8px 12px; border: 1px solid #ddd; border-radius: 4px; background: white;">
+                                    <input type="checkbox" class="publish-day" value="Sat" style="cursor: pointer;"><span>Сб</span>
+                                </label>
+                                <label style="display: flex; align-items: center; gap: 6px; cursor: pointer; padding: 8px 12px; border: 1px solid #ddd; border-radius: 4px; background: white;">
+                                    <input type="checkbox" class="publish-day" value="Sun" style="cursor: pointer;"><span>Нд</span>
+                                </label>
+                            </div>
                         </div>
 
-                        <div class="form-group">
-                            <label>
-                                <input type="checkbox" id="sponsor_segments_enabled" style="margin-right: 8px; width: auto;">
-                                Sponsor Segments (CTA вставки)
-                            </label>
-                            <span class="field-hint">Автоматичне вставлення креативних CTA/спонсорських сегментів</span>
+                        <div class="form-grid">
+                            <div class="form-group">
+                                <label>Відео на день</label>
+                                <input type="number" id="daily_upload_count" min="0" max="10" value="1">
+                            </div>
+                            <div class="form-group">
+                                <label>Часовий пояс</label>
+                                <select id="timezone">
+                                    <option>Europe/Kyiv</option>
+                                    <option>Europe/London</option>
+                                    <option>Europe/Berlin</option>
+                                    <option>America/New_York</option>
+                                    <option>UTC</option>
+                                </select>
+                            </div>
                         </div>
 
-                        <div class="form-group">
-                            <label>AdSense Account ID</label>
-                            <input type="text" id="adsense_account_id" placeholder="pub-1234567890123456">
-                            <span class="field-hint">ID облікового запису Google AdSense</span>
-                        </div>
-
-                        <div class="form-group">
-                            <label>License Type (тип ліцензії)</label>
-                            <select id="license_type">
-                                <option value="standard">Standard YouTube License</option>
-                                <option value="creative_commons">Creative Commons - Attribution</option>
-                            </select>
-                            <span class="field-hint">Тип ліцензії для контенту</span>
-                        </div>
-
-                        <div class="form-group">
-                            <label>
-                                <input type="checkbox" id="embedding_allowed" style="margin-right: 8px; width: auto;">
-                                Дозволити вбудовування
-                            </label>
-                            <span class="field-hint">Дозволити вбудовування відео на інших сайтах</span>
-                        </div>
-
-                        <div class="form-group">
-                            <label>Subtitles Language (мова субтитрів)</label>
-                            <input type="text" id="subtitles_language" placeholder="uk" value="uk">
-                            <span class="field-hint">Мова для автоматичних субтитрів</span>
-                        </div>
+                        <input type="hidden" id="publish_times">
+                        <input type="hidden" id="publish_days">
                     </div>
-                </div>
+                </details>
 
-                <!-- SECTION 6: CHANNEL INFO -->
-                <div class="form-section">
-                    <h3 class="section-title">ℹ️ Інформація про Канал</h3>
-                    <div class="form-grid">
-                        <div class="form-group full"><label>Опис каналу</label><textarea id="channel_description" style="min-height: 80px;"></textarea></div>
-                        <div class="form-group"><label>Thumbnail URL</label><input type="url" id="thumbnail_url" placeholder="https://..."></div>
-                        <div class="form-group"><label>Banner URL</label><input type="url" id="banner_url" placeholder="https://..."></div>
-                        <div class="form-group"><label>Watermark URL</label><input type="url" id="channel_watermark_url" placeholder="https://..."></div>
-                        <div class="form-group"><label>Featured Video ID</label><input type="text" id="featured_video_id"></div>
-                        <div class="form-group"><label>SEO Keywords</label><input type="text" id="seo_keywords"></div>
-                    </div>
-                </div>
+                <!-- ═══ РОЗШИРЕНІ НАЛАШТУВАННЯ ═══ -->
+                <details class="advanced-settings">
+                    <summary>⚙️ Розширені налаштування</summary>
+                    <div class="advanced-settings-body">
 
-                <!-- SECTION 6: PUBLISHING SCHEDULE -->
-                <div class="form-section">
-                    <h3 class="section-title">📅 Графік Публікацій</h3>
-
-                    <!-- Publish Times -->
-                    <div class="form-group full" style="margin-bottom: 20px;">
-                        <label style="display: block; margin-bottom: 8px; font-weight: 500;">⏰ Час публікацій</label>
-                        <div id="publishTimesList" style="display: flex; flex-wrap: wrap; gap: 8px; margin-bottom: 10px;">
-                            <!-- Time items will be added here -->
+                        <!-- AI Templates -->
+                        <div class="form-section">
+                            <h3 class="section-title">🤖 AI Шаблони</h3>
+                            <p style="color:#718096; font-size:13px; margin-bottom:16px;">Шаблони визначають інструкції для AI. Зазвичай міняти не потрібно — дефолтні значення оптимальні.</p>
+                            <div class="form-grid">
+                                <div class="form-group">
+                                    <label>Theme Template</label>
+                                    <select id="selected_theme_template"><option value="">Loading...</option></select>
+                                </div>
+                                <div class="form-group">
+                                    <label>Narrative Template</label>
+                                    <select id="selected_narrative_template"><option value="">Loading...</option></select>
+                                </div>
+                                <div class="form-group">
+                                    <label>Image Template</label>
+                                    <select id="selected_image_template"><option value="">Loading...</option></select>
+                                </div>
+                                <div class="form-group">
+                                    <label>Video Template</label>
+                                    <select id="selected_video_template"><option value="">Loading...</option></select>
+                                </div>
+                                <div class="form-group">
+                                    <label>CTA Template</label>
+                                    <select id="selected_cta_template"><option value="">Loading...</option></select>
+                                </div>
+                                <div class="form-group">
+                                    <label>TTS Template</label>
+                                    <select id="selected_tts_template"><option value="">Loading...</option></select>
+                                </div>
+                                <div class="form-group">
+                                    <label>SFX Template</label>
+                                    <select id="selected_sfx_template"><option value="">Loading...</option></select>
+                                </div>
+                                <div class="form-group">
+                                    <label>Thumbnail Template</label>
+                                    <select id="selected_thumbnail_template"><option value="">Loading...</option></select>
+                                </div>
+                                <div class="form-group">
+                                    <label>Description Template</label>
+                                    <select id="selected_description_template"><option value="">Loading...</option></select>
+                                </div>
+                            </div>
                         </div>
-                        <div style="display: flex; gap: 8px; align-items: center;">
-                            <input type="time" id="newPublishTime" style="padding: 8px; border: 1px solid #ddd; border-radius: 4px;">
-                            <button type="button" onclick="addPublishTime()" style="padding: 8px 16px; background: #3b82f6; color: white; border: none; border-radius: 4px; cursor: pointer;">
-                                <i class="bi bi-plus-circle"></i> Додати час
-                            </button>
+
+                        <!-- AI Parameters -->
+                        <div class="form-section">
+                            <h3 class="section-title">⚙️ Параметри AI генерації</h3>
+                            <div class="form-grid">
+                                <div class="form-group">
+                                    <label>Цільова кількість символів</label>
+                                    <input type="number" id="target_character_count" min="5000" max="16000" value="8000">
+                                    <span class="field-hint">Для 10 хв: slow≈7700, medium≈8800, fast≈9900</span>
+                                </div>
+                                <div class="form-group">
+                                    <label>Кількість сцен</label>
+                                    <input type="number" id="scene_count_target" min="10" max="30" value="18">
+                                </div>
+                                <div class="form-group">
+                                    <label>Max Tokens (OpenAI)</label>
+                                    <input type="number" id="max_tokens" min="8000" max="16000" step="1000" value="16000">
+                                    <span class="field-hint">Максимум 16000</span>
+                                </div>
+                                <div class="form-group">
+                                    <label>Narrative Pace</label>
+                                    <select id="narrative_pace">
+                                        <option value="slow">Slow (повільний)</option>
+                                        <option value="medium">Medium (середній)</option>
+                                        <option value="fast">Fast (швидкий)</option>
+                                    </select>
+                                </div>
+                                <div class="form-group">
+                                    <label>Emotional Temperature</label>
+                                    <select id="emotional_temperature">
+                                        <option value="Low">Low</option>
+                                        <option value="Medium">Medium</option>
+                                        <option value="High">High</option>
+                                    </select>
+                                </div>
+                                <div class="form-group">
+                                    <label>Factual Mode</label>
+                                    <select id="factual_mode">
+                                        <option value="fictional">Fictional (вигаданий)</option>
+                                        <option value="factual">Factual (документальний)</option>
+                                        <option value="semi-factual">Semi-factual</option>
+                                    </select>
+                                </div>
+                            </div>
                         </div>
-                        <span class="field-hint">Додайте один або кілька часів для автоматичної публікації</span>
-                    </div>
 
-                    <!-- Publish Days -->
-                    <div class="form-group full" style="margin-bottom: 20px;">
-                        <label style="display: block; margin-bottom: 12px; font-weight: 500;">📆 Дні публікацій</label>
-                        <div style="display: flex; gap: 12px; flex-wrap: wrap;">
-                            <label style="display: flex; align-items: center; gap: 6px; cursor: pointer; padding: 8px 12px; border: 1px solid #ddd; border-radius: 4px; background: white;">
-                                <input type="checkbox" class="publish-day" value="Mon" style="cursor: pointer;">
-                                <span>Понеділок</span>
-                            </label>
-                            <label style="display: flex; align-items: center; gap: 6px; cursor: pointer; padding: 8px 12px; border: 1px solid #ddd; border-radius: 4px; background: white;">
-                                <input type="checkbox" class="publish-day" value="Tue" style="cursor: pointer;">
-                                <span>Вівторок</span>
-                            </label>
-                            <label style="display: flex; align-items: center; gap: 6px; cursor: pointer; padding: 8px 12px; border: 1px solid #ddd; border-radius: 4px; background: white;">
-                                <input type="checkbox" class="publish-day" value="Wed" style="cursor: pointer;">
-                                <span>Середа</span>
-                            </label>
-                            <label style="display: flex; align-items: center; gap: 6px; cursor: pointer; padding: 8px 12px; border: 1px solid #ddd; border-radius: 4px; background: white;">
-                                <input type="checkbox" class="publish-day" value="Thu" style="cursor: pointer;">
-                                <span>Четвер</span>
-                            </label>
-                            <label style="display: flex; align-items: center; gap: 6px; cursor: pointer; padding: 8px 12px; border: 1px solid #ddd; border-radius: 4px; background: white;">
-                                <input type="checkbox" class="publish-day" value="Fri" style="cursor: pointer;">
-                                <span>П'ятниця</span>
-                            </label>
-                            <label style="display: flex; align-items: center; gap: 6px; cursor: pointer; padding: 8px 12px; border: 1px solid #ddd; border-radius: 4px; background: white;">
-                                <input type="checkbox" class="publish-day" value="Sat" style="cursor: pointer;">
-                                <span>Субота</span>
-                            </label>
-                            <label style="display: flex; align-items: center; gap: 6px; cursor: pointer; padding: 8px 12px; border: 1px solid #ddd; border-radius: 4px; background: white;">
-                                <input type="checkbox" class="publish-day" value="Sun" style="cursor: pointer;">
-                                <span>Неділя</span>
-                            </label>
+                        <!-- Content Identity -->
+                        <div class="form-section">
+                            <h3 class="section-title">🧠 Ідентичність Каналу</h3>
+                            <div class="form-grid">
+                                <div class="form-group full">
+                                    <label>Channel Theme</label>
+                                    <textarea id="channel_theme" rows="2" placeholder="Документальні історії про нерозкриті злочини та древні цивілізації..."></textarea>
+                                </div>
+                                <div class="form-group full">
+                                    <label>Core Idea</label>
+                                    <textarea id="core_idea" rows="2" placeholder="Розкриваємо таємниці минулого через призму сучасних досліджень..."></textarea>
+                                </div>
+                                <div class="form-group full">
+                                    <label>Meta Theme (філософський підтекст)</label>
+                                    <textarea id="meta_theme" rows="2" placeholder="Пошук правди у світі де історія пишеться переможцями..."></textarea>
+                                </div>
+                                <div class="form-group full">
+                                    <label>Story Structure Pattern</label>
+                                    <input type="text" id="story_structure_pattern" placeholder="Hook → Build → Twist → Resolution">
+                                </div>
+                            </div>
                         </div>
-                        <span class="field-hint">Оберіть дні тижня для автоматичної публікації</span>
-                    </div>
 
-                    <div class="form-grid">
-                        <div class="form-group"><label>Відео на день</label><input type="number" id="daily_upload_count" min="0" max="10" value="1"></div>
-                        <div class="form-group"><label>Часовий пояс</label><select id="timezone"><option>Europe/Kyiv</option><option>Europe/London</option><option>Europe/Berlin</option><option>UTC</option></select></div>
-                    </div>
+                        <!-- SEO & Monetization -->
+                        <div class="form-section">
+                            <h3 class="section-title">🔍 SEO та Монетизація</h3>
+                            <div class="form-grid">
+                                <div class="form-group full">
+                                    <label>SEO Keywords</label>
+                                    <input type="text" id="seo_keywords" placeholder="mythology, ancient history, legends">
+                                </div>
+                                <div class="form-group full">
+                                    <label>Опис каналу</label>
+                                    <textarea id="channel_description" rows="2"></textarea>
+                                </div>
+                                <div class="form-group">
+                                    <label>Banner URL</label>
+                                    <input type="url" id="banner_url" placeholder="https://...">
+                                </div>
+                                <div class="form-group">
+                                    <label>Watermark URL</label>
+                                    <input type="url" id="channel_watermark_url" placeholder="https://...">
+                                </div>
+                                <div class="form-group">
+                                    <label>Thumbnail URL</label>
+                                    <input type="url" id="thumbnail_url" placeholder="https://...">
+                                </div>
+                                <div class="form-group">
+                                    <label>Featured Video ID</label>
+                                    <input type="text" id="featured_video_id">
+                                </div>
+                                <div class="form-group">
+                                    <label>
+                                        <input type="checkbox" id="monetization_enabled" style="margin-right: 8px; width: auto;">
+                                        Монетизація увімкнена
+                                    </label>
+                                </div>
+                                <div class="form-group">
+                                    <label>
+                                        <input type="checkbox" id="adsense_enabled" style="margin-right: 8px; width: auto;">
+                                        AdSense
+                                    </label>
+                                </div>
+                                <div class="form-group">
+                                    <label>
+                                        <input type="checkbox" id="sponsor_segments_enabled" style="margin-right: 8px; width: auto;">
+                                        CTA вставки
+                                    </label>
+                                </div>
+                                <div class="form-group">
+                                    <label>AdSense Account ID</label>
+                                    <input type="text" id="adsense_account_id" placeholder="pub-1234567890123456">
+                                </div>
+                                <div class="form-group">
+                                    <label>License Type</label>
+                                    <select id="license_type">
+                                        <option value="standard">Standard YouTube License</option>
+                                        <option value="creative_commons">Creative Commons</option>
+                                    </select>
+                                </div>
+                                <div class="form-group">
+                                    <label>
+                                        <input type="checkbox" id="embedding_allowed" style="margin-right: 8px; width: auto;">
+                                        Дозволити вбудовування
+                                    </label>
+                                </div>
+                                <div class="form-group">
+                                    <label>Мова субтитрів</label>
+                                    <input type="text" id="subtitles_language" placeholder="uk" value="uk">
+                                </div>
+                            </div>
+                        </div>
 
-                    <!-- Hidden inputs to store the actual values -->
-                    <input type="hidden" id="publish_times">
-                    <input type="hidden" id="publish_days">
-                </div>
+                    </div>
+                </details>
 
                 <button type="button" class="save-btn" onclick="saveModalConfig()">💾 Зберегти зміни</button>
             </form>
