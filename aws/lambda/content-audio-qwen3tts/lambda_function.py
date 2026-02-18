@@ -382,12 +382,24 @@ def generate_with_qwen3(ec2_endpoint, text, language='English', speaker='Ryan', 
     try:
         url = f"{ec2_endpoint}/tts/generate"
 
+        # Normalize language code to full name (server expects "English" not "en")
+        lang_map = {
+            'en': 'English', 'zh': 'Chinese', 'ja': 'Japanese',
+            'ko': 'Korean', 'fr': 'French', 'de': 'German',
+            'es': 'Spanish', 'it': 'Italian', 'pt': 'Portuguese',
+            'ru': 'Russian', 'ar': 'Arabic', 'hi': 'Hindi'
+        }
+        language_normalized = lang_map.get(language.lower() if language else 'en', language or 'English')
+
+        # Normalize speaker (server default is "Ryan", not "default")
+        speaker_normalized = 'Ryan' if not speaker or speaker.lower() == 'default' else speaker
+
         payload = {
             'scenes': [{'scene_number': 1, 'scene_narration': text}],
             'channel_id': 'temp',
             'narrative_id': 'temp',
-            'language': language,
-            'speaker': speaker
+            'language': language_normalized,
+            'speaker': speaker_normalized
         }
         
         if voice_description:
