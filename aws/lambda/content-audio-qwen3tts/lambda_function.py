@@ -410,7 +410,7 @@ def generate_with_qwen3(ec2_endpoint, text, language='English', speaker='Ryan', 
         data = json.dumps(payload).encode('utf-8')
         req = urllib.request.Request(url, data=data, headers={'Content-Type': 'application/json'}, method='POST')
 
-        with urllib.request.urlopen(req, timeout=120) as response:
+        with urllib.request.urlopen(req, timeout=700) as response:
             if response.status != 200:
                 error_text = response.read().decode('utf-8')
                 raise Exception(f"Qwen3-TTS API error: {response.status} - {error_text}")
