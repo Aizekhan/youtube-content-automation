@@ -58,13 +58,12 @@ def lambda_handler(event, context):
     print(f"EC2 endpoint from event: {ec2_endpoint}")
 
     for channel in channels_data:
-        # Extract channel_id from channel_item
-        channel_item = channel.get('channel_item', {})
-        channel_id = channel_item.get('channel_id')
+        # Support both flat format (new: channel_id at top level) and nested (old: channel_item.channel_id)
+        channel_id = channel.get('channel_id') or channel.get('channel_item', {}).get('channel_id')
 
-        # Extract data from narrativeResult.Payload
+        # Support both ResultSelector format (new: narrativeResult.data) and old (narrativeResult.Payload)
         narrative_result = channel.get('narrativeResult', {})
-        narrative_payload = narrative_result.get('Payload', {})
+        narrative_payload = narrative_result.get('data', narrative_result.get('Payload', {}))
 
         content_id = narrative_payload.get('content_id', '')
         # FIX 2026-02-13: Narrative Lambda returns scenes directly in Payload, not nested in narrative_data
@@ -110,9 +109,9 @@ def lambda_handler(event, context):
                 'audio_type': 'scene'  # NEW: Mark as scene audio
             })
 
-        # NEW: Collect CTA segments for this channel
-        cta_data = narrative_payload.get('cta_data', {})
-        cta_segments = cta_data.get('cta_segments', [])
+        # NEW: Collect CTA segments - support both narrative_content.cta_segments (new) and cta_data.cta_segments (old)
+        narrative_content = narrative_payload.get('narrative_content', {})
+        cta_segments = narrative_content.get('cta_segments', narrative_payload.get('cta_data', {}).get('cta_segments', []))
 
         print(f"Channel {channel_id}: {len(cta_segments)} CTA segments")
 
