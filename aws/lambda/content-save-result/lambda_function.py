@@ -172,6 +172,7 @@ def lambda_handler(event, context):
 
     # Audio/Image results
     audio_files = event.get('audio_files', [])
+    cta_audio_files = event.get('cta_audio_files', [])
     # Support both 'generated_images' (from Step Functions) and 'scene_images' (direct calls)
     scene_images = event.get('generated_images', event.get('scene_images', []))
 
@@ -282,12 +283,11 @@ def lambda_handler(event, context):
 
         # Audio
         'audio_files': audio_files,
+        'cta_audio_files': cta_audio_files,
         'has_audio': len(audio_files) > 0,
         'audio_scene_count': len(audio_files),
         'audio_duration_sec': event.get('audio_duration_sec', 0),
-        'voice_id': event.get('voice_id'),
-        'voice_profile': event.get('voice_profile'),
-        'tts_service': event.get('tts_service'),
+        'tts_provider': event.get('tts_provider'),
 
         # Images
         'scene_images': scene_images,
@@ -301,7 +301,7 @@ def lambda_handler(event, context):
         # Frontend-expected field names
         'character_count': safe_get(metadata, 'total_word_count', safe_get(narrative_data, 'total_word_count', 0)),
         'scene_count': safe_get(metadata, 'total_scenes', safe_get(narrative_data, 'total_scenes', 0)),
-        'voice': event.get('voice_profile', event.get('voice_id', 'Auto')),
+        'voice': event.get('tts_provider', event.get('tts_service', 'Auto')),
 
         # Original field names (for backward compatibility)
         'total_word_count': safe_get(metadata, 'total_word_count', 0),

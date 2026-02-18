@@ -133,6 +133,5 @@ def lambda_handler(event, context):
     print(f"Total: {len(channels_with_audio)} valid channels, {skipped_count} skipped")
 
     return {
-        'statusCode': 200,
         'channels_with_audio': channels_with_audio
     }

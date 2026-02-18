@@ -10,23 +10,54 @@ INSTANCE_NAME = 'z-image-turbo-server'
 
 def lambda_handler(event, context):
     """Control EC2 instance for Z-Image-Turbo"""
+    # Detect invocation type
+    is_function_url = 'requestContext' in event and 'http' in event.get('requestContext', {})
+
     action = event.get('action', 'status')
-    print(f"Z-Image EC2 Control - Action: {action}")
+    print(f"Z-Image EC2 Control - Action: {action}, Invocation: {'Function URL' if is_function_url else 'Lambda Invoke'}")
 
     try:
         if action == 'start':
-            return start_instance()
+            result = start_instance()
         elif action == 'stop':
-            return stop_instance()
+            result = stop_instance()
         elif action == 'status':
-            return get_status()
+            result = get_status()
         else:
-            return {'statusCode': 400, 'error': f'Unknown action: {action}'}
+            result = {'statusCode': 400, 'error': f'Unknown action: {action}'}
+
+        # Return format based on invocation type
+        if is_function_url:
+            status_code = result.get('statusCode', 200)
+            return {
+                'statusCode': status_code,
+                'headers': {
+                    'Content-Type': 'application/json',
+                    'Access-Control-Allow-Origin': '*'
+                },
+                'body': json.dumps(result)
+            }
+        else:
+            # Lambda Invoke - return plain object
+            return result
+
     except Exception as e:
         print(f"Error: {str(e)}")
         import traceback
         traceback.print_exc()
-        return {'statusCode': 500, 'error': str(e)}
+        error_result = {'statusCode': 500, 'error': str(e)}
+
+        if is_function_url:
+            return {
+                'statusCode': 500,
+                'headers': {
+                    'Content-Type': 'application/json',
+                    'Access-Control-Allow-Origin': '*'
+                },
+                'body': json.dumps(error_result)
+            }
+        else:
+            return error_result
 
 def start_instance():
     """Start EC2 instance"""
@@ -47,14 +78,14 @@ def start_instance():
     elif state == 'stopped':
         print(f"Starting instance: {INSTANCE_ID}")
         ec2.start_instances(InstanceIds=[INSTANCE_ID])
-        
+
         waiter = ec2.get_waiter('instance_running')
         waiter.wait(InstanceIds=[INSTANCE_ID])
-        
+
         instance = ec2.describe_instances(InstanceIds=[INSTANCE_ID])['Reservations'][0]['Instances'][0]
         public_ip = instance.get('PublicIpAddress')
         endpoint = f"http://{public_ip}:5000"
-        
+
         print(f"Instance started: {endpoint}")
         return {
             'statusCode': 200,
@@ -91,7 +122,7 @@ def get_status():
     instance = ec2.describe_instances(InstanceIds=[INSTANCE_ID])['Reservations'][0]['Instances'][0]
     state = instance['State']['Name']
     public_ip = instance.get('PublicIpAddress')
-    
+
     result = {'statusCode': 200, 'status': state, 'state': state, 'instance_id': INSTANCE_ID}
     if public_ip:
         result['endpoint'] = f"http://{public_ip}:5000"

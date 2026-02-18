@@ -1453,11 +1453,35 @@
                 btn.innerHTML = `<i class="bi bi-play-circle-fill"></i> Запустити вибрані (<span id="selectedCount">${selectedChannelIds.length}</span>)`;
             }
         }
+        // Helper: Get Authorization header with Cognito token
+        function getAuthHeaders() {
+            function getCookie(name) {
+                const nameEQ = name + "=";
+                const ca = document.cookie.split(';');
+                for(let i = 0; i < ca.length; i++) {
+                    let c = ca[i];
+                    while (c.charAt(0) === ' ') c = c.substring(1, c.length);
+                    if (c.indexOf(nameEQ) === 0) return c.substring(nameEQ.length, c.length);
+                }
+                return null;
+            }
+
+            const idToken = getCookie('auth_id_token');
+            if (!idToken) {
+                console.warn('No ID token found - user may need to log in');
+                return {};
+            }
+
+            return {
+                'Authorization': `Bearer ${idToken}`
+            };
+        }
+
 
         async function refreshRecentExecutions() {
             try {
                 console.log('🔄 Loading recent executions...');
-                const response = await fetch(`${API_URL}/monitoring/executions?limit=10`);
+                const response = await fetch(`${API_URL}/monitoring/executions?limit=10`, { headers: getAuthHeaders() });
                 const data = await response.json();
 
                 displayRecentExecutions(data.executions || []);
@@ -1544,7 +1568,7 @@
 
             try {
                 console.log('📞 Calling:', `${API_URL}/monitoring/executions`);
-                const response = await fetch(`${API_URL}/monitoring/executions`);
+                const response = await fetch(`${API_URL}/monitoring/executions`, { headers: getAuthHeaders() });
                 console.log('📦 Response status:', response.status);
                 const data = await response.json();
                 console.log('📊 Executions data:', data);
@@ -1644,7 +1668,7 @@
 
         async function refreshLogs() {
             try {
-                const response = await fetch(`${API_URL}/monitoring/logs?limit=50`);
+                const response = await fetch(`${API_URL}/monitoring/logs?limit=50`, { headers: getAuthHeaders() });
                 const data = await response.json();
 
                 displayLogs(data.logs || []);
@@ -2035,7 +2059,7 @@
         async function loadExecutionDetails(executionArn) {
             try {
                 console.log('🔍 Loading execution details for:', executionArn);
-                const response = await fetch(`${API_URL}/monitoring/execution-details?executionArn=${encodeURIComponent(executionArn)}`);
+                const response = await fetch(`${API_URL}/monitoring/execution-details?executionArn=${encodeURIComponent(executionArn)}`, { headers: getAuthHeaders() });
                 const data = await response.json();
 
                 console.log('📊 Execution details:', data);

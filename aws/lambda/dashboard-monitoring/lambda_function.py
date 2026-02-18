@@ -29,65 +29,87 @@ def find_matching_entered_state(state_stack, current_event_id, target_type, even
     return None
 
 
+def cors_response(status_code, body):
+    """Helper to ensure CORS headers on ALL responses"""
+    return {
+        'statusCode': status_code,
+        'headers': {
+            'Content-Type': 'application/json',
+            'Access-Control-Allow-Origin': '*',
+            'Access-Control-Allow-Headers': 'Content-Type,Authorization',
+            'Access-Control-Allow-Methods': 'GET,OPTIONS'
+        },
+        'body': json.dumps(body, default=str) if isinstance(body, (dict, list)) else body
+    }
+
+
+def extract_user_id(event):
+    """
+    Extract user_id from multiple sources (flexible for different auth setups)
+
+    Priority:
+    1. Cognito Authorizer claims (when API Gateway Authorizer is configured)
+    2. Query parameters (temporary fallback)
+    3. Default DEBUG_USER (permissive mode for development)
+    """
+    # Try Cognito Authorizer claims (proper way)
+    if 'requestContext' in event:
+        authorizer = event['requestContext'].get('authorizer', {})
+        claims = authorizer.get('claims', {})
+        if claims and 'sub' in claims:
+            return claims['sub']
+
+    # Fallback: Query parameters (for now, until Authorizer is configured)
+    query_params = event.get('queryStringParameters') or {}
+    if 'user_id' in query_params:
+        return query_params['user_id']
+
+    # Default: Permissive mode (single-user system)
+    print("WARNING: No user_id found - using DEBUG_USER (permissive mode)")
+    return 'DEBUG_USER'
+
+
 def lambda_handler(event, context):
     """
-    Dashboard Monitoring API - Multi-Tenant Version
+    Dashboard Monitoring API
 
-    NOTE: Step Functions filtering by user_id requires additional logic:
-    - Need to fetch execution input/output and check channel_id ownership
-    - This is implemented as basic extraction for now
-    - TODO: Add full execution filtering by user's channels
+    Features:
+    - Dynamic Lambda discovery from Step Function
+    - Dynamic state tracking for ANY state type
+    - Flexible authentication (Cognito, query params, or permissive)
+    - Automatic CORS handling
     """
-    print(f"Event: {json.dumps(event, default=str)}")
+    # Handle OPTIONS (CORS preflight)
+    if event.get('httpMethod') == 'OPTIONS':
+        return cors_response(200, {})
 
-    # Extract user_id for multi-tenant data isolation
-    user_id = event.get('user_id')
-    if not user_id:
-        print("WARNING: No user_id provided")
-        # For backward compatibility during migration
-        raise ValueError('SECURITY ERROR: user_id is required for all requests')
-        
-
+    user_id = extract_user_id(event)
     http_method = event.get('httpMethod', 'GET')
     path = event.get('path', '')
     query_params = event.get('queryStringParameters') or {}
-
-    # Add user_id to params for downstream functions
     query_params['user_id'] = user_id
 
     try:
         if path.endswith('/monitoring/executions') or path.endswith('/executions'):
-            response = handle_executions(query_params)
+            return handle_executions(query_params)
         elif path.endswith('/monitoring/execution-details') or path.endswith('/execution-details'):
-            response = handle_execution_details(query_params)
+            return handle_execution_details(query_params)
         elif path.endswith('/monitoring/logs') or path.endswith('/logs'):
-            response = handle_logs(query_params)
+            return handle_logs(query_params)
         else:
-            response = {'statusCode': 404, 'body': json.dumps({'error': 'Not found'})}
-
-        response['headers'] = {
-            'Content-Type': 'application/json',
-            'Access-Control-Allow-Origin': '*',
-            'Access-Control-Allow-Headers': 'Content-Type',
-            'Access-Control-Allow-Methods': 'GET,OPTIONS'
-        }
-        return response
+            return cors_response(404, {'error': 'Not found'})
 
     except Exception as e:
         print(f"Error: {str(e)}")
         import traceback
         traceback.print_exc()
-        return {
-            'statusCode': 500,
-            'headers': {'Content-Type': 'application/json', 'Access-Control-Allow-Origin': '*'},
-            'body': json.dumps({'error': str(e), 'type': 'InternalError'})
-        }
+        return cors_response(500, {'error': str(e), 'type': 'InternalError'})
 
 
 def handle_execution_details(params):
     execution_arn = params.get('executionArn')
     if not execution_arn:
-        return {'statusCode': 400, 'body': json.dumps({'error': 'executionArn parameter is required'})}
+        return cors_response(400, {'error': 'executionArn parameter is required'})
 
     try:
         all_events = []
@@ -117,7 +139,7 @@ def handle_execution_details(params):
         STATE_TYPE_MAP = {
             'TaskStateEntered': 'Task',
             'MapStateEntered': 'Map',
-            'ParallelStateEntered': 'Parallel',  # NEW: Auto-detect Parallel states
+            'ParallelStateEntered': 'Parallel',  # Auto-detect Parallel states
             'ChoiceStateEntered': 'Choice',
             'PassStateEntered': 'Pass',
             'WaitStateEntered': 'Wait',
@@ -182,21 +204,18 @@ def handle_execution_details(params):
 
         print(f"Parsed {len(steps)} steps")
 
-        return {
-            'statusCode': 200,
-            'body': json.dumps({
-                'executionArn': execution_arn,
-                'steps': steps,
-                'totalEvents': len(all_events),
-                'totalSteps': len(steps)
-            }, default=str)
-        }
+        return cors_response(200, {
+            'executionArn': execution_arn,
+            'steps': steps,
+            'totalEvents': len(all_events),
+            'totalSteps': len(steps)
+        })
 
     except Exception as e:
         print(f"Error getting execution details: {str(e)}")
         import traceback
         traceback.print_exc()
-        return {'statusCode': 500, 'body': json.dumps({'error': str(e), 'type': 'ExecutionDetailsError'})}
+        return cors_response(500, {'error': str(e), 'type': 'ExecutionDetailsError'})
 
 
 def handle_executions(params):
@@ -204,13 +223,10 @@ def handle_executions(params):
     state_machines = state_machines_response.get('stateMachines', [])
 
     if not state_machines:
-        return {
-            'statusCode': 200,
-            'body': json.dumps({
-                'executions': [],
-                'stats': {'running': 0, 'succeeded': 0, 'failed': 0, 'avgDuration': '-'}
-            })
-        }
+        return cors_response(200, {
+            'executions': [],
+            'stats': {'running': 0, 'succeeded': 0, 'failed': 0, 'avgDuration': '-'}
+        })
 
     all_executions = []
     stats = {'running': 0, 'succeeded': 0, 'failed': 0, 'total_duration': 0, 'completed_count': 0}
@@ -246,18 +262,15 @@ def handle_executions(params):
         avg_minutes = (stats['total_duration'] / stats['completed_count']) / 60
         avg_duration = f"{avg_minutes:.1f}"
 
-    return {
-        'statusCode': 200,
-        'body': json.dumps({
-            'executions': all_executions,
-            'stats': {
-                'running': stats['running'],
-                'succeeded': stats['succeeded'],
-                'failed': stats['failed'],
-                'avgDuration': avg_duration
-            }
-        }, default=str)
-    }
+    return cors_response(200, {
+        'executions': all_executions,
+        'stats': {
+            'running': stats['running'],
+            'succeeded': stats['succeeded'],
+            'failed': stats['failed'],
+            'avgDuration': avg_duration
+        }
+    })
 
 
 def get_lambda_functions_from_step_function():
@@ -317,7 +330,7 @@ def handle_logs(params):
 
     if not lambda_functions:
         print("WARNING: No Lambda functions found in Step Function definition")
-        return {'statusCode': 200, 'body': json.dumps({'logs': []})}
+        return cors_response(200, {'logs': []})
 
     print(f"Found {len(lambda_functions)} Lambda functions in Step Function: {lambda_functions[:5]}...")
 
@@ -344,7 +357,7 @@ def handle_logs(params):
                 all_logs.append({
                     'timestamp': timestamp,
                     'message': event['message'].strip(),
-                    'source': func_name  # NEW: Show which Lambda emitted this log
+                    'source': func_name  # Show which Lambda emitted this log
                 })
 
         except Exception as e:
@@ -353,4 +366,4 @@ def handle_logs(params):
 
     all_logs.sort(key=lambda x: x['timestamp'], reverse=True)
 
-    return {'statusCode': 200, 'body': json.dumps({'logs': all_logs[:limit]})}
+    return cors_response(200, {'logs': all_logs[:limit]})

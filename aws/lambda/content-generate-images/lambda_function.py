@@ -212,6 +212,65 @@ def stop_ec2_sd35():
     except Exception as e:
         print(f"⚠️  Failed to stop EC2 (non-critical): {e}")
 
+
+def wait_for_image_service(endpoint, max_wait=120):
+    """
+    Wait until Z-Image/EC2 image service is ready to accept requests.
+    EC2 instance can be 'running' but the ML service takes 30-120s to start.
+
+    Args:
+        endpoint: EC2 endpoint URL (e.g. 'http://IP:5000') or dict
+        max_wait: Max seconds to wait (default 120)
+    Returns:
+        True if service ready, False if timed out
+    """
+    import time
+
+    # Parse host:port from endpoint
+    if isinstance(endpoint, dict):
+        ep_str = endpoint.get('endpoint', '') or ''
+    else:
+        ep_str = str(endpoint)
+
+    if ep_str.startswith('http://'):
+        parts = ep_str.replace('http://', '').split(':')
+        host = parts[0]
+        port = int(parts[1].split('/')[0]) if len(parts) > 1 else 5000
+    else:
+        host = ep_str
+        port = 5000
+
+    if not host:
+        print('wait_for_image_service: no endpoint, skipping wait')
+        return True
+
+    print(f'Waiting for image service at {host}:{port} (max {max_wait}s)...')
+    waited = 0
+    interval = 10
+
+    while waited < max_wait:
+        try:
+            conn = http.client.HTTPConnection(host, port, timeout=5)
+            conn.request('GET', '/health')
+            resp = conn.getresponse()
+            resp.read()
+            conn.close()
+            print(f'Image service ready after {waited}s (HTTP {resp.status})')
+            return True
+        except Exception as e:
+            err_str = str(e)
+            if 'refused' in err_str.lower() or 'timed out' in err_str.lower():
+                print(f'Service not ready ({waited}/{max_wait}s), retrying in {interval}s...')
+            else:
+                print(f'Image service responded after {waited}s: {err_str[:60]}')
+                return True
+        time.sleep(interval)
+        waited += interval
+
+    print(f'WARNING: Image service not ready after {max_wait}s, attempting anyway')
+    return False
+
+
 def generate_with_ec2_flux(prompt, image_config, provider='ec2-flux-schnell'):
     """
     Generate image using EC2 instance (SD3.5, Z-Image, or FLUX)
@@ -615,7 +674,6 @@ def handle_multi_channel_batch(all_prompts, provider, user_id=None):
                     print(f"   ❌ Failed to log costs for {channel_id}: {e}")
 
     return {
-        'statusCode': 200,
         'scene_images': scene_images,
         'total_cost_usd': float(round(total_cost, 6)),
         'images_generated': len([img for img in scene_images if img.get('status') == 'completed']),
@@ -701,6 +759,10 @@ def lambda_handler(event, context):
         EC2_ENDPOINT = event.get('ec2_endpoint')
         if EC2_ENDPOINT:
             print(f"✅ EC2 endpoint received from Step Functions")
+
+        # Wait for Z-Image service to be ready (EC2 may be running but service still starting)
+        if EC2_ENDPOINT:
+            wait_for_image_service(EC2_ENDPOINT, max_wait=120)
 
         # Process all prompts and return scene_images for distribution
         return handle_multi_channel_batch(all_prompts, provider, user_id)
