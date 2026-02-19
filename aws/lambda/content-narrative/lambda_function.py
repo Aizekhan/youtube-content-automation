@@ -77,7 +77,7 @@ def log_openai_cost(channel_id, content_id, model, input_tokens, output_tokens, 
     try:
         # SECURITY: Warn if user_id not provided (multi-tenant isolation)
         if not user_id:
-            print("⚠️ WARNING: Cost logged without user_id - multi-tenant isolation compromised!")
+            print(" WARNING: Cost logged without user_id - multi-tenant isolation compromised!")
 
         model_key = model if model in OPENAI_PRICING else 'gpt-4o'
         pricing = OPENAI_PRICING[model_key]
@@ -112,10 +112,10 @@ def log_openai_cost(channel_id, content_id, model, input_tokens, output_tokens, 
 
         cost_table.put_item(Item=item)
 
-        print(f"✅ Logged cost: ${float(total_cost):.6f} ({input_tokens + output_tokens} tokens)")
+        print(f" Logged cost: ${float(total_cost):.6f} ({input_tokens + output_tokens} tokens)")
         return float(total_cost)
     except Exception as e:
-        print(f"❌ Failed to log cost: {e}")
+        print(f" Failed to log cost: {e}")
         return 0.0
 
 
@@ -199,7 +199,7 @@ def load_story_blueprint(channel_config):
     Returns None if no template set (AI decides freely)."""
     template_id = (channel_config.get('story_template') or '').strip()
     if not template_id:
-        print('📖 No story_template set — AI generates freely')
+        print(' No story_template set — AI generates freely')
         return None
 
     try:
@@ -207,14 +207,14 @@ def load_story_blueprint(channel_config):
         response = table.get_item(Key={'template_id': template_id})
         blueprint = response.get('Item')
         if blueprint:
-            print(f"📖 Story blueprint loaded: {blueprint.get('name', template_id)}")
+            print(f" Story blueprint loaded: {blueprint.get('name', template_id)}")
             print(f"   Pacing: {blueprint.get('pacing_profile')} | Opening: {blueprint.get('opening_strategy')}")
             print(f"   Scenes: {len(blueprint.get('scene_blueprints', []))}")
         else:
-            print(f"⚠️ Story template '{template_id}' not found — skipping blueprint")
+            print(f" Story template '{template_id}' not found — skipping blueprint")
         return blueprint
     except Exception as e:
-        print(f"⚠️ Failed to load story blueprint: {e} — continuing without blueprint")
+        print(f" Failed to load story blueprint: {e} — continuing without blueprint")
         return None
 
 def load_all_templates(channel_config):
@@ -282,7 +282,7 @@ def lambda_handler(event, context):
     try:
         validate_content_generation_request(event, max_size_mb=10, max_scenes=100)
     except RequestSizeTooLargeError as e:
-        print(f"❌ Request validation failed: {e}")
+        print(f" Request validation failed: {e}")
         return {
             'statusCode': 413,  # Payload Too Large
             'error': f'Request too large: {str(e)}',
@@ -291,6 +291,13 @@ def lambda_handler(event, context):
 
     channel_id = event.get('channel_id', 'Unknown')
     selected_topic = event.get('selected_topic', 'Default Topic')
+    wikipedia_facts = event.get('wikipedia_facts', None)
+    has_real_facts = event.get('has_real_facts', False)
+
+    if has_real_facts and wikipedia_facts:
+        print(f" Factual mode: Wikipedia facts available ({wikipedia_facts.get('char_count', 0)} chars)")
+    else:
+        print(" Fictional mode: no Wikipedia facts")
 
     try:
         # 1. Get OpenAI API key
@@ -302,7 +309,7 @@ def lambda_handler(event, context):
         except:
             api_key = secret_string
 
-        print(f"✅ API key retrieved")
+        print(f" API key retrieved")
 
         # 2. Get ChannelConfig
         channel_table = dynamodb.Table('ChannelConfigs')
@@ -318,21 +325,21 @@ def lambda_handler(event, context):
 
         # WEEK 2 FIX: IDOR prevention - verify channel belongs to user
         if channel_config.get('user_id') != user_id:
-            print(f"❌ SECURITY ERROR: Channel {channel_id} belongs to user {channel_config.get('user_id')}, not {user_id}")
+            print(f" SECURITY ERROR: Channel {channel_id} belongs to user {channel_config.get('user_id')}, not {user_id}")
             raise ValueError(f"SECURITY: Access denied - Channel does not belong to user {user_id}")
 
-        print(f"✅ Channel loaded: {channel_config.get('channel_name', 'Unknown')}")
+        print(f" Channel loaded: {channel_config.get('channel_name', 'Unknown')}")
 
         # 2.5. Load Story Blueprint
-        print(chr(10) + '📖 Loading story blueprint...')
+        print(chr(10) + ' Loading story blueprint...')
         story_blueprint = load_story_blueprint(channel_config)
 
         # 3. Load ALL 7 Templates
-        print("\n📦 Loading templates...")
+        print("\n Loading templates...")
         templates = load_all_templates(channel_config)
 
         # 4. Merge into MEGA configuration
-        print("\n🔧 Merging configurations...")
+        print("\n Merging configurations...")
         try:
             mega_config = merge_mega_configuration(
                 channel_config,
@@ -351,27 +358,27 @@ def lambda_handler(event, context):
             traceback.print_exc()
             raise
 
-        print(f"✅ Mega config created")
+        print(f" Mega config created")
         print(f"   Model: {mega_config['model']}")
         print(f"   Temp: {mega_config['temperature']}")
         print(f"   Max tokens: {mega_config['max_tokens']}")
 
         # 5. Build MEGA prompt
-        print("\n📝 Building MEGA prompt...")
+        print("\n Building MEGA prompt...")
         try:
-            system_message, user_message = build_mega_prompt(mega_config, selected_topic)
+            system_message, user_message = build_mega_prompt(mega_config, selected_topic, wikipedia_facts)
         except Exception as prompt_error:
             print(f"ERROR in build_mega_prompt: {prompt_error}")
             import traceback
             traceback.print_exc()
             raise
 
-        print(f"✅ MEGA prompt built")
+        print(f" MEGA prompt built")
         print(f"   System message: {len(system_message)} chars")
         print(f"   User message: {len(user_message)} chars")
 
         # 6. Call OpenAI (with caching - WEEK 5)
-        print("\n🔍 Checking OpenAI response cache...")
+        print("\n Checking OpenAI response cache...")
 
         # Build cache key from prompt
         cache_key_prompt = system_message + user_message
@@ -380,10 +387,10 @@ def lambda_handler(event, context):
         cached_result = get_cached_response(cache_key_prompt, mega_config['model'], max_age_hours=24)
 
         if cached_result:
-            print("✅ Cache HIT - using cached OpenAI response (saved API call!)")
+            print(" Cache HIT - using cached OpenAI response (saved API call!)")
             result = cached_result
         else:
-            print("🚀 Cache MISS - calling OpenAI API...")
+            print(" Cache MISS - calling OpenAI API...")
             request_body = json.dumps({
                 'model': mega_config['model'],
                 'messages': [
@@ -411,7 +418,7 @@ def lambda_handler(event, context):
             finally:
                 conn.close()  # Ensure connection is closed
 
-            print(f"✅ OpenAI response: {response.status}")
+            print(f" OpenAI response: {response.status}")
 
             result = json.loads(response_data)
 
@@ -420,16 +427,15 @@ def lambda_handler(event, context):
 
             # Cache the successful response (TTL: 7 days)
             cache_response(cache_key_prompt, mega_config['model'], result, ttl_hours=168)
-            print("💾 Response cached for future use")
+            print(" Response cached for future use")
 
         # 7. Parse MEGA response
-        print("\n📥 Parsing MEGA response...")
+        print("\n Parsing MEGA response...")
         generated_content = result['choices'][0]['message']['content']
         mega_response = json.loads(generated_content)
 
         # Extract components
         story_title = mega_response.get('story_title', selected_topic)
-        hook = mega_response.get('hook', '')
         scenes = mega_response.get('scenes', [])
         cta_segments = mega_response.get('cta_segments', [])
         thumbnail = mega_response.get('thumbnail', {})
@@ -437,7 +443,7 @@ def lambda_handler(event, context):
         sfx_data = mega_response.get('sfx_data', {})
         metadata = mega_response.get('metadata', {})
 
-        print(f"✅ Parsed MEGA response:")
+        print(f" Parsed MEGA response:")
         print(f"   Title: {story_title}")
         print(f"   Scenes: {len(scenes)}")
         print(f"   Image prompts: {len([s for s in scenes if s.get('image_prompt')])}")
@@ -447,7 +453,7 @@ def lambda_handler(event, context):
         print(f"   Music track: {sfx_data.get('music_track', 'None')}")
 
         # Calculate character count
-        narrative_text = hook + '\n' + '\n'.join([s.get('scene_narration', '') for s in scenes])
+        narrative_text = '\n'.join([s.get('scene_narration', '') for s in scenes])
         character_count = len(narrative_text)
 
         # 8. Log cost
@@ -468,7 +474,7 @@ def lambda_handler(event, context):
         )
 
         # 9. Save to DynamoDB
-        print("\n💾 Saving to DynamoDB...")
+        print("\n Saving to DynamoDB...")
         content_table = dynamodb.Table('GeneratedContent')
 
         # Convert all floats to Decimal for DynamoDB
@@ -495,7 +501,7 @@ def lambda_handler(event, context):
             }
         )
 
-        print(f"✅ Saved to DynamoDB")
+        print(f" Saved to DynamoDB")
 
         # 10. Get image provider
         image_template = templates['image_template']
@@ -503,7 +509,7 @@ def lambda_handler(event, context):
         image_provider = image_settings.get('provider', 'ec2-sd35')
 
         # 11. Return output for Step Functions
-        print("\n🎯 Building output...")
+        print("\n Building output...")
 
         output = {
             'channel_id': channel_id,
@@ -549,6 +555,12 @@ def lambda_handler(event, context):
             # Provider for Step Functions
             'image_provider': image_provider,
 
+            # Voice config for collect-audio-scenes
+            'voice_config': {
+                'language': channel_config.get('language', 'en'),
+                'speaker': channel_config.get('tts_voice_speaker') or 'Ryan',
+            },
+
             # Metadata for SaveFinalContent (genre & model)
             'model': mega_config['model'],
             'genre': channel_config.get('genre'),
@@ -559,7 +571,7 @@ def lambda_handler(event, context):
         }
 
         print(f"\n" + "=" * 80)
-        print(f"✅ SUCCESS - MEGA-GENERATION COMPLETE")
+        print(f" SUCCESS - MEGA-GENERATION COMPLETE")
         print(f"   Scenes: {len(scenes)}")
         print(f"   Image prompts: {len([s for s in scenes if s.get('image_prompt')])}")
         print(f"   Thumbnail: {'Yes' if thumbnail.get('thumbnail_prompt') else 'No'}")
@@ -570,7 +582,7 @@ def lambda_handler(event, context):
         return output
 
     except Exception as e:
-        print(f"\n❌ ERROR: {str(e)}")
+        print(f"\n ERROR: {str(e)}")
         import traceback
         traceback.print_exc()
 

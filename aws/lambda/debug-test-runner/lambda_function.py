@@ -44,7 +44,7 @@ def lambda_handler(event, context):
     }
     """
 
-    print(f"🐛 DEBUG TEST RUNNER - Starting")
+    print(f" DEBUG TEST RUNNER - Starting")
     print(f"Event: {json.dumps(event, ensure_ascii=False, default=str)}")
 
     # Parse input - handle both direct invocation and Lambda URL (body as string)
@@ -121,7 +121,7 @@ def lambda_handler(event, context):
             raise Exception(f"Channel {channel_id} not found in active channels")
 
         test_data['channel_config'] = channel_config
-        print(f"✅ Step 1: Channel config loaded - {channel_config.get('channel_name', 'Unknown')}")
+        print(f" Step 1: Channel config loaded - {channel_config.get('channel_name', 'Unknown')}")
 
 
         # Step 2: Generate Theme
@@ -146,7 +146,7 @@ def lambda_handler(event, context):
         test_data['theme'] = theme_output
         total_cost += float(theme_output.get('cost_usd', 0))
 
-        print(f"✅ Step 2: Theme generated - {theme_output.get('selected_topic', 'Unknown')}")
+        print(f" Step 2: Theme generated - {theme_output.get('selected_topic', 'Unknown')}")
 
 
         # Step 3: Generate Narrative
@@ -174,7 +174,7 @@ def lambda_handler(event, context):
         test_data['narrative'] = narrative_output
         total_cost += float(narrative_output.get('cost_usd', 0))
 
-        print(f"✅ Step 3: Narrative generated - {narrative_output.get('scene_count', 0)} scenes")
+        print(f" Step 3: Narrative generated - {narrative_output.get('scene_count', 0)} scenes")
 
 
         # Step 4: Generate Audio (TTS)
@@ -202,7 +202,7 @@ def lambda_handler(event, context):
         test_data['audio'] = audio_output
         total_cost += float(audio_output.get('cost_usd', 0))
 
-        print(f"✅ Step 4: Audio generated - {audio_output.get('scene_count', 0)} files, {audio_output.get('total_duration_sec', 0)}s")
+        print(f" Step 4: Audio generated - {audio_output.get('scene_count', 0)} files, {audio_output.get('total_duration_sec', 0)}s")
 
 
         # Step 5: Generate Images
@@ -229,7 +229,7 @@ def lambda_handler(event, context):
         test_data['images'] = image_output
         total_cost += float(image_output.get('total_cost_usd', 0))
 
-        print(f"✅ Step 5: Images generated - {image_output.get('images_generated', 0)} images, ${image_output.get('total_cost_usd', 0)}")
+        print(f" Step 5: Images generated - {image_output.get('images_generated', 0)} images, ${image_output.get('total_cost_usd', 0)}")
 
 
         # Step 6: Save Result
@@ -252,10 +252,10 @@ def lambda_handler(event, context):
         steps.append(step6_result)
 
         if step6_result['status'] != 'completed':
-            print(f"⚠️  Step 6 warning: {step6_result.get('error')}")
+            print(f"  Step 6 warning: {step6_result.get('error')}")
             # Don't fail the whole test if save fails
         else:
-            print(f"✅ Step 6: Result saved")
+            print(f" Step 6: Result saved")
 
 
         # Calculate total duration
@@ -275,7 +275,7 @@ def lambda_handler(event, context):
             'story_title': narrative_output.get('story_title', 'Untitled')
         }
 
-        print(f"✅ TEST COMPLETED SUCCESSFULLY")
+        print(f" TEST COMPLETED SUCCESSFULLY")
         print(f"   Duration: {summary['total_duration_sec']}s")
         print(f"   Cost: ${summary['total_cost_usd']}")
         print(f"   Scenes: {summary['scene_count']}")
@@ -296,7 +296,7 @@ def lambda_handler(event, context):
         }
 
     except Exception as e:
-        print(f"❌ TEST FAILED: {str(e)}")
+        print(f" TEST FAILED: {str(e)}")
         import traceback
         traceback.print_exc()
 
@@ -347,7 +347,7 @@ def run_step(step_number, step_name, lambda_function, payload, description):
 
     try:
         # Invoke Lambda function
-        print(f"📤 Invoking {lambda_function}...")
+        print(f" Invoking {lambda_function}...")
         print(f"Payload: {json.dumps(payload, ensure_ascii=False, default=str)}")
 
         response = lambda_client.invoke(
@@ -366,7 +366,7 @@ def run_step(step_number, step_name, lambda_function, payload, description):
         # Check if Lambda returned an error
         if response.get('FunctionError'):
             error_message = response_payload.get('errorMessage', 'Unknown error')
-            print(f"❌ Lambda error: {error_message}")
+            print(f" Lambda error: {error_message}")
 
             return {
                 'step_number': step_number,
@@ -382,7 +382,7 @@ def run_step(step_number, step_name, lambda_function, payload, description):
             }
 
         # Success
-        print(f"✅ Step completed in {duration_ms}ms")
+        print(f" Step completed in {duration_ms}ms")
 
         return {
             'step_number': step_number,
@@ -402,7 +402,7 @@ def run_step(step_number, step_name, lambda_function, payload, description):
         duration_ms = int((step_end_time - step_start_time) * 1000)
 
         error_message = str(e)
-        print(f"❌ Exception: {error_message}")
+        print(f" Exception: {error_message}")
 
         return {
             'step_number': step_number,

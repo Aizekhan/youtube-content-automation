@@ -43,7 +43,7 @@ def safe_get(obj, key, default='Unknown'):
     return default
 
 def lambda_handler(event, context):
-    print(f"💾 Save Result - MEGA Mode v4.0 - Multi-Tenant")
+    print(f" Save Result - MEGA Mode v4.0 - Multi-Tenant")
     print(f"Event keys: {list(event.keys())}")
 
     # Extract user_id for multi-tenant data isolation
@@ -57,7 +57,7 @@ def lambda_handler(event, context):
     try:
         validate_data_save_request(event, max_size_mb=20)
     except RequestSizeTooLargeError as e:
-        print(f"❌ Request validation failed: {e}")
+        print(f" Request validation failed: {e}")
         return {
             'channel_id': event.get('channel_id'),
             'content_id': event.get('content_id'),
@@ -84,7 +84,7 @@ def lambda_handler(event, context):
             response = channels_table.get_item(Key={'config_id': config_id})
 
             if 'Item' not in response:
-                print(f"❌ Channel config not found: {config_id}")
+                print(f" Channel config not found: {config_id}")
                 raise ValueError(f"Channel config not found: {config_id}")
 
             channel_config = response['Item']
@@ -92,7 +92,7 @@ def lambda_handler(event, context):
             # SECURITY: Verify channel belongs to user IMMEDIATELY after loading
             # This check now happens BEFORE any data processing
             if channel_config.get('user_id') != user_id:
-                print(f"❌ SECURITY ERROR: Access denied - Channel config {config_id} belongs to user {channel_config.get('user_id')}, not {user_id}")
+                print(f" SECURITY ERROR: Access denied - Channel config {config_id} belongs to user {channel_config.get('user_id')}, not {user_id}")
                 raise ValueError(f"SECURITY: Access denied - Channel config does not belong to user {user_id}")
 
             # Parse variation_sets if it's a JSON string (PHP backend compatibility)
@@ -100,9 +100,9 @@ def lambda_handler(event, context):
             if isinstance(variation_sets, str):
                 try:
                     variation_sets = json.loads(variation_sets)
-                    print(f"🔧 Parsed variation_sets from JSON string: {len(variation_sets)} sets")
+                    print(f" Parsed variation_sets from JSON string: {len(variation_sets)} sets")
                 except json.JSONDecodeError as e:
-                    print(f"⚠️ Failed to parse variation_sets JSON: {e}")
+                    print(f" Failed to parse variation_sets JSON: {e}")
                     variation_sets = []
 
             # Convert generation_count to int (handles both string and number)
@@ -127,9 +127,9 @@ def lambda_handler(event, context):
                     variation_set_name = active_set.get('set_name', f'Set_{active_set_index}')
                     generation_count_at_creation = generation_count
 
-                    print(f"📊 Variation Set Tracking: Set {active_set_index}/{len(variation_sets)-1}: '{variation_set_name}' (gen #{generation_count})")
+                    print(f" Variation Set Tracking: Set {active_set_index}/{len(variation_sets)-1}: '{variation_set_name}' (gen #{generation_count})")
         except Exception as e:
-            print(f"⚠️ Failed to read variation set info: {e}")
+            print(f" Failed to read variation set info: {e}")
             # Non-critical - continue saving content
 
     # MEGA mode data (as dicts)
@@ -145,30 +145,23 @@ def lambda_handler(event, context):
     # Handle case where selected_topic is a string instead of dict
     if isinstance(selected_topic, str):
         selected_topic = {'title': selected_topic}
-        print(f"⚠️ Converted selected_topic from string to dict: {selected_topic}")
+        print(f" Converted selected_topic from string to dict: {selected_topic}")
 
     # CRITICAL VALIDATION: Theme and Narrative MUST exist together
     # This prevents data integrity violations (narratives without themes)
     if not selected_topic or not selected_topic.get('title'):
-        error_msg = f"❌ VALIDATION FAILED: Missing theme (selected_topic) for channel {channel_id}"
+        error_msg = f" VALIDATION FAILED: Missing theme (selected_topic) for channel {channel_id}"
         print(error_msg)
         raise ValueError("Cannot save content: missing theme (selected_topic). Theme MUST be created before narrative!")
 
-    if not narrative_data or not narrative_data.get('story_title'):
-        error_msg = f"❌ VALIDATION FAILED: Missing narrative (narrative_data) for channel {channel_id}"
-        print(error_msg)
-        raise ValueError("Cannot save content: missing narrative (narrative_data). Both theme and narrative are required!")
-
-    print(f"✅ VALIDATION PASSED: Both theme '{selected_topic.get('title')}' and narrative '{narrative_data.get('story_title')}' exist")
-
 
 
     if not narrative_data or not narrative_data.get('story_title'):
-        error_msg = f"❌ VALIDATION FAILED: Missing narrative (narrative_data) for channel {channel_id}"
+        error_msg = f" VALIDATION FAILED: Missing narrative (narrative_data) for channel {channel_id}"
         print(error_msg)
         raise ValueError("Cannot save content: missing narrative (narrative_data). Both theme and narrative are required!")
 
-    print(f"✅ VALIDATION PASSED: Both theme '{selected_topic.get('title')}' and narrative '{narrative_data.get('story_title')}' exist")
+    print(f" VALIDATION PASSED: Both theme '{selected_topic.get('title')}' and narrative '{narrative_data.get('story_title')}' exist")
 
     # Audio/Image results
     audio_files = event.get('audio_files', [])
@@ -202,13 +195,13 @@ def lambda_handler(event, context):
 
                 # Security: Verify channel belongs to user (defense in depth)
                 if channel_config.get('user_id') != user_id:
-                    print(f"❌ SECURITY ERROR: Channel config {config_id} does not belong to user {user_id}")
+                    print(f" SECURITY ERROR: Channel config {config_id} does not belong to user {user_id}")
                     raise ValueError(f"Access denied: Channel config does not belong to user {user_id}")
 
                 channel_name = channel_config.get('channel_name', 'Unknown')
                 genre = channel_config.get('genre')
         except Exception as e:
-            print(f"⚠️ Failed to get channel name/genre: {e}")
+            print(f" Failed to get channel name/genre: {e}")
 
     # Build image_data from narrative_data if not provided
     if not image_data or not image_data.get('scenes'):
@@ -313,7 +306,7 @@ def lambda_handler(event, context):
         item = convert_floats_to_decimal(item)
         table.put_item(Item=item)
 
-        print(f"✅ Saved: content_id={content_id}, title={story_title}")
+        print(f" Saved: content_id={content_id}, title={story_title}")
 
         # AUTO-INCREMENT generation_count for Variation Sets rotation
         try:
@@ -326,10 +319,10 @@ def lambda_handler(event, context):
                     ':inc': 1
                 }
             )
-            print(f"🔄 Incremented generation_count for channel {channel_id}")
+            print(f" Incremented generation_count for channel {channel_id}")
         except Exception as inc_error:
             # Non-critical error - content is already saved
-            print(f"⚠️ Failed to increment generation_count: {inc_error}")
+            print(f" Failed to increment generation_count: {inc_error}")
 
         return {
             'channel_id': channel_id,
@@ -340,7 +333,7 @@ def lambda_handler(event, context):
         }
 
     except Exception as e:
-        print(f"❌ Error: {str(e)}")
+        print(f" Error: {str(e)}")
         import traceback
         traceback.print_exc()
         return {

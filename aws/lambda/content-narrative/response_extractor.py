@@ -309,6 +309,6 @@ def validate_ssml_basic(text):
 def format_validation_report(validation_errors):
     """Format validation errors for display"""
     if not validation_errors:
-        return "✅ All validations passed"
+        return " All validations passed"
 
-    return f"⚠️  {len(validation_errors)} validation errors:\n" + "\n".join([f"  - {err}" for err in validation_errors])
+    return f"  {len(validation_errors)} validation errors:\n" + "\n".join([f"  - {err}" for err in validation_errors])

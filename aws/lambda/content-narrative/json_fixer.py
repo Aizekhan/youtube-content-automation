@@ -159,34 +159,34 @@ def fix_llm_json(json_str, max_attempts=5):
         json.JSONDecodeError: If all fix attempts fail
     """
 
-    print(f"🔧 Attempting to parse/fix JSON ({len(json_str)} chars)")
+    print(f" Attempting to parse/fix JSON ({len(json_str)} chars)")
 
     # Attempt 1: Try parsing as-is
     try:
         result = json.loads(json_str)
-        print(f"✅ JSON parsed successfully (no fixes needed)")
+        print(f" JSON parsed successfully (no fixes needed)")
         return result
     except json.JSONDecodeError as e:
-        print(f"❌ Parse error: {str(e)}")
+        print(f" Parse error: {str(e)}")
         original_error = e
 
     # Attempt 2: Fix trailing commas
     try:
         fixed = fix_trailing_commas(json_str)
         result = json.loads(fixed)
-        print(f"✅ JSON fixed with trailing comma removal")
+        print(f" JSON fixed with trailing comma removal")
         return result
     except json.JSONDecodeError as e:
-        print(f"⚠️  Trailing comma fix didn't work: {str(e)}")
+        print(f"  Trailing comma fix didn't work: {str(e)}")
 
     # Attempt 3: Fix truncated JSON
     try:
         fixed = fix_truncated_json(json_str)
         result = json.loads(fixed)
-        print(f"✅ JSON fixed by closing truncated structures")
+        print(f" JSON fixed by closing truncated structures")
         return result
     except json.JSONDecodeError as e:
-        print(f"⚠️  Truncation fix didn't work: {str(e)}")
+        print(f"  Truncation fix didn't work: {str(e)}")
         truncated_json = fixed  # Save for later attempt
 
     # Attempt 4: Fix unterminated string at error position
@@ -194,35 +194,35 @@ def fix_llm_json(json_str, max_attempts=5):
         error_pos = original_error.pos if hasattr(original_error, 'pos') else len(json_str) // 2
         fixed = fix_unterminated_string(json_str, error_pos)
         result = json.loads(fixed)
-        print(f"✅ JSON fixed by terminating string at pos {error_pos}")
+        print(f" JSON fixed by terminating string at pos {error_pos}")
         return result
     except json.JSONDecodeError as e:
-        print(f"⚠️  String termination fix didn't work: {str(e)}")
+        print(f"  String termination fix didn't work: {str(e)}")
 
     # Attempt 5: Combined fix (trailing commas + truncation)
     try:
         fixed = fix_trailing_commas(truncated_json)
         result = json.loads(fixed)
-        print(f"✅ JSON fixed with combined fixes")
+        print(f" JSON fixed with combined fixes")
         return result
     except json.JSONDecodeError as e:
-        print(f"⚠️  Combined fix didn't work: {str(e)}")
+        print(f"  Combined fix didn't work: {str(e)}")
 
     # Attempt 6: Try to extract JSON from markdown code blocks
     if '```json' in json_str or '```' in json_str:
-        print(f"🔍 Detected markdown code blocks, extracting...")
+        print(f" Detected markdown code blocks, extracting...")
         json_match = re.search(r'```(?:json)?\s*\n?(.*?)\n?```', json_str, re.DOTALL)
         if json_match:
             try:
                 extracted = json_match.group(1).strip()
                 result = json.loads(extracted)
-                print(f"✅ JSON extracted from markdown code block")
+                print(f" JSON extracted from markdown code block")
                 return result
             except json.JSONDecodeError:
-                print(f"⚠️  Extracted JSON still invalid")
+                print(f"  Extracted JSON still invalid")
 
     # All attempts failed
-    print(f"❌ All {max_attempts} fix attempts failed")
+    print(f" All {max_attempts} fix attempts failed")
     print(f"Original error: {original_error}")
     print(f"JSON preview (first 200 chars): {json_str[:200]}")
     print(f"JSON preview (last 200 chars): {json_str[-200:]}")

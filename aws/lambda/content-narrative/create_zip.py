@@ -12,13 +12,9 @@ with zipfile.ZipFile('function.zip', 'w', zipfile.ZIP_DEFLATED) as zipf:
     zipf.write('lambda_function.py', 'lambda_function.py')
     print("   Added lambda_function.py")
 
-    # Add json_fixer.py at root
-    zipf.write('json_fixer.py', 'json_fixer.py')
-    print("   Added json_fixer.py")
 
     # Add all shared modules from PARENT shared directory (only existing files)
     shared_modules = [
-        'config_merger.py',
         'mega_config_merger.py',
         'mega_prompt_builder.py',
         'response_extractor.py',
@@ -33,7 +29,7 @@ with zipfile.ZipFile('function.zip', 'w', zipfile.ZIP_DEFLATED) as zipf:
         else:
             print(f"   WARNING: {module} not found at {source_path}")
 
-print("\n✅ Created function.zip")
+print("\n Created function.zip")
 
 # Verify contents
 with zipfile.ZipFile('function.zip', 'r') as zipf:

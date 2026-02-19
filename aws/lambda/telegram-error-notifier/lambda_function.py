@@ -113,7 +113,7 @@ def lambda_handler(event, context):
         telegram_settings = get_telegram_settings()
 
         if not telegram_settings:
-            print("⚠️ Telegram notifications not configured - skipping")
+            print(" Telegram notifications not configured - skipping")
             return {
                 'statusCode': 200,
                 'body': json.dumps({
@@ -147,7 +147,7 @@ def lambda_handler(event, context):
             pass
 
         # Format error message for Telegram
-        message = f"""🚨 <b>YouTube Automation Alert</b>
+        message = f""" <b>YouTube Automation Alert</b>
 
 <b>Type:</b> {error_type}
 <b>Time:</b> {timestamp}
@@ -158,7 +158,7 @@ def lambda_handler(event, context):
 <b>Details:</b>
 {error_cause[:500]}
 
-⚠️ Check AWS Console for full details.
+ Check AWS Console for full details.
 
 <b>ARN:</b>
 <code>{execution_arn}</code>
@@ -168,7 +168,7 @@ def lambda_handler(event, context):
         success = send_telegram_message(bot_token, chat_id, message)
 
         if success:
-            print("✅ Telegram notification sent successfully")
+            print(" Telegram notification sent successfully")
             return {
                 'statusCode': 200,
                 'body': json.dumps({
@@ -177,7 +177,7 @@ def lambda_handler(event, context):
                 })
             }
         else:
-            print("❌ Failed to send Telegram notification")
+            print(" Failed to send Telegram notification")
             return {
                 'statusCode': 500,
                 'body': json.dumps({

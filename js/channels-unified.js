@@ -1,4 +1,4 @@
-// 🚀 Unified Channels System JavaScript
+//  Unified Channels System JavaScript
 // Об'єднана система управління каналами
 
 // Import auth manager (loaded from auth.js)
@@ -10,6 +10,59 @@ const VASTAI_API_URL = 'https://xmstnomewqj2zlhrgkqxnnhkz40znusc.lambda-url.eu-c
 
 // Lambda Function URLs (multi-tenant with CORS)
 const CHANNELS_API = 'https://lr555ui3ycne6lj7opvpqjigce0cvkzu.lambda-url.eu-central-1.on.aws';
+
+// Mови що підтримує Qwen3-TTS (source of truth — matches lang_map in content-audio-qwen3tts)
+// code: ISO 639-1 код -> label: відображення -> tts_name: назва для Qwen3 API
+const QWEN3_LANGUAGES = [
+    { code: 'en', label: 'English', tts_name: 'English' },
+    { code: 'zh', label: 'Chinese (Mandarin)', tts_name: 'Chinese' },
+    { code: 'ja', label: 'Japanese', tts_name: 'Japanese' },
+    { code: 'ko', label: 'Korean', tts_name: 'Korean' },
+    { code: 'fr', label: 'French', tts_name: 'French' },
+    { code: 'de', label: 'German', tts_name: 'German' },
+    { code: 'es', label: 'Spanish', tts_name: 'Spanish' },
+    { code: 'it', label: 'Italian', tts_name: 'Italian' },
+    { code: 'pt', label: 'Portuguese', tts_name: 'Portuguese' },
+    { code: 'ru', label: 'Russian', tts_name: 'Russian' },
+    { code: 'ar', label: 'Arabic', tts_name: 'Arabic' },
+    { code: 'hi', label: 'Hindi', tts_name: 'Hindi' }
+    ];
+
+// Голоси Qwen3-TTS (source of truth — matches speaker normalization in content-audio-qwen3tts)
+const QWEN3_SPEAKERS = [
+    { value: '',      label: '\u2014 Ryan (\u0437\u0430 \u0437\u0430\u043c\u043e\u0432\u0447\u0443\u0432\u0430\u043d\u043d\u044f\u043c) \u2014' },
+    { value: 'Ryan',  label: 'Ryan  \u2014 \u0433\u043b\u0438\u0431\u043e\u043a\u0438\u0439 \u0447\u043e\u043b\u043e\u0432\u0456\u0447\u0438\u0439' },
+    { value: 'Mark',  label: 'Mark  \u2014 \u043d\u0435\u0439\u0442\u0440\u0430\u043b\u044c\u043d\u0438\u0439 \u0447\u043e\u043b\u043e\u0432\u0456\u0447\u0438\u0439' },
+    { value: 'Lily',  label: 'Lily  \u2014 \u043c\u0027\u044f\u043a\u0438\u0439 \u0436\u0456\u043d\u043e\u0447\u0438\u0439' },
+    { value: 'Emily', label: 'Emily \u2014 \u043d\u0435\u0439\u0442\u0440\u0430\u043b\u044c\u043d\u0438\u0439 \u0436\u0456\u043d\u043e\u0447\u0438\u0439' },
+    { value: 'Jane',  label: 'Jane  \u2014 \u0442\u0435\u043f\u043b\u0438\u0439 \u0436\u0456\u043d\u043e\u0447\u0438\u0439' }
+    ];
+
+// Populate speaker dropdown from QWEN3_SPEAKERS
+function populateSpeakerDropdown(selectEl, selectedValue) {
+    if (!selectEl) return;
+    selectEl.innerHTML = '';
+    QWEN3_SPEAKERS.forEach(sp => {
+        const opt = document.createElement('option');
+        opt.value = sp.value;
+        opt.textContent = sp.label;
+        if (sp.value === selectedValue) opt.selected = true;
+        selectEl.appendChild(opt);
+    });
+}
+
+// Populate language dropdowns from QWEN3_LANGUAGES
+function populateLanguageDropdown(selectEl, selectedCode) {
+    if (!selectEl) return;
+    selectEl.innerHTML = '';
+    QWEN3_LANGUAGES.forEach(lang => {
+        const opt = document.createElement('option');
+        opt.value = lang.code;
+        opt.textContent = lang.label + ' (' + lang.code + ')';
+        if (lang.code === selectedCode) opt.selected = true;
+        selectEl.appendChild(opt);
+    });
+}
 
 // Legacy PHP endpoints (will be migrated)
 const API_URLS = {
@@ -28,7 +81,7 @@ let currentFilter = 'all'; // 'all', 'active', 'inactive'
 
 // Initialize on page load
 document.addEventListener('DOMContentLoaded', async () => {
-    console.log('🚀 Initializing Unified Channels System');
+    console.log(' Initializing Unified Channels System');
 
     // Initialize auth manager
     authManager = new AuthManager();
@@ -36,9 +89,9 @@ document.addEventListener('DOMContentLoaded', async () => {
     // Check authentication
     try {
         await authManager.requireAuth();
-        console.log('✅ User authenticated:', authManager.getUserId());
+        console.log(' User authenticated:', authManager.getUserId());
     } catch (error) {
-        console.error('❌ Authentication failed:', error);
+        console.error(' Authentication failed:', error);
         return;
     }
 
@@ -113,8 +166,6 @@ function switchTab(tabName) {
     // Load tab-specific data
     if (tabName === 'overview') {
         loadChannels();
-    } else if (tabName === 'configs') {
-        loadChannelConfigs();
     }
 }
 
@@ -149,7 +200,7 @@ async function loadChannels() {
         // Store ALL channels
         allChannelsData = Array.isArray(data) ? data : (data.channels || []);
 
-        console.log(`📊 Loaded ${allChannelsData.length} total channels`);
+        console.log(` Loaded ${allChannelsData.length} total channels`);
 
         if (allChannelsData.length === 0) {
             container.innerHTML = `
@@ -227,7 +278,7 @@ function applyChannelFilter(filter) {
             break;
     }
 
-    console.log(`🔍 Filter: ${filter} - Showing ${filteredChannels.length} of ${allChannelsData.length} channels`);
+    console.log(` Filter: ${filter} - Showing ${filteredChannels.length} of ${allChannelsData.length} channels`);
 
     // Update button states
     document.querySelectorAll('.filter-btn').forEach(btn => {
@@ -381,7 +432,7 @@ async function toggleChannelStatus(channelId, isActive) {
         console.log('Toggle result:', result);
 
         if (result.success) {
-            showNotification(`✅ Канал ${isActive ? 'активовано' : 'деактивовано'}`, 'success');
+            showNotification(` Канал ${isActive ? 'активовано' : 'деактивовано'}`, 'success');
 
             // Update local data
             const channel = allChannelsData.find(c => c.channel_id === channelId);
@@ -396,264 +447,10 @@ async function toggleChannelStatus(channelId, isActive) {
         }
     } catch (error) {
         console.error('Toggle error:', error);
-        showNotification('❌ Помилка: ' + error.message, 'danger');
+        showNotification(' Помилка: ' + error.message, 'danger');
         // Reload channels to revert the toggle
         setTimeout(() => loadChannels(), 500);
     }
-}
-
-/**
- * Load channel configurations
- */
-async function loadChannelConfigs() {
-    const container = document.getElementById('config-container');
-    container.innerHTML = '<div class="loading"><i class="bi bi-arrow-repeat"></i><p>Loading configurations...</p></div>';
-
-    try {
-        // Add cache busting to prevent stale data
-        const cacheBuster = '?t=' + new Date().getTime();
-        const response = await fetch(API_URLS.getChannels + cacheBuster);
-        if (!response.ok) throw new Error('HTTP Error: ' + response.status);
-
-        const data = await response.json();
-
-        channelsData = Array.isArray(data) ? data : (data.channels || []);
-
-        if (channelsData.length === 0) {
-            container.innerHTML = `
-                <div class="empty-state">
-                    <i class="bi bi-gear"></i>
-                    <h3>No configurations found</h3>
-                    <p>Add channels to configure them</p>
-                </div>
-            `;
-            return;
-        }
-
-        // Select first channel by default
-        if (!selectedChannelId && channelsData.length > 0) {
-            selectedChannelId = channelsData[0].channel_id;
-        }
-
-        renderConfigForm();
-    } catch (error) {
-        console.error('Failed to load configurations:', error);
-        container.innerHTML = `
-            <div class="alert alert-danger">
-                <i class="bi bi-exclamation-triangle"></i>
-                Failed to load configurations: ${error.message}
-            </div>
-        `;
-    }
-}
-
-/**
- * Render configuration form
- */
-function renderConfigForm() {
-    const container = document.getElementById('config-container');
-    const channel = channelsData.find(c => c.channel_id === selectedChannelId);
-
-    if (!channel) {
-        container.innerHTML = '<div class="alert alert-warning">Channel not found</div>';
-        return;
-    }
-
-    const html = `
-        <div class="config-form">
-            <!-- Channel Selector -->
-            <div class="form-group">
-                <label for="channelSelect">
-                    <i class="bi bi-collection"></i> Select Channel
-                </label>
-                <select id="channelSelect" class="form-control" onchange="selectChannel(this.value)">
-                    ${channelsData.map(c => `
-                        <option value="${c.channel_id}" ${c.channel_id === selectedChannelId ? 'selected' : ''}>
-                            ${c.channel_title || c.channel_name || c.channel_id}
-                        </option>
-                    `).join('')}
-                </select>
-            </div>
-
-            <!-- Basic Settings -->
-            <div class="form-section">
-                <h3 class="section-title">
-                    <i class="bi bi-gear"></i> Basic Settings
-                </h3>
-
-                <div class="form-group">
-                    <label for="channelName">Channel Name</label>
-                    <input type="text" id="channelName" class="form-control"
-                           value="${channel.channel_name || ''}"
-                           placeholder="My Awesome Channel">
-                </div>
-
-                <div class="form-row">
-                    <div class="form-group">
-                        <label for="videosPerWeek">Videos Per Week</label>
-                        <input type="number" id="videosPerWeek" class="form-control"
-                               value="${channel.videos_per_week || 3}"
-                               min="1" max="14">
-                        <span class="help-text">How many videos to generate weekly</span>
-                    </div>
-
-                    <div class="form-group">
-                        <label>Channel Status</label>
-                        <label class="toggle-switch">
-                            <input type="checkbox" id="isActive" ${channel.is_active !== false ? 'checked' : ''}>
-                            <span class="toggle-slider"></span>
-                            <span>Active</span>
-                        </label>
-                        <span class="help-text">Enable/disable content generation</span>
-                    </div>
-                </div>
-            </div>
-
-            <!-- Content Settings -->
-            <div class="form-section">
-                <h3 class="section-title">
-                    <i class="bi bi-film"></i> Content Settings
-                </h3>
-
-                <div class="form-group">
-                    <label for="contentStyle">Content Style</label>
-                    <select id="contentStyle" class="form-control">
-                        <option value="educational" ${channel.content_style === 'educational' ? 'selected' : ''}>Educational</option>
-                        <option value="entertaining" ${channel.content_style === 'entertaining' ? 'selected' : ''}>Entertaining</option>
-                        <option value="informative" ${channel.content_style === 'informative' ? 'selected' : ''}>Informative</option>
-                        <option value="storytelling" ${channel.content_style === 'storytelling' ? 'selected' : ''}>Storytelling</option>
-                    </select>
-                </div>
-
-                <div class="form-group">
-                    <label for="targetAudience">Target Audience</label>
-                    <input type="text" id="targetAudience" class="form-control"
-                           value="${channel.target_audience || ''}"
-                           placeholder="e.g., Tech enthusiasts, Students, Professionals">
-                </div>
-
-                <div class="form-group">
-                    <label for="videoDuration">Preferred Video Duration (minutes)</label>
-                    <input type="number" id="videoDuration" class="form-control"
-                           value="${channel.video_duration || 10}"
-                           min="1" max="60">
-                </div>
-            </div>
-
-            <!-- Tone and Voice -->
-            <div class="form-section">
-                <h3 class="section-title">
-                    <i class="bi bi-volume-up"></i> Tone and Voice
-                </h3>
-
-                <div class="form-row">
-                    <div class="form-group">
-                        <label for="toneStyle">Tone</label>
-                        <select id="toneStyle" class="form-control">
-                            <option value="professional" ${channel.tone_style === 'professional' ? 'selected' : ''}>Professional</option>
-                            <option value="casual" ${channel.tone_style === 'casual' ? 'selected' : ''}>Casual</option>
-                            <option value="friendly" ${channel.tone_style === 'friendly' ? 'selected' : ''}>Friendly</option>
-                            <option value="authoritative" ${channel.tone_style === 'authoritative' ? 'selected' : ''}>Authoritative</option>
-                        </select>
-                    </div>
-
-                    <div class="form-group">
-                        <label for="voiceGender">Voice (TTS)</label>
-                        <select id="voiceGender" class="form-control">
-                            <option value="Brian" ${channel.voice_id === 'Brian' ? 'selected' : ''}>Brian (Male, British)</option>
-                            <option value="Joanna" ${channel.voice_id === 'Joanna' ? 'selected' : ''}>Joanna (Female, US)</option>
-                            <option value="Matthew" ${channel.voice_id === 'Matthew' ? 'selected' : ''}>Matthew (Male, US)</option>
-                            <option value="Amy" ${channel.voice_id === 'Amy' ? 'selected' : ''}>Amy (Female, British)</option>
-                        </select>
-                    </div>
-                </div>
-            </div>
-
-            <!-- Additional Notes -->
-            <div class="form-section">
-                <h3 class="section-title">
-                    <i class="bi bi-card-text"></i> Additional Instructions
-                </h3>
-
-                <div class="form-group">
-                    <label for="additionalNotes">Custom Instructions</label>
-                    <textarea id="additionalNotes" class="form-control"
-                              placeholder="Add any specific requirements or preferences for content generation...">${channel.additional_notes || ''}</textarea>
-                    <span class="help-text">These instructions will be included in AI prompts</span>
-                </div>
-            </div>
-
-            <!-- Action Buttons -->
-            <div class="button-group">
-                <button class="btn btn-primary" onclick="saveChannelConfig()">
-                    <i class="bi bi-check-circle"></i> Save Configuration
-                </button>
-                <button class="btn btn-secondary" onclick="resetForm()">
-                    <i class="bi bi-arrow-counterclockwise"></i> Reset Changes
-                </button>
-            </div>
-        </div>
-    `;
-
-    container.innerHTML = html;
-}
-
-/**
- * Select a channel for configuration
- */
-function selectChannel(channelId) {
-    selectedChannelId = channelId;
-    renderConfigForm();
-}
-
-/**
- * Save channel configuration
- */
-async function saveChannelConfig() {
-    const channelId = selectedChannelId;
-
-    const config = {
-        channel_id: channelId,
-        channel_name: document.getElementById('channelName').value,
-        videos_per_week: parseInt(document.getElementById('videosPerWeek').value),
-        is_active: document.getElementById('isActive').checked,
-        content_style: document.getElementById('contentStyle').value,
-        target_audience: document.getElementById('targetAudience').value,
-        video_duration: parseInt(document.getElementById('videoDuration').value),
-        tone_style: document.getElementById('toneStyle').value,
-        voice_id: document.getElementById('voiceGender').value,
-        additional_notes: document.getElementById('additionalNotes').value
-    };
-
-    console.log('💾 Saving configuration:', config);
-
-    try {
-        // TODO: Implement save API call
-        // const response = await fetch(LAMBDA_URLS.saveConfig, {
-        //     method: 'POST',
-        //     headers: { 'Content-Type': 'application/json' },
-        //     body: JSON.stringify(config)
-        // });
-
-        // For now, just show success
-        showNotification('Configuration saved successfully!', 'success');
-
-        // Update local data
-        const channelIndex = channelsData.findIndex(c => c.channel_id === channelId);
-        if (channelIndex !== -1) {
-            channelsData[channelIndex] = { ...channelsData[channelIndex], ...config };
-        }
-    } catch (error) {
-        console.error('Failed to save configuration:', error);
-        showNotification('Failed to save configuration: ' + error.message, 'danger');
-    }
-}
-
-/**
- * Reset form to original values
- */
-function resetForm() {
-    loadChannelConfigs();
 }
 
 /**
@@ -707,7 +504,7 @@ async function updateAllStats() {
     try {
         // Always reload channels, even if stats API fails
         await loadChannels();
-        showNotification('✅ Канали оновлено', 'success');
+        showNotification(' Канали оновлено', 'success');
 
         // Try to update stats in background (optional)
         try {
@@ -722,7 +519,7 @@ async function updateAllStats() {
         }
     } catch (error) {
         console.error('Failed to reload channels:', error);
-        showNotification('❌ Помилка: ' + error.message, 'danger');
+        showNotification(' Помилка: ' + error.message, 'danger');
     } finally {
         setTimeout(() => {
             btn.innerHTML = originalHTML;
@@ -747,9 +544,9 @@ async function openConfigModal(channelId) {
         });
         const config = await response.json();
 
-        console.log('📝 Loaded config:', config);
-        console.log('🎨 Theme template:', config.selected_theme_template);
-        console.log('📖 Narrative template:', config.selected_narrative_template);
+        console.log(' Loaded config:', config);
+        console.log(' Theme template:', config.selected_theme_template);
+        console.log(' Narrative template:', config.selected_narrative_template);
 
         document.getElementById('modalTitle').textContent = config.channel_name || config.channel_title || 'Редагування';
 
@@ -775,28 +572,39 @@ async function openConfigModal(channelId) {
         } catch (e) {
             console.warn('Variation Sets поля ще не додані:', e);
         }
-
-        initializeVoiceSelect();
     } catch (error) {
         console.error('Error loading config:', error);
-        showNotification('❌ Помилка завантаження', 'danger');
+        showNotification(' Помилка завантаження', 'danger');
         closeModal();
     }
 }
 
+//  Generation Mode Toggle 
+function setGenerationMode(value) {
+    // Update hidden select
+    const select = document.getElementById('factual_mode');
+    if (select) select.value = value;
+
+    // Update card visuals
+    document.querySelectorAll('.mode-card').forEach(card => {
+        card.classList.toggle('active', card.dataset.value === value);
+    });
+}
+
+
 function populateForm(config) {
+    // Populate language dropdown from QWEN3_LANGUAGES (dynamic, not hardcoded)
+    populateLanguageDropdown(document.getElementById('language'), config.language || 'en');
+    populateSpeakerDropdown(document.getElementById('tts_voice_speaker'), config.tts_voice_speaker || '');
+
     const fields = [
         'channel_id',
         // Basic Identity
-        'channel_name', 'language', 'timezone', 'genre',
+        'channel_name', 'language', 'tts_voice_speaker', 'timezone', 'genre',
         // Content Identity
-        'channel_theme', 'core_idea', 'tone', 'narration_style', 'emotional_temperature', 'meta_theme',
-        // Content Focus
-        'content_focus', 'narrative_keywords', 'story_structure_pattern', 'preferred_ending_tone', 'hook_enabled', 'factual_mode',
+        'factual_mode',
         // Story Blueprint
         'story_template',
-        // Story Elements (Visual fields moved to Image Template)
-        'story_character_types',
         // AI Templates
         'selected_theme_template', 'selected_narrative_template', 'selected_image_template',
         'selected_video_template', 'selected_cta_template', 'selected_tts_template',
@@ -811,12 +619,7 @@ function populateForm(config) {
         'publish_times', 'publish_days', 'daily_upload_count',
         // Production Settings
         'video_duration_target', 'target_character_count', 'scene_count_target', 'max_tokens',
-        // TTS Settings
-        'tts_voice_id', 'tts_voice_engine', 'tts_service', 'tts_voice_language', 'tts_voice_profile', 'tts_mood_variants',
-        // Legacy/Other fields (keep for backward compatibility)
-        'target_audience', 'format', 'narrative_pace',
-        'recommended_music_variants', 'music_tempo_variants',
-        'example_keywords_for_youtube', 'unique_variation_logic'
+        // TTS Settings 'format',        'example_keywords_for_youtube', 'unique_variation_logic'
     ];
     
     fields.forEach(field => {
@@ -828,7 +631,7 @@ function populateForm(config) {
 
         // Special handling for template fields
         if (field.startsWith('selected_') && field.includes('_template')) {
-            console.log(`🔧 Template field: ${field}`);
+            console.log(` Template field: ${field}`);
             console.log(`   Config value: ${configValue}`);
             console.log(`   Default template: ${element.dataset.defaultTemplateId}`);
 
@@ -838,19 +641,19 @@ function populateForm(config) {
 
                 if (optionExists) {
                     element.value = configValue;
-                    console.log(`   ✅ Set to config value: ${configValue}`);
+                    console.log(`    Set to config value: ${configValue}`);
                 } else {
-                    console.log(`   ⚠️ Config value "${configValue}" not found in options, using default`);
+                    console.log(`    Config value "${configValue}" not found in options, using default`);
                     if (element.dataset.defaultTemplateId) {
                         element.value = element.dataset.defaultTemplateId;
-                        console.log(`   ✅ Set to default: ${element.dataset.defaultTemplateId}`);
+                        console.log(`    Set to default: ${element.dataset.defaultTemplateId}`);
                     }
                 }
             } else if (element.dataset.defaultTemplateId) {
                 element.value = element.dataset.defaultTemplateId;
-                console.log(`   ✅ Set to default: ${element.dataset.defaultTemplateId}`);
+                console.log(`    Set to default: ${element.dataset.defaultTemplateId}`);
             } else {
-                console.log(`   ⚠️ No value set - no config and no default found`);
+                console.log(`    No value set - no config and no default found`);
             }
         } else {
             // Regular fields
@@ -868,6 +671,9 @@ function populateForm(config) {
     // Load publish schedule UI
     loadPublishTimesFromString(config.publish_times || '');
     loadPublishDaysFromString(config.publish_days || '');
+
+    // Sync generation mode cards with saved factual_mode
+    setGenerationMode(config.factual_mode || 'fictional');
 }
 
 /**
@@ -904,7 +710,7 @@ async function initializeTemplateSelects() {
 
                 const selectElement = document.getElementById(selectId);
                 if (!selectElement) {
-                    console.warn(`⚠️ Element ${selectId} not found in DOM`);
+                    console.warn(` Element ${selectId} not found in DOM`);
                     return;
                 }
 
@@ -921,7 +727,7 @@ async function initializeTemplateSelects() {
                 sortedTemplates.forEach(template => {
                     const option = document.createElement('option');
                     option.value = template.template_id;
-                    const defaultLabel = template.is_default ? ' 🛡️ [Default]' : '';
+                    const defaultLabel = template.is_default ? '  [Default]' : '';
                     option.textContent = `${template.template_name}${defaultLabel}`;
 
                     // Store default template id as data attribute
@@ -932,16 +738,16 @@ async function initializeTemplateSelects() {
                     selectElement.appendChild(option);
                 });
 
-                console.log(`✅ Loaded ${type} templates:`, activeTemplates.length);
+                console.log(` Loaded ${type} templates:`, activeTemplates.length);
             } catch (error) {
-                console.error(`❌ Failed to load ${type} templates:`, error);
+                console.error(` Failed to load ${type} templates:`, error);
             }
         });
 
         await Promise.all(promises);
-        console.log('✅ All template selects initialized');
+        console.log(' All template selects initialized');
     } catch (error) {
-        console.error('❌ Failed to initialize templates:', error);
+        console.error(' Failed to initialize templates:', error);
     }
 }
 
@@ -953,7 +759,7 @@ async function loadImageGenerationTemplates() {
     const selectElement = document.getElementById('image_generation_template_id');
 
     if (!selectElement) {
-        console.warn('⚠️ Image generation template select not found');
+        console.warn(' Image generation template select not found');
         return;
     }
 
@@ -962,7 +768,7 @@ async function loadImageGenerationTemplates() {
         const result = await response.json();
 
         if (!result.success) {
-            console.error('❌ Failed to load image templates:', result.error);
+            console.error(' Failed to load image templates:', result.error);
             return;
         }
 
@@ -976,7 +782,7 @@ async function loadImageGenerationTemplates() {
         activeTemplates.forEach(template => {
             const option = document.createElement('option');
             option.value = template.template_id;
-            const defaultLabel = template.is_default ? ' 🛡️ [Default]' : '';
+            const defaultLabel = template.is_default ? '  [Default]' : '';
 
             // Show provider info if available
             const provider = template.image_settings?.provider || '';
@@ -992,9 +798,9 @@ async function loadImageGenerationTemplates() {
             selectElement.appendChild(option);
         });
 
-        console.log(`✅ Loaded ${activeTemplates.length} image generation templates`);
+        console.log(` Loaded ${activeTemplates.length} image generation templates`);
     } catch (error) {
-        console.error('❌ Failed to load image templates:', error);
+        console.error(' Failed to load image templates:', error);
     }
 }
 
@@ -1011,12 +817,12 @@ async function saveModalConfig() {
     const targetCharCount = parseInt(document.getElementById('target_character_count')?.value || 0);
 
     if (maxTokens > 16000) {
-        showNotification('❌ Max Tokens не може бути більше 16000 (GPT-4o ліміт: 16384)', 'danger');
+        showNotification(' Max Tokens не може бути більше 16000 (GPT-4o ліміт: 16384)', 'danger');
         return;
     }
 
     if (targetCharCount > 16000) {
-        showNotification('❌ Цільова к-ть символів не може бути більше 16000', 'danger');
+        showNotification(' Цільова к-ть символів не може бути більше 16000', 'danger');
         return;
     }
 
@@ -1032,19 +838,19 @@ async function saveModalConfig() {
 
             // Log template fields
             if (field.id.startsWith('selected_') && field.id.includes('_template')) {
-                console.log(`💾 Saving ${field.id}: ${field.value}`);
+                console.log(` Saving ${field.id}: ${field.value}`);
             }
         }
     });
 
     // Log all template values being saved
-    console.log('💾 Theme template:', document.getElementById('selected_theme_template')?.value);
-    console.log('💾 Narrative template:', document.getElementById('selected_narrative_template')?.value);
+    console.log(' Theme template:', document.getElementById('selected_theme_template')?.value);
+    console.log(' Narrative template:', document.getElementById('selected_narrative_template')?.value);
 
     // Add variation_sets array to FormData (it's in window.currentChannelConfig)
     if (window.currentChannelConfig && window.currentChannelConfig.variation_sets) {
         formData.append('variation_sets', JSON.stringify(window.currentChannelConfig.variation_sets));
-        console.log('💾 Saving variation_sets:', window.currentChannelConfig.variation_sets.length, 'sets');
+        console.log(' Saving variation_sets:', window.currentChannelConfig.variation_sets.length, 'sets');
     }
 
     // Add rotation_mode and manual_set_index
@@ -1067,7 +873,7 @@ async function saveModalConfig() {
         const result = await response.json();
         
         if (result.success) {
-            showNotification('✅ Конфіг збережено!', 'success');
+            showNotification(' Конфіг збережено!', 'success');
 
             // Close modal and reload
             closeModal();
@@ -1081,160 +887,8 @@ async function saveModalConfig() {
         }
     } catch (error) {
         console.error('Save error:', error);
-        showNotification('❌ Помилка збереження', 'danger');
+        showNotification(' Помилка збереження', 'danger');
     }
-}
-
-// AWS Polly Voice Lists
-const AWS_POLLY_VOICES = {
-    neural: [
-        // Male voices
-        { id: "Matthew", name: "Matthew", gender: "Male", language: "US English", description: "Deep, authoritative" },
-        { id: "Joey", name: "Joey", gender: "Male", language: "US English", description: "Neutral, clear" },
-        { id: "Stephen", name: "Stephen", gender: "Male", language: "US English", description: "Young, energetic" },
-        { id: "Kevin", name: "Kevin", gender: "Male", language: "US English", description: "Conversational" },
-        { id: "Brian", name: "Brian", gender: "Male", language: "British English", description: "Authoritative" },
-        
-        // Female voices
-        { id: "Joanna", name: "Joanna", gender: "Female", language: "US English", description: "Professional, warm" },
-        { id: "Kendra", name: "Kendra", gender: "Female", language: "US English", description: "Clear, friendly" },
-        { id: "Kimberly", name: "Kimberly", gender: "Female", language: "US English", description: "Soft, gentle" },
-        { id: "Salli", name: "Salli", gender: "Female", language: "US English", description: "Conversational" },
-        { id: "Ruth", name: "Ruth", gender: "Female", language: "US English", description: "Young, energetic" },
-        { id: "Danielle", name: "Danielle", gender: "Female", language: "US English", description: "Natural, expressive" },
-        { id: "Ivy", name: "Ivy", gender: "Female", language: "US English", description: "Child voice" },
-        { id: "Emma", name: "Emma", gender: "Female", language: "British English", description: "Soft, elegant" },
-        { id: "Amy", name: "Amy", gender: "Female", language: "British English", description: "Warm, friendly" }
-    ],
-    standard: [
-        // Male voices
-        { id: "Matthew", name: "Matthew", gender: "Male", language: "US English", description: "Deep, authoritative" },
-        { id: "Joey", name: "Joey", gender: "Male", language: "US English", description: "Neutral, clear" },
-        { id: "Justin", name: "Justin", gender: "Male", language: "US English", description: "Young voice" },
-        { id: "Kevin", name: "Kevin", gender: "Male", language: "US English", description: "Conversational" },
-        { id: "Russell", name: "Russell", gender: "Male", language: "Australian English", description: "Australian accent" },
-        { id: "Brian", name: "Brian", gender: "Male", language: "British English", description: "British accent" },
-        
-        // Female voices
-        { id: "Joanna", name: "Joanna", gender: "Female", language: "US English", description: "Professional" },
-        { id: "Kendra", name: "Kendra", gender: "Female", language: "US English", description: "Clear voice" },
-        { id: "Kimberly", name: "Kimberly", gender: "Female", language: "US English", description: "Soft voice" },
-        { id: "Salli", name: "Salli", gender: "Female", language: "US English", description: "Conversational" },
-        { id: "Ivy", name: "Ivy", gender: "Female", language: "US English", description: "Child voice" },
-        { id: "Nicole", name: "Nicole", gender: "Female", language: "Australian English", description: "Australian accent" },
-        { id: "Emma", name: "Emma", gender: "Female", language: "British English", description: "British accent" },
-        { id: "Amy", name: "Amy", gender: "Female", language: "British English", description: "Warm British" }
-    ]
-};
-
-// Function to populate voice select based on TTS service
-function updateVoiceOptions(engine = "neural", currentVoice = "") {
-    const voiceSelect = document.getElementById("tts_voice_id");
-    if (!voiceSelect) return;
-
-    // Clear existing options
-    voiceSelect.innerHTML = "";
-
-    let voices = [];
-
-    if (engine === "neural") {
-        voices = AWS_POLLY_VOICES.neural;
-    } else if (engine === "standard") {
-        voices = AWS_POLLY_VOICES.standard;
-    } else {
-        // For other engines, default to neural
-        voices = AWS_POLLY_VOICES.neural;
-    }
-
-    // Group by gender
-    const males = voices.filter(v => v.gender === "Male");
-    const females = voices.filter(v => v.gender === "Female");
-
-    // Add male voices
-    if (males.length > 0) {
-        const maleGroup = document.createElement("optgroup");
-        maleGroup.label = "👨 Male Voices";
-        males.forEach(voice => {
-            const option = document.createElement("option");
-            option.value = voice.id;
-            option.textContent = `${voice.name} - ${voice.language} (${voice.description})`;
-            if (voice.id === currentVoice) option.selected = true;
-            maleGroup.appendChild(option);
-        });
-        voiceSelect.appendChild(maleGroup);
-    }
-
-    // Add female voices
-    if (females.length > 0) {
-        const femaleGroup = document.createElement("optgroup");
-        femaleGroup.label = "👩 Female Voices";
-        females.forEach(voice => {
-            const option = document.createElement("option");
-            option.value = voice.id;
-            option.textContent = `${voice.name} - ${voice.language} (${voice.description})`;
-            if (voice.id === currentVoice) option.selected = true;
-            femaleGroup.appendChild(option);
-        });
-        voiceSelect.appendChild(femaleGroup);
-    }
-
-    console.log(`✅ Loaded ${voices.length} voices for ${engine} engine`);
-}
-
-// Initialize voice options when modal opens
-function initializeVoiceSelect() {
-    const ttsEngineSelect = document.getElementById("tts_voice_engine");
-    const ttsVoiceSelect = document.getElementById("tts_voice_id");
-    const ttsTemplateSelect = document.getElementById("selected_tts_template");
-
-    if (!ttsEngineSelect || !ttsVoiceSelect) return;
-
-    // Update voices when engine changes
-    ttsEngineSelect.addEventListener("change", (e) => {
-        const currentVoice = ttsVoiceSelect.value;
-        updateVoiceOptions(e.target.value, currentVoice);
-    });
-
-    // When TTS template is selected, load its voice settings
-    if (ttsTemplateSelect) {
-        ttsTemplateSelect.addEventListener("change", async (e) => {
-            const templateId = e.target.value;
-            if (!templateId) return;
-
-            try {
-                // Load the selected TTS template
-                const PROMPTS_API = 'https://djpb4ue6wv2ohfjey32lfnhcre0zppqd.lambda-url.eu-central-1.on.aws';
-                const response = await fetch(`${PROMPTS_API}/template/${templateId}?type=tts`);
-                const result = await response.json();
-
-                if (result.success && result.data?.template) {
-                    const template = result.data.template;
-                    const ttsConfig = template.tts_config || {};
-
-                    // Populate voice settings from template
-                    if (ttsConfig.voice_id) {
-                        document.getElementById("tts_voice_id").value = ttsConfig.voice_id;
-                    }
-                    if (ttsConfig.voice_engine) {
-                        document.getElementById("tts_voice_engine").value = ttsConfig.voice_engine;
-                        updateVoiceOptions(ttsConfig.voice_engine, ttsConfig.voice_id);
-                    }
-                    if (ttsConfig.voice_language) {
-                        document.getElementById("tts_voice_language").value = ttsConfig.voice_language;
-                    }
-
-                    console.log('✅ Loaded voice settings from TTS template:', ttsConfig);
-                }
-            } catch (error) {
-                console.error('❌ Failed to load TTS template:', error);
-            }
-        });
-    }
-
-    // Initialize on load with neural engine
-    const currentEngine = ttsEngineSelect.value || "neural";
-    const currentVoice = ttsVoiceSelect.value;
-    updateVoiceOptions(currentEngine, currentVoice);
 }
 
 // ============================================================================
@@ -1380,7 +1034,7 @@ function updateImageProviderInfo() {
 
     switch(provider) {
         case 'aws-bedrock-sdxl':
-            infoText.textContent = '✅ Працює одразу, не потребує налаштувань';
+            infoText.textContent = ' Працює одразу, не потребує налаштувань';
             setupInfo = `
                 <div style="padding: 16px; background: #ecfdf5; border: 1px solid #10b981; border-radius: 8px;">
                     <div style="display: flex; align-items: center; gap: 8px; margin-bottom: 8px;">
@@ -1397,7 +1051,7 @@ function updateImageProviderInfo() {
         case 'replicate-flux-schnell':
         case 'replicate-flux-dev':
             const variant = provider.includes('schnell') ? 'Schnell' : 'Dev';
-            infoText.textContent = '⚠️ Потребує API ключ від Replicate';
+            infoText.textContent = ' Потребує API ключ від Replicate';
             setupInfo = `
                 <div style="padding: 16px; background: #fef3c7; border: 1px solid #f59e0b; border-radius: 8px;">
                     <div style="display: flex; align-items: center; gap: 8px; margin-bottom: 8px;">
@@ -1414,22 +1068,22 @@ aws secretsmanager create-secret \\<br>
 &nbsp;&nbsp;--region eu-central-1
                     </code>
                     <p style="color: #78350f; font-size: 12px; margin-top: 8px; margin-bottom: 0;">
-                        📖 Отримати ключ: <a href="https://replicate.com" target="_blank" style="color: #3b82f6;">replicate.com</a> → Account → API Tokens
+                         Отримати ключ: <a href="https://replicate.com" target="_blank" style="color: #3b82f6;">replicate.com</a> → Account → API Tokens
                     </p>
                 </div>
             `;
             break;
 
         case 'vast-ai-flux-schnell':
-            infoText.textContent = '⚙️ Керуйте GPU instance через панель нижче';
+            infoText.textContent = ' Керуйте GPU instance через панель нижче';
             setupInfo = `
                 <div style="padding: 16px; background: #e0e7ff; border: 1px solid #6366f1; border-radius: 8px;">
                     <div style="display: flex; align-items: center; gap: 8px; margin-bottom: 8px;">
                         <i class="bi bi-gpu-card" style="color: #6366f1; font-size: 20px;"></i>
-                        <strong style="color: #3730a3;">Vast.ai FLUX - Найдешевше рішення! 💰</strong>
+                        <strong style="color: #3730a3;">Vast.ai FLUX - Найдешевше рішення! </strong>
                     </div>
                     <p style="color: #3730a3; font-size: 13px; margin-bottom: 8px;">
-                        ✅ Економія до 95%! | ⚡ RTX 3060 12GB | 🎨 FLUX Schnell
+                         Економія до 95%! |  RTX 3060 12GB |  FLUX Schnell
                     </p>
                     <p style="color: #4338ca; font-size: 12px; margin: 0;">
                         Використовуйте панель керування нижче для старту/зупинки GPU instance
@@ -1488,14 +1142,14 @@ function updateImageCostEstimate() {
 
         let savingsText = '';
         if (savings > 0) {
-            savingsText = `💰 Економія: $${savings.toFixed(2)}/міс (${savingsPercent}%) порівняно з AWS Bedrock Standard`;
+            savingsText = ` Економія: $${savings.toFixed(2)}/міс (${savingsPercent}%) порівняно з AWS Bedrock Standard`;
         } else if (savings < 0) {
-            savingsText = `⚠️ Дорожче на $${Math.abs(savings).toFixed(2)}/міс (${Math.abs(savingsPercent)}%) ніж AWS Bedrock Standard`;
+            savingsText = ` Дорожче на $${Math.abs(savings).toFixed(2)}/міс (${Math.abs(savingsPercent)}%) ніж AWS Bedrock Standard`;
         }
 
         document.getElementById('savingsInfo').textContent = savingsText;
     } else {
-        document.getElementById('savingsInfo').textContent = '📊 Базовий тариф (для порівняння)';
+        document.getElementById('savingsInfo').textContent = ' Базовий тариф (для порівняння)';
     }
 }
 
@@ -1508,7 +1162,7 @@ function loadImageGenerationSettings(config) {
     // Enable/disable
     const enabledCheckbox = document.getElementById('image_generation_enabled');
     if (!enabledCheckbox) {
-        console.warn('⚠️ Image generation enabled checkbox not found in form');
+        console.warn(' Image generation enabled checkbox not found in form');
         return;
     }
 
@@ -1638,17 +1292,17 @@ async function refreshVastaiStatus() {
         const data = await response.json();
 
         if (data.error) {
-            document.getElementById('vastaiStatus').innerHTML = '❌ ' + data.error;
+            document.getElementById('vastaiStatus').innerHTML = ' ' + data.error;
             return;
         }
 
         // Update status
         const status = data.status || 'unknown';
         const statusMap = {
-            'running': '🟢 Running',
-            'stopped': '⏹️ Stopped',
+            'running': ' Running',
+            'stopped': '⏹ Stopped',
             'loading': '⏳ Starting...',
-            'unknown': '❓ Unknown'
+            'unknown': ' Unknown'
         };
         document.getElementById('vastaiStatus').innerHTML = statusMap[status] || status;
 
@@ -1691,7 +1345,7 @@ async function refreshVastaiStatus() {
 
     } catch (error) {
         console.error('Failed to refresh Vast.ai status:', error);
-        document.getElementById('vastaiStatus').innerHTML = '❌ Error';
+        document.getElementById('vastaiStatus').innerHTML = ' Error';
     }
 }
 
@@ -1712,20 +1366,20 @@ async function startVastaiInstance() {
         const data = await response.json();
 
         if (data.success) {
-            alert('✅ Instance запускається! Зачекайте 1-2 хвилини.');
+            alert(' Instance запускається! Зачекайте 1-2 хвилини.');
             // Start auto-refresh
             if (!vastaiStatusInterval) {
                 vastaiStatusInterval = setInterval(refreshVastaiStatus, 10000); // Every 10 sec
             }
             setTimeout(refreshVastaiStatus, 2000);
         } else {
-            alert('❌ Помилка: ' + (data.error || 'Unknown error'));
+            alert(' Помилка: ' + (data.error || 'Unknown error'));
         }
     } catch (error) {
         console.error('Failed to start instance:', error);
-        alert('❌ Не вдалося запустити instance');
+        alert(' Не вдалося запустити instance');
     } finally {
-        startBtn.textContent = '▶️ Start Instance';
+        startBtn.textContent = ' Start Instance';
         startBtn.disabled = false;
     }
 }
@@ -1734,7 +1388,7 @@ async function startVastaiInstance() {
  * Stop Vast.ai instance
  */
 async function stopVastaiInstance() {
-    if (!confirm('⚠️ Зупинити Vast.ai instance? Генерація зображень буде недоступна.')) {
+    if (!confirm(' Зупинити Vast.ai instance? Генерація зображень буде недоступна.')) {
         return;
     }
 
@@ -1747,7 +1401,7 @@ async function stopVastaiInstance() {
         const data = await response.json();
 
         if (data.success) {
-            alert('✅ Instance зупинено! Оплата припинена.');
+            alert(' Instance зупинено! Оплата припинена.');
             // Stop auto-refresh
             if (vastaiStatusInterval) {
                 clearInterval(vastaiStatusInterval);
@@ -1755,13 +1409,13 @@ async function stopVastaiInstance() {
             }
             setTimeout(refreshVastaiStatus, 2000);
         } else {
-            alert('❌ Помилка: ' + (data.error || 'Unknown error'));
+            alert(' Помилка: ' + (data.error || 'Unknown error'));
         }
     } catch (error) {
         console.error('Failed to stop instance:', error);
-        alert('❌ Не вдалося зупинити instance');
+        alert(' Не вдалося зупинити instance');
     } finally {
-        stopBtn.textContent = '⏹️ Stop Instance';
+        stopBtn.textContent = '⏹ Stop Instance';
         stopBtn.disabled = false;
     }
 }
@@ -1792,7 +1446,7 @@ let currentEditingSetIndex = null;
 function loadVariationSets() {
     const config = window.currentChannelConfig;
     if (!config) {
-        console.error('❌ loadVariationSets: No currentChannelConfig found');
+        console.error(' loadVariationSets: No currentChannelConfig found');
         return;
     }
 
@@ -1805,7 +1459,7 @@ function loadVariationSets() {
         variationSets = [];
     }
 
-    console.log('🔄 loadVariationSets called:', {
+    console.log(' loadVariationSets called:', {
         channel: config.channel_name,
         variation_sets_count: variationSets.length,
         generation_count: config.generation_count,
@@ -1815,25 +1469,25 @@ function loadVariationSets() {
 
     const listContainer = document.getElementById('variation-sets-list');
     if (!listContainer) {
-        console.error('❌ variation-sets-list element not found');
+        console.error(' variation-sets-list element not found');
         return;
     }
 
     // Update counter in section header using specific ID
     const counterEl = document.getElementById('variation-sets-counter');
-    console.log('🎯 Counter element found:', counterEl !== null);
+    console.log(' Counter element found:', counterEl !== null);
     if (counterEl) {
-        console.log('📝 Updating counter to:', `${variationSets.length}/100`);
+        console.log(' Updating counter to:', `${variationSets.length}/100`);
         counterEl.textContent = `Variation Sets (${variationSets.length}/100)`;
-        console.log('✅ Counter updated. Current text:', counterEl.textContent);
+        console.log(' Counter updated. Current text:', counterEl.textContent);
     } else {
-        console.error('❌ variation-sets-counter element not found!');
+        console.error(' variation-sets-counter element not found!');
     }
 
     if (variationSets.length === 0) {
         listContainer.innerHTML = `
             <div style="text-align: center; padding: 40px; background: #f8f9fa; border-radius: 8px; color: #6c757d;">
-                Немає variation sets. Натисніть "➕ Додати Variation Set" щоб створити перший стиль.
+                Немає variation sets. Натисніть " Додати Variation Set" щоб створити перший стиль.
             </div>
         `;
         return;
@@ -1861,8 +1515,8 @@ function renderVariationSetCard(set, index) {
                     ${isActive ? '<span class="badge">АКТИВНИЙ</span>' : ''}
                 </h4>
                 <div class="variation-set-actions">
-                    <button onclick="openVariationSetModal('edit', ${index})">✏️ Редагувати</button>
-                    <button onclick="deleteVariationSet(${index})" style="color: #e53e3e;">🗑️ Видалити</button>
+                    <button onclick="openVariationSetModal('edit', ${index})"> Редагувати</button>
+                    <button onclick="deleteVariationSet(${index})" style="color: #e53e3e;"> Видалити</button>
                 </div>
             </div>
             <div class="variation-set-preview">
@@ -1887,7 +1541,7 @@ function openVariationSetModal(mode, setIndex = null) {
 
     // Check limit
     if (mode === 'new' && (config.variation_sets || []).length >= 100) {
-        alert('⚠️ Максимум 100 variation sets на канал');
+        alert(' Максимум 100 variation sets на канал');
         return;
     }
 
@@ -1913,7 +1567,7 @@ function openVariationSetModal(mode, setIndex = null) {
     // Update modal title
     const modalTitle = document.querySelector('#variationSetModal h2');
     if (modalTitle) {
-        modalTitle.textContent = mode === 'new' ? '➕ Новий Variation Set' : '✏️ Редагувати Variation Set';
+        modalTitle.textContent = mode === 'new' ? ' Новий Variation Set' : ' Редагувати Variation Set';
     }
 
     // Show modal
@@ -1951,12 +1605,12 @@ function saveVariationSet() {
 
     // Validate required fields
     if (!setData.set_name) {
-        alert('⚠️ Введіть назву variation set');
+        alert(' Введіть назву variation set');
         return;
     }
 
     if (!setData.visual_keywords) {
-        alert('⚠️ Введіть visual keywords');
+        alert(' Введіть visual keywords');
         return;
     }
 
@@ -1969,11 +1623,11 @@ function saveVariationSet() {
     if (currentEditingSetIndex !== null) {
         // Update existing set
         config.variation_sets[currentEditingSetIndex] = setData;
-        console.log(`✅ Updated variation set ${currentEditingSetIndex}: ${setData.set_name}`);
+        console.log(` Updated variation set ${currentEditingSetIndex}: ${setData.set_name}`);
     } else {
         // Add new set
         config.variation_sets.push(setData);
-        console.log(`✅ Added new variation set: ${setData.set_name}`);
+        console.log(` Added new variation set: ${setData.set_name}`);
     }
 
     // Mark as modified
@@ -1983,7 +1637,7 @@ function saveVariationSet() {
     closeVariationSetModal();
     loadVariationSets();
 
-    alert(`✅ Variation set "${setData.set_name}" збережено! Не забудьте зберегти конфігурацію каналу.`);
+    alert(` Variation set "${setData.set_name}" збережено! Не забудьте зберегти конфігурацію каналу.`);
 }
 
 /**
@@ -2007,7 +1661,7 @@ function deleteVariationSet(setIndex) {
         set.set_id = idx;
     });
 
-    console.log(`✅ Deleted variation set: ${setName}`);
+    console.log(` Deleted variation set: ${setName}`);
 
     // Mark as modified
     window.currentChannelConfig = config;
@@ -2015,7 +1669,7 @@ function deleteVariationSet(setIndex) {
     // Reload list
     loadVariationSets();
 
-    alert(`✅ Variation set "${setName}" видалено! Не забудьте зберегти конфігурацію каналу.`);
+    alert(` Variation set "${setName}" видалено! Не забудьте зберегти конфігурацію каналу.`);
 }
 
 /**

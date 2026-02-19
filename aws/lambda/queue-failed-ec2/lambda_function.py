@@ -22,7 +22,7 @@ def lambda_handler(event, context):
         "phase1_results": [...]
     }
     """
-    print("📥 Adding failed EC2 start to retry queue")
+    print(" Adding failed EC2 start to retry queue")
     print(f"Event: {json.dumps(event, indent=2)}")
 
     try:
@@ -56,7 +56,7 @@ def lambda_handler(event, context):
             }
         )
 
-        print(f"✅ Message added to queue")
+        print(f" Message added to queue")
         print(f"Message ID: {response['MessageId']}")
         print(f"Total images: {collected_prompts.get('total_images', 0)}")
         print(f"Will retry every 3 minutes (max 20 attempts = 1 hour)")
@@ -69,7 +69,7 @@ def lambda_handler(event, context):
         }
 
     except Exception as e:
-        print(f"❌ Error adding to queue: {e}")
+        print(f" Error adding to queue: {e}")
         import traceback
         traceback.print_exc()
 

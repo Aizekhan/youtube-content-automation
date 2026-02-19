@@ -229,10 +229,10 @@ def get_content(channel_id, content_id, user_id=None):
 
         # Check user_id match (security check)
         if user_id and item_user_id != user_id:
-            print(f"⚠️ SECURITY: Content {content_id} belongs to user {item_user_id}, not {user_id}")
+            print(f" SECURITY: Content {content_id} belongs to user {item_user_id}, not {user_id}")
             continue
 
-        print(f"✅ Match found! created_at={item.get('created_at')}")
+        print(f" Match found! created_at={item.get('created_at')}")
         return item
 
     # No matching item found after filtering
@@ -389,7 +389,7 @@ def create_thumbnail_intro(content, work_dir, duration_seconds):
                 break
 
         if not thumbnail_image:
-            print("⚠️  No thumbnail image found, skipping intro")
+            print("  No thumbnail image found, skipping intro")
             return None
 
         # Download thumbnail
@@ -408,7 +408,7 @@ def create_thumbnail_intro(content, work_dir, duration_seconds):
         thumbnail_path = os.path.join(work_dir, 'thumbnail_intro.png')
         s3.download_file(bucket, key, thumbnail_path)
 
-        print(f"✅ Downloaded thumbnail: {s3_url}")
+        print(f" Downloaded thumbnail: {s3_url}")
 
         # Create intro video with fade-in effect
         intro_video_path = os.path.join(work_dir, 'thumbnail_intro.mp4')
@@ -434,11 +434,11 @@ def create_thumbnail_intro(content, work_dir, duration_seconds):
             print(f"FFmpeg intro error: {result.stderr}")
             return None
 
-        print(f"✅ Thumbnail intro created: {intro_video_path}")
+        print(f" Thumbnail intro created: {intro_video_path}")
         return intro_video_path
 
     except Exception as e:
-        print(f"⚠️  Failed to create thumbnail intro: {e}")
+        print(f"  Failed to create thumbnail intro: {e}")
         import traceback
         traceback.print_exc()
         return None
@@ -466,7 +466,7 @@ def assemble_video(content, assets, template, work_dir):
         thumbnail_video = create_thumbnail_intro(content, work_dir, thumbnail_intro_duration)
         if thumbnail_video:
             scene_videos.append(thumbnail_video)
-            print(f"✅ Thumbnail intro created: {thumbnail_video}")
+            print(f" Thumbnail intro created: {thumbnail_video}")
 
     for i, (audio, image) in enumerate(zip(assets['audio'], assets['images'])):
         print(f"\nProcessing scene {i+1}...")
@@ -527,7 +527,7 @@ def assemble_video(content, assets, template, work_dir):
         result = subprocess.run(cmd, capture_output=True, text=True)
 
         if result.returncode != 0:
-            print(f"❌ FFmpeg FAILED for scene {i+1}")
+            print(f" FFmpeg FAILED for scene {i+1}")
             print(f"Return code: {result.returncode}")
             print(f"STDERR:\n{result.stderr}")
             print(f"STDOUT:\n{result.stdout}")
@@ -565,7 +565,7 @@ def assemble_video(content, assets, template, work_dir):
     result = subprocess.run(cmd, capture_output=True, text=True)
 
     if result.returncode != 0:
-        print(f"❌ FFmpeg concat FAILED!")
+        print(f" FFmpeg concat FAILED!")
         print(f"Return code: {result.returncode}")
         print(f"STDERR:\n{result.stderr}")
         print(f"STDOUT:\n{result.stdout}")

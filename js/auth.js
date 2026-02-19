@@ -36,7 +36,7 @@ class AuthManager {
             const session = this.loadSession();
 
             if (!session) {
-                console.log('🔒 No session found, user not authenticated');
+                console.log(' No session found, user not authenticated');
                 return false;
             }
 
@@ -51,7 +51,7 @@ class AuthManager {
                 if (session.refreshToken) {
                     const refreshed = await this.refreshSession(session.refreshToken);
                     if (refreshed) {
-                        console.log('✅ Session refreshed successfully');
+                        console.log(' Session refreshed successfully');
                         return true;
                     }
                 }
@@ -68,11 +68,11 @@ class AuthManager {
             this.refreshToken = session.refreshToken;
             this.expiresAt = session.expiresAt;
 
-            console.log('✅ Session loaded:', this.user.email);
+            console.log(' Session loaded:', this.user.email);
             return true;
 
         } catch (error) {
-            console.error('❌ Auth initialization error:', error);
+            console.error(' Auth initialization error:', error);
             this.clearSession();
             return false;
         }
@@ -209,7 +209,7 @@ class AuthManager {
             this.refreshToken = session.refreshToken;
             this.expiresAt = session.expiresAt;
 
-            console.log('✅ Session saved to cookies (split into 5 cookies)');
+            console.log(' Session saved to cookies (split into 5 cookies)');
 
         } catch (error) {
             console.error('Error saving session:', error);
@@ -301,7 +301,7 @@ class AuthManager {
      */
     getAuthHeaders() {
         if (!this.idToken) {
-            console.warn('⚠️ No auth token available');
+            console.warn(' No auth token available');
             return {};
         }
 
@@ -315,7 +315,7 @@ class AuthManager {
     /**
      * Get user ID for queries
      *
-     * ⚠️ SECURITY WARNING: This user_id is extracted from an UNVERIFIED JWT!
+     *  SECURITY WARNING: This user_id is extracted from an UNVERIFIED JWT!
      * Backend Lambda functions MUST validate the JWT signature and extract
      * user_id from the verified token, NOT from this client-provided value.
      *
@@ -390,7 +390,7 @@ class AuthManager {
     /**
      * Parse JWT token (CLIENT-SIDE ONLY - NO SIGNATURE VERIFICATION)
      *
-     * ⚠️ SECURITY WARNING: This function does NOT verify the JWT signature!
+     *  SECURITY WARNING: This function does NOT verify the JWT signature!
      * It only decodes the payload for display purposes (user info, expiration).
      *
      * NEVER use this for authorization decisions!

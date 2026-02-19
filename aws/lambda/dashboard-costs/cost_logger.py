@@ -123,6 +123,6 @@ def _log_cost(service, operation, channel_id, content_id, cost_usd, units, detai
                 'details': details
             }
         )
-        print(f"✅ Logged cost: {service} - ${float(cost_usd):.6f}")
+        print(f" Logged cost: {service} - ${float(cost_usd):.6f}")
     except Exception as e:
-        print(f"❌ Failed to log cost: {str(e)}")
+        print(f" Failed to log cost: {str(e)}")

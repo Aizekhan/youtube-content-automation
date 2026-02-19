@@ -25,7 +25,7 @@ def create_lambda_zip():
                 zipf.write(file_path, arcname)
 
     size = os.path.getsize(zip_filename)
-    print(f'\n✅ Created {zip_filename} ({size / 1024 / 1024:.2f} MB)')
+    print(f'\n Created {zip_filename} ({size / 1024 / 1024:.2f} MB)')
 
 if __name__ == '__main__':
     create_lambda_zip()

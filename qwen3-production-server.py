@@ -38,10 +38,10 @@ def load_models():
     """Load 3x Qwen3-TTS-0.6B models for parallel inference"""
     global models
     if models:
-        print("✅ Models already loaded")
+        print(" Models already loaded")
         return
 
-    print("🔄 Loading Qwen3-TTS models...")
+    print(" Loading Qwen3-TTS models...")
     start = time.time()
 
     try:
@@ -57,13 +57,13 @@ def load_models():
                 attn_implementation="sdpa"  # Use SDPA instead of FlashAttention
             )
             models[f'model_{i}'] = {'model': model, 'in_use': False}
-            print(f"✅ Model {i+1} loaded")
+            print(f" Model {i+1} loaded")
 
         elapsed = time.time() - start
-        print(f"✅ All models loaded in {elapsed:.2f}s")
+        print(f" All models loaded in {elapsed:.2f}s")
 
     except Exception as e:
-        print(f"❌ Error loading models: {e}")
+        print(f" Error loading models: {e}")
         import traceback
         traceback.print_exc()
         raise
@@ -74,7 +74,7 @@ async def startup_event():
     try:
         load_models()
     except Exception as e:
-        print(f"⚠️ Failed to load models on startup: {e}")
+        print(f" Failed to load models on startup: {e}")
         print("Models will be loaded on first request")
 
 @app.get("/health", response_model=HealthResponse)
@@ -105,7 +105,7 @@ async def generate_tts(request: TTSRequest):
         except Exception as e:
             raise HTTPException(status_code=503, detail=f"Failed to load models: {str(e)}")
 
-    print(f"🎤 Generating TTS for {len(request.scenes)} scenes")
+    print(f" Generating TTS for {len(request.scenes)} scenes")
     start = time.time()
 
     audio_files = []
@@ -119,14 +119,14 @@ async def generate_tts(request: TTSRequest):
             model_info = models.get(model_key)
 
             if not model_info:
-                print(f"⚠️ Model {model_key} not available, skipping scene")
+                print(f" Model {model_key} not available, skipping scene")
                 continue
 
             scene_id = scene.get('scene_number') or scene.get('id', 0)
             text = scene.get('scene_narration') or scene.get('text', '')
 
             if not text:
-                print(f"⚠️ Scene {scene_id} has no text, skipping")
+                print(f" Scene {scene_id} has no text, skipping")
                 continue
 
             print(f"Generating audio for scene {scene_id}...")
@@ -176,10 +176,10 @@ async def generate_tts(request: TTSRequest):
                     'duration_ms': duration_ms
                 })
 
-                print(f"✅ Scene {scene_id} complete: {duration_ms}ms")
+                print(f" Scene {scene_id} complete: {duration_ms}ms")
 
             except Exception as e:
-                print(f"❌ Error generating scene {scene_id}: {e}")
+                print(f" Error generating scene {scene_id}: {e}")
                 import traceback
                 traceback.print_exc()
                 continue
@@ -187,7 +187,7 @@ async def generate_tts(request: TTSRequest):
     elapsed = time.time() - start
     total_duration_ms = sum(af['duration_ms'] for af in audio_files)
 
-    print(f"✅ Generated {len(audio_files)} audio files in {elapsed:.2f}s")
+    print(f" Generated {len(audio_files)} audio files in {elapsed:.2f}s")
 
     return {
         'message': 'Audio generated successfully',

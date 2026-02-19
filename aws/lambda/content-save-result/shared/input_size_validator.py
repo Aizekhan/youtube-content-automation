@@ -61,16 +61,16 @@ def validate_request_size(event, max_size_mb=10):
     try:
         event_size = get_object_size_bytes(event)
     except Exception as e:
-        print(f"⚠️ Failed to calculate event size: {e}")
+        print(f" Failed to calculate event size: {e}")
         # Don't fail request if size calculation fails
         return
 
     if event_size > max_size_bytes:
         error_msg = f"Request too large: {event_size / 1024 / 1024:.2f}MB exceeds limit of {max_size_mb}MB"
-        print(f"❌ SECURITY: {error_msg}")
+        print(f" SECURITY: {error_msg}")
         raise RequestSizeTooLargeError(error_msg)
 
-    print(f"✅ Request size: {event_size / 1024:.2f}KB (limit: {max_size_mb}MB)")
+    print(f" Request size: {event_size / 1024:.2f}KB (limit: {max_size_mb}MB)")
 
 
 def validate_json_field(event, field_name, max_count=None, max_item_size_kb=None):
@@ -98,9 +98,9 @@ def validate_json_field(event, field_name, max_count=None, max_item_size_kb=None
     if max_count and isinstance(field_value, (list, tuple)):
         if len(field_value) > max_count:
             error_msg = f"Field '{field_name}' has {len(field_value)} items, exceeds limit of {max_count}"
-            print(f"❌ SECURITY: {error_msg}")
+            print(f" SECURITY: {error_msg}")
             raise RequestSizeTooLargeError(error_msg)
-        print(f"✅ Field '{field_name}' count: {len(field_value)} (limit: {max_count})")
+        print(f" Field '{field_name}' count: {len(field_value)} (limit: {max_count})")
 
     # Validate item sizes
     if max_item_size_kb and isinstance(field_value, (list, tuple)):
@@ -110,10 +110,10 @@ def validate_json_field(event, field_name, max_count=None, max_item_size_kb=None
                 item_size = get_object_size_bytes(item)
                 if item_size > max_item_bytes:
                     error_msg = f"Field '{field_name}[{i}]' size {item_size / 1024:.2f}KB exceeds limit of {max_item_size_kb}KB"
-                    print(f"❌ SECURITY: {error_msg}")
+                    print(f" SECURITY: {error_msg}")
                     raise RequestSizeTooLargeError(error_msg)
             except Exception as e:
-                print(f"⚠️ Failed to validate item {i} size: {e}")
+                print(f" Failed to validate item {i} size: {e}")
 
 
 def validate_string_field(event, field_name, max_length=None):
@@ -141,10 +141,10 @@ def validate_string_field(event, field_name, max_length=None):
 
     if max_length and len(field_value) > max_length:
         error_msg = f"Field '{field_name}' length {len(field_value)} exceeds limit of {max_length} characters"
-        print(f"❌ SECURITY: {error_msg}")
+        print(f" SECURITY: {error_msg}")
         raise RequestSizeTooLargeError(error_msg)
 
-    print(f"✅ Field '{field_name}' length: {len(field_value)} (limit: {max_length})")
+    print(f" Field '{field_name}' length: {len(field_value)} (limit: {max_length})")
 
 
 def validate_nested_depth(obj, max_depth=10, current_depth=0):
@@ -164,7 +164,7 @@ def validate_nested_depth(obj, max_depth=10, current_depth=0):
     """
     if current_depth > max_depth:
         error_msg = f"JSON nesting depth {current_depth} exceeds limit of {max_depth}"
-        print(f"❌ SECURITY: {error_msg}")
+        print(f" SECURITY: {error_msg}")
         raise RequestSizeTooLargeError(error_msg)
 
     if isinstance(obj, dict):

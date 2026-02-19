@@ -109,9 +109,9 @@ def backfill_costs():
                 )
                 costs_added += 1
                 total_openai_cost += total_cost
-                print(f"✅ OpenAI cost: ${float(total_cost):.6f} ({date_str})")
+                print(f" OpenAI cost: ${float(total_cost):.6f} ({date_str})")
             except Exception as e:
-                print(f"❌ Failed to add cost: {str(e)}")
+                print(f" Failed to add cost: {str(e)}")
         
         # Calculate Polly cost if has audio
         if item.get('has_audio') or item.get('audio_files'):
@@ -143,12 +143,12 @@ def backfill_costs():
                     )
                     costs_added += 1
                     total_polly_cost += cost
-                    print(f"✅ Polly cost: ${float(cost):.6f} ({date_str})")
+                    print(f" Polly cost: ${float(cost):.6f} ({date_str})")
                 except Exception as e:
-                    print(f"❌ Failed to add Polly cost: {str(e)}")
+                    print(f" Failed to add Polly cost: {str(e)}")
     
     print(f"\n{'='*60}")
-    print(f"✅ Backfill complete!")
+    print(f" Backfill complete!")
     print(f"Total costs added: {costs_added}")
     print(f"Total OpenAI cost: ${float(total_openai_cost):.2f}")
     print(f"Total Polly cost: ${float(total_polly_cost):.2f}")

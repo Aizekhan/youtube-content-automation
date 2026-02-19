@@ -10,13 +10,14 @@ Output: system_message + user_message for OpenAI API
 import json
 
 
-def build_mega_prompt(mega_config, selected_topic):
+def build_mega_prompt(mega_config, selected_topic, wikipedia_facts=None):
     """
     Build MEGA prompt for OpenAI that generates ALL content components
 
     Args:
         mega_config (dict): Merged configuration from mega_config_merger
         selected_topic (str): Topic selected by theme agent
+        wikipedia_facts (dict|None): Real facts from Wikipedia (factual_mode channels)
 
     Returns:
         tuple: (system_message, user_message)
@@ -25,8 +26,8 @@ def build_mega_prompt(mega_config, selected_topic):
     # Build SYSTEM message
     system_message = build_system_message(mega_config)
 
-    # Build USER message
-    user_message = build_user_message(mega_config, selected_topic)
+    # Build USER message (inject real facts if available)
+    user_message = build_user_message(mega_config, selected_topic, wikipedia_facts)
 
     return system_message, user_message
 
@@ -61,14 +62,9 @@ You are a multi-specialist AI that combines the expertise of:
 ## CHANNEL CONTEXT
 
 **Channel**: {channel_ctx['channel_name']}
+**Language**: { {'en':'English','zh':'Chinese','ja':'Japanese','ko':'Korean','fr':'French','de':'German','es':'Spanish','it':'Italian','pt':'Portuguese','ru':'Russian','ar':'Arabic','hi':'Hindi'}.get(channel_ctx.get('language','en'), channel_ctx.get('language','en'))} — Write ALL narrative text, dialogue, and descriptions in this language. Do not mix languages.
 **Genre**: {channel_ctx['genre']}
-**Tone**: {channel_ctx['tone']}
 **Content Type**: {channel_ctx['factual_mode']}
-**Target Audience**: {channel_ctx['target_audience']}
-**Content Focus**: {channel_ctx['content_focus']}
-**Narration Style**: {channel_ctx['narration_style']}
-**Emotional Temperature**: {channel_ctx['emotional_temperature']}
-**Narrative Pace**: {channel_ctx['narrative_pace']}
 
 ---
 
@@ -79,14 +75,6 @@ You are a multi-specialist AI that combines the expertise of:
 **Core Rules**:
 {format_list(narrative_inst['core_rules'])}
 
-**Hook Rules**:
-{format_hook_rules(narrative_inst)}
-
-**Story Structure**: {narrative_inst['story_structure_pattern']}
-**Preferred Ending**: {narrative_inst['preferred_ending_tone']}
-**Story Settings**: {narrative_inst['story_setting_variants']}
-**Character Types**: {narrative_inst['story_character_types']}
-**Point of View**: {narrative_inst['story_point_of_view_variants']}
 
 ---
 
@@ -135,8 +123,16 @@ You only need to DETECT the mood and assign the variation name - DO NOT add any 
 
 **Negative Prompt (avoid)**: {image_inst['negative_prompt']}
 
+**Visual Intensity per Scene (Blueprint-Guided)**:
+Use the 'visual' field from the Emotional Curve table for each scene to scale image complexity:
+- **visual:high** - Maximum visual impact: dramatic action, intense lighting, dynamic composition, multiple layered elements, cinematic tension
+- **visual:medium** - Balanced scene: clear subject with supporting context, moderate detail, natural atmosphere
+- **visual:low** - Minimalist frame: single subject, static or intimate composition, quiet mood, simple background
+
+Apply this individually per scene. A visual:low scene must have a simpler, quieter image_prompt than a visual:high scene, even within the same visual style. If no Blueprint is active, use narrative context to infer visual weight.
+
 For EACH scene, generate:
-- **image_prompt**: Detailed prompt for AI image generation (subject, action, environment, lighting, composition, style)
+- **image_prompt**: Detailed prompt for AI image generation (subject, action, environment, lighting, composition, style), scaled to that scene's visual intensity
 - **negative_prompt**: What to avoid
 
 ---
@@ -204,7 +200,6 @@ You MUST return valid JSON following this exact schema:
 {{
   "story_title": "string",
   "selected_voice": "string (ONLY if voice_selection_mode=auto)",
-  "hook": "string (plain text only)",
   "scenes": [
     {{
       "scene_number": 1,
@@ -254,7 +249,7 @@ You MUST return valid JSON following this exact schema:
     return system
 
 
-def build_user_message(config, topic):
+def build_user_message(config, topic, wikipedia_facts=None):
     """Build USER message with topic and constraints"""
 
     constraints = config['constraints']
@@ -279,6 +274,32 @@ Remember:
 6. Write SEO-optimized description with timestamps
 
 Return valid JSON only, no additional text.
+"""
+
+    # Inject Wikipedia facts for factual_mode channels
+    if wikipedia_facts and wikipedia_facts.get('content'):
+        wiki_title = wikipedia_facts.get('wikipedia_title', topic)
+        wiki_content = wikipedia_facts.get('content', '')
+        wiki_url = wikipedia_facts.get('source_url', '')
+        user += f"""
+
+---
+
+## REAL FACTS FROM WIKIPEDIA — USE THESE
+
+**Source**: Wikipedia — "{wiki_title}"
+{f'**URL**: {wiki_url}' if wiki_url else ''}
+
+{wiki_content}
+
+---
+
+**IMPORTANT INSTRUCTIONS FOR FACTUAL MODE**:
+- Base the story on the REAL FACTS above. Do NOT invent historical events, dates, or people.
+- You MAY add narrative style, dramatic pacing, and emotional depth.
+- Preserve real names, real dates, and real events exactly as stated.
+- If a fact is unclear or missing, describe it as "unknown" — do not fabricate.
+- Structure the facts into engaging scenes following the emotional curve.
 """
 
 
@@ -307,25 +328,6 @@ def format_list(items):
     if not items:
         return "- (No specific rules)"
     return "\n".join([f"- {item}" for item in items])
-
-
-def format_hook_rules(narrative_inst):
-    """Format hook rules"""
-    hook_rules = narrative_inst.get('hook_rules', {})
-    hook_enabled = narrative_inst.get('hook_enabled', True)
-
-    if not hook_enabled:
-        return "**Hook Disabled** - Do not generate hook"
-
-    return f"""**Hook Enabled**: Yes
-**Style**: {hook_rules.get('style', 'engaging')}
-**Placement**: {hook_rules.get('placement', 'first_15_seconds')}
-
-Generate an attention-grabbing hook (50-120 characters) that:
-- Fits channel tone and genre
-- Creates curiosity or suspense
-- Encourages viewer to keep watching
-"""
 
 
 def format_scene_variations(variations):

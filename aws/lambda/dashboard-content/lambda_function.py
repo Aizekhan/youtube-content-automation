@@ -85,7 +85,7 @@ def lambda_handler(event, context):
     http_method = request_context.get('http', {}).get('method') or event.get('httpMethod', 'POST')
 
     if http_method == 'OPTIONS':
-        print("🔄 Handling OPTIONS preflight request")
+        print(" Handling OPTIONS preflight request")
         return {
             'statusCode': 200,
             'headers': {
@@ -107,22 +107,22 @@ def lambda_handler(event, context):
         try:
             body = json.loads(event['body']) if isinstance(event['body'], str) else event['body']
             user_id = body.get('user_id')
-            print(f"📦 Extracted user_id from body: {user_id}")
+            print(f" Extracted user_id from body: {user_id}")
         except json.JSONDecodeError:
-            print("⚠️ Failed to parse body as JSON")
+            print(" Failed to parse body as JSON")
 
     # Try API Gateway format (direct user_id in event)
     if not user_id:
         user_id = event.get('user_id')
         if user_id:
-            print(f"📦 Extracted user_id from event: {user_id}")
+            print(f" Extracted user_id from event: {user_id}")
 
     # WEEK 3.2: Validate user_id using shared utility
     try:
         # Create a dict with user_id for validation
         validate_user_id({'user_id': user_id} if user_id else {})
     except ValueError as e:
-        print(f"❌ Validation failed: {e}")
+        print(f" Validation failed: {e}")
         return error_response(str(e), status_code=400)
         
 
@@ -133,9 +133,9 @@ def lambda_handler(event, context):
 
     try:
         # Get content list filtered by user_id
-        print(f"🔍 Calling get_content_list for user {user_id} with params: {query_params}")
+        print(f" Calling get_content_list for user {user_id} with params: {query_params}")
         response_data = get_content_list(user_id, query_params)
-        print(f"✅ Got {len(response_data.get('content', []))} items for user {user_id}")
+        print(f" Got {len(response_data.get('content', []))} items for user {user_id}")
 
         # WEEK 3.2: Use shared response utility
         return success_response(response_data)

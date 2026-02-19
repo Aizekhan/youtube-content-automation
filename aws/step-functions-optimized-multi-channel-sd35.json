@@ -61,6 +61,56 @@
               "data.$": "$.Payload"
             },
             "ResultPath": "$.themeResult",
+            "Next": "CheckFactualMode"
+          },
+          "CheckFactualMode": {
+            "Type": "Choice",
+            "Comment": "If factual_mode=factual -> search Wikipedia facts before narrative generation",
+            "Choices": [
+              {
+                "Variable": "$.factual_mode",
+                "StringEquals": "factual",
+                "Next": "SearchWikipediaFacts"
+              }
+            ],
+            "Default": "SetNoFacts"
+          },
+          "SearchWikipediaFacts": {
+            "Type": "Task",
+            "Resource": "arn:aws:states:::lambda:invoke",
+            "Comment": "Search Wikipedia for real facts about the topic (factual_mode channels only)",
+            "Parameters": {
+              "FunctionName": "arn:aws:lambda:eu-central-1:599297130956:function:content-search-facts",
+              "Payload": {
+                "selected_topic.$": "$.themeResult.data.generated_titles[0]",
+                "genre.$": "$.genre"
+              }
+            },
+            "ResultSelector": {
+              "data.$": "$.Payload"
+            },
+            "ResultPath": "$.factsResult",
+            "Next": "MegaNarrativeGenerator",
+            "Catch": [
+              {
+                "ErrorEquals": ["States.ALL"],
+                "ResultPath": "$.factsError",
+                "Next": "SetNoFacts",
+                "Comment": "On failure: skip facts and continue without them"
+              }
+            ]
+          },
+          "SetNoFacts": {
+            "Type": "Pass",
+            "Comment": "No facts (fictional mode or factual search failed) - set empty facts",
+            "Result": {
+              "data": {
+                "wikipedia_facts": null,
+                "has_real_facts": false,
+                "facts_source": null
+              }
+            },
+            "ResultPath": "$.factsResult",
             "Next": "MegaNarrativeGenerator"
           },
           "MegaNarrativeGenerator": {
@@ -71,7 +121,9 @@
               "Payload": {
                 "channel_id.$": "$.channel_id",
                 "user_id.$": "$.user_id",
-                "selected_topic.$": "$.themeResult.data.generated_titles[0]"
+                "selected_topic.$": "$.themeResult.data.generated_titles[0]",
+                "wikipedia_facts.$": "$.factsResult.data.wikipedia_facts",
+                "has_real_facts.$": "$.factsResult.data.has_real_facts"
               }
             },
             "ResultSelector": {

@@ -57,14 +57,14 @@ def get_cached_response(prompt, model, max_age_hours=24):
         age = datetime.now(cached_at.tzinfo) - cached_at
 
         if age > timedelta(hours=max_age_hours):
-            print(f"🗑️  Cache expired (age: {age})")
+            print(f"  Cache expired (age: {age})")
             return None
 
-        print(f"✅ Cache HIT! (age: {age}, saved API call)")
+        print(f" Cache HIT! (age: {age}, saved API call)")
         return item['response']
 
     except Exception as e:
-        print(f"⚠️  Cache read error: {e}")
+        print(f"  Cache read error: {e}")
         return None
 
 
@@ -100,11 +100,11 @@ def cache_response(prompt, model, response, ttl_hours=168):
             'ttl': ttl_timestamp  # DynamoDB will auto-delete after this
         })
 
-        print(f"💾 Cached response (key: {key[:8]}..., TTL: {ttl_hours}h)")
+        print(f" Cached response (key: {key[:8]}..., TTL: {ttl_hours}h)")
 
     except Exception as e:
         # Cache errors shouldn't break the main flow
-        print(f"⚠️  Cache write error (non-fatal): {e}")
+        print(f"  Cache write error (non-fatal): {e}")
 
 
 def clear_cache(model=None):
@@ -131,11 +131,11 @@ def clear_cache(model=None):
         for item in items:
             cache_table.delete_item(Key={'cache_key': item['cache_key']})
 
-        print(f"🗑️  Cleared {len(items)} cache entries")
+        print(f"  Cleared {len(items)} cache entries")
         return len(items)
 
     except Exception as e:
-        print(f"⚠️  Cache clear error: {e}")
+        print(f"  Cache clear error: {e}")
         return 0
 
 
@@ -188,5 +188,5 @@ def get_cache_stats():
         }
 
     except Exception as e:
-        print(f"⚠️  Cache stats error: {e}")
+        print(f"  Cache stats error: {e}")
         return {'error': str(e)}

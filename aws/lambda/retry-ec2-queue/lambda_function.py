@@ -16,7 +16,7 @@ def lambda_handler(event, context):
     """
     Reads messages from SQS queue and retries EC2 start
     """
-    print("🔄 Checking SQS queue for pending image generation tasks...")
+    print(" Checking SQS queue for pending image generation tasks...")
 
     # Receive messages from queue (long polling)
     response = sqs.receive_message(
@@ -29,7 +29,7 @@ def lambda_handler(event, context):
     messages = response.get('Messages', [])
 
     if not messages:
-        print("📭 No messages in queue")
+        print(" No messages in queue")
         return {
             'statusCode': 200,
             'body': json.dumps({'message': 'No pending tasks'})
@@ -41,14 +41,14 @@ def lambda_handler(event, context):
     try:
         # Parse message body
         body = json.loads(message['Body'])
-        print(f"📦 Processing message: {json.dumps(body, indent=2)}")
+        print(f" Processing message: {json.dumps(body, indent=2)}")
 
         execution_arn = body.get('execution_arn')
         collected_prompts = body.get('collected_prompts')
         phase1_results = body.get('phase1_results')
 
         # Attempt to start EC2 instance
-        print("🚀 Attempting to start EC2 SD3.5 instance...")
+        print(" Attempting to start EC2 SD3.5 instance...")
 
         ec2_response = lambda_client.invoke(
             FunctionName='ec2-sd35-control',
@@ -64,10 +64,10 @@ def lambda_handler(event, context):
             endpoint = ec2_result.get('endpoint')
 
             if endpoint:
-                print(f"✅ EC2 started successfully! Endpoint: {endpoint}")
+                print(f" EC2 started successfully! Endpoint: {endpoint}")
 
                 # Resume workflow - invoke image generation
-                print("🎨 Invoking image generation...")
+                print(" Invoking image generation...")
 
                 image_gen_response = lambda_client.invoke(
                     FunctionName='content-generate-images',
@@ -83,7 +83,7 @@ def lambda_handler(event, context):
                     })
                 )
 
-                print(f"✅ Image generation invoked async")
+                print(f" Image generation invoked async")
 
                 # Delete message from queue (success!)
                 sqs.delete_message(
@@ -91,7 +91,7 @@ def lambda_handler(event, context):
                     ReceiptHandle=receipt_handle
                 )
 
-                print("✅ Message deleted from queue - workflow resumed!")
+                print(" Message deleted from queue - workflow resumed!")
 
                 return {
                     'statusCode': 200,
@@ -103,7 +103,7 @@ def lambda_handler(event, context):
                 }
 
         # EC2 start failed - message will return to queue
-        print("⚠️ EC2 start failed - message will retry in 3 minutes")
+        print(" EC2 start failed - message will retry in 3 minutes")
         print(f"Message receive count: {message.get('Attributes', {}).get('ApproximateReceiveCount', 'unknown')}")
 
         return {
@@ -115,7 +115,7 @@ def lambda_handler(event, context):
         }
 
     except Exception as e:
-        print(f"❌ Error processing message: {e}")
+        print(f" Error processing message: {e}")
         import traceback
         traceback.print_exc()
 

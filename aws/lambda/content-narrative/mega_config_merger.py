@@ -140,7 +140,7 @@ def extract_channel_context(channel):
 
     # Log selected content variants
     if ',' in str(content_focus_raw) or ',' in str(narrative_keywords_raw):
-        print(f"   📝 Selected content variants:")
+        print(f"    Selected content variants:")
         if content_focus_parsed:
             print(f"      Content focus: {content_focus_parsed}")
         if narrative_keywords_parsed:
@@ -202,9 +202,9 @@ def extract_image_instructions(template, channel):
     if isinstance(variation_sets, str):
         try:
             variation_sets = json.loads(variation_sets)
-            print(f"🔧 Parsed variation_sets from JSON string")
+            print(f" Parsed variation_sets from JSON string")
         except json.JSONDecodeError as e:
-            print(f"⚠️ Failed to parse variation_sets JSON: {e}")
+            print(f" Failed to parse variation_sets JSON: {e}")
             variation_sets = []
 
     # DEEP PARSE: Each item in array might also be a JSON string
@@ -214,7 +214,7 @@ def extract_image_instructions(template, channel):
             if isinstance(item, str):
                 try:
                     parsed_sets.append(json.loads(item))
-                    print(f"   🔧 Parsed variation set {idx} from JSON string")
+                    print(f"    Parsed variation set {idx} from JSON string")
                 except json.JSONDecodeError:
                     parsed_sets.append(item)  # Keep as-is if can't parse
             else:
@@ -269,19 +269,19 @@ def extract_image_instructions(template, channel):
         if isinstance(active_set, str):
             try:
                 active_set = json.loads(active_set)
-                print(f"   🔧 PARSED active_set from JSON string")
+                print(f"    PARSED active_set from JSON string")
             except json.JSONDecodeError as e:
-                print(f"   ⚠️ WARNING: active_set is string but can't parse: {e}")
+                print(f"    WARNING: active_set is string but can't parse: {e}")
                 active_set = {}  # Fallback to empty dict
 
-        print(f"🔄 VARIATION SETS: Using Set {active_set_index}/{len(variation_sets)-1}: '{active_set.get('set_name', 'Unnamed')}'")
+        print(f" VARIATION SETS: Using Set {active_set_index}/{len(variation_sets)-1}: '{active_set.get('set_name', 'Unnamed')}'")
         print(f"   Generation count: {generation_count}, Rotation mode: {rotation_mode}")
 
         visual_source = active_set
         use_template_fallback = True
     else:
         # No variation sets - use template defaults only (NO root-level fallback)
-        print(f"⚠️ NO VARIATION SETS: Using template defaults only")
+        print(f" NO VARIATION SETS: Using template defaults only")
         visual_source = {}
         use_template_fallback = True
 
@@ -299,7 +299,7 @@ def extract_image_instructions(template, channel):
     selected_style = get_field('image_style_variants', 4, 'Cinematic photography, photorealistic')
 
     # Log selected variants
-    print(f"   🎨 Selected variants:")
+    print(f"    Selected variants:")
     print(f"      Composition: {selected_composition}")
     print(f"      Lighting: {selected_lighting}")
     print(f"      Colors: {selected_colors}")

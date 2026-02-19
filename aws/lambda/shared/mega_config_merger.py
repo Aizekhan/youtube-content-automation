@@ -6,7 +6,7 @@ into a single mega_config for MEGA-GENERATION mode.
 
 Philosophy:
 - ONE OpenAI request generates ALL components
-- Each template contributes its ai_config (role_definition, core_rules, output_schema)
+- Each template contributes its ai_config (role_definition, core_rules)
 - ChannelConfig provides WHAT (constraints, identity)
 - Templates provide HOW (AI instructions for each component)
 
@@ -69,7 +69,6 @@ def merge_mega_configuration(
         # Channel identity
         'channel_id': channel_config.get('channel_id'),
         'channel_name': channel_config.get('channel_name', 'Unnamed Channel'),
-        'channel_theme': channel_config.get('channel_theme'),
 
         # Model config
         'model': narrative_ai.get('model', 'gpt-4o-mini'),  # WEEK 5: Changed to gpt-4o-mini (16x cheaper)
@@ -103,61 +102,12 @@ def merge_mega_configuration(
 
 
 def extract_channel_context(channel):
-    """
-    Extract channel context (WHAT) from ChannelConfig
-
-    NEW (2025-11-21): Parses content_focus and narrative_keywords for variety
-    """
-    import random
-
-    generation_count = int(channel.get('generation_count', 0))
-
-    # Helper: Parse and select variant (same as in extract_image_instructions)
-    def pick_content_variant(field_value, seed_offset):
-        """Parse comma-separated content variants and select one"""
-        if not field_value:
-            return ''
-
-        variants = [v.strip() for v in str(field_value).split(',') if v.strip()]
-
-        if not variants:
-            return ''
-        if len(variants) == 1:
-            return variants[0]
-
-        random.seed(int(generation_count) + seed_offset)
-        selected = random.choice(variants)
-
-        return selected
-
-    # Parse content_focus if comma-separated
-    content_focus_raw = channel.get('content_focus', '')
-    content_focus_parsed = pick_content_variant(content_focus_raw, 100)
-
-    # Parse narrative_keywords if comma-separated (optional field)
-    narrative_keywords_raw = channel.get('narrative_keywords', '')
-    narrative_keywords_parsed = pick_content_variant(narrative_keywords_raw, 101)
-
-    # Log selected content variants
-    if ',' in str(content_focus_raw) or ',' in str(narrative_keywords_raw):
-        print(f"   📝 Selected content variants:")
-        if content_focus_parsed:
-            print(f"      Content focus: {content_focus_parsed}")
-        if narrative_keywords_parsed:
-            print(f"      Narrative keywords: {narrative_keywords_parsed}")
-
+    """Extract channel context from ChannelConfig."""
     return {
         'channel_name': channel.get('channel_name', ''),
+        'language': channel.get('language', 'en'),
         'genre': channel.get('genre', 'General'),
-        'tone': channel.get('tone', 'Neutral'),
         'factual_mode': channel.get('factual_mode', 'fictional'),
-        'target_audience': channel.get('target_audience', ''),
-        'content_focus': content_focus_parsed if content_focus_parsed else content_focus_raw,  # ← PARSED!
-        'narrative_keywords': narrative_keywords_parsed if narrative_keywords_parsed else narrative_keywords_raw,  # ← NEW + PARSED!
-        'meta_theme': channel.get('meta_theme', ''),
-        'narration_style': channel.get('narration_style', 'Third-person'),
-        'emotional_temperature': channel.get('emotional_temperature', ''),
-        'narrative_pace': channel.get('narrative_pace', 'medium'),
     }
 
 
@@ -169,15 +119,6 @@ def extract_narrative_instructions(template, channel):
     return {
         'role_definition': sections.get('role_definition', ''),
         'core_rules': sections.get('core_rules', []),
-        'hook_rules': sections.get('hook_rules', {}),
-        'hook_enabled': channel.get('hook_enabled', sections.get('hook_rules', {}).get('enabled', True)),
-        'output_schema': sections.get('output_schema', {}),
-        'variation_logic': sections.get('variation_logic', {}),
-        'story_structure_pattern': channel.get('story_structure_pattern', 'Hook → Build → Twist → Resolution'),
-        'preferred_ending_tone': channel.get('preferred_ending_tone', ''),
-        'story_setting_variants': channel.get('story_setting_variants', ''),
-        'story_character_types': channel.get('story_character_types', ''),
-        'story_point_of_view_variants': channel.get('story_point_of_view_variants', '')
     }
 
 
@@ -202,9 +143,9 @@ def extract_image_instructions(template, channel):
     if isinstance(variation_sets, str):
         try:
             variation_sets = json.loads(variation_sets)
-            print(f"🔧 Parsed variation_sets from JSON string")
+            print(f" Parsed variation_sets from JSON string")
         except json.JSONDecodeError as e:
-            print(f"⚠️ Failed to parse variation_sets JSON: {e}")
+            print(f" Failed to parse variation_sets JSON: {e}")
             variation_sets = []
 
     # DEEP PARSE: Each item in array might also be a JSON string
@@ -214,7 +155,7 @@ def extract_image_instructions(template, channel):
             if isinstance(item, str):
                 try:
                     parsed_sets.append(json.loads(item))
-                    print(f"   🔧 Parsed variation set {idx} from JSON string")
+                    print(f"    Parsed variation set {idx} from JSON string")
                 except json.JSONDecodeError:
                     parsed_sets.append(item)  # Keep as-is if can't parse
             else:
@@ -248,7 +189,13 @@ def extract_image_instructions(template, channel):
         return selected
 
     # Determine visual source
-    if variation_sets and len(variation_sets) > 0:
+    # FACTUAL MODE: skip Variation Sets — let OpenAI use real historical context
+    factual_mode = channel.get('factual_mode', 'fictional')
+    if factual_mode == 'factual':
+        print(f"Factual mode: skipping Variation Sets — historical context drives image prompts")
+        visual_source = {}
+        use_template_fallback = False  # Also skip template defaults — pure historical context
+    elif variation_sets and len(variation_sets) > 0:
         # Use active variation set
         rotation_mode = channel.get('rotation_mode', 'sequential')
 
@@ -269,19 +216,19 @@ def extract_image_instructions(template, channel):
         if isinstance(active_set, str):
             try:
                 active_set = json.loads(active_set)
-                print(f"   🔧 PARSED active_set from JSON string")
+                print(f"    PARSED active_set from JSON string")
             except json.JSONDecodeError as e:
-                print(f"   ⚠️ WARNING: active_set is string but can't parse: {e}")
+                print(f"    WARNING: active_set is string but can't parse: {e}")
                 active_set = {}  # Fallback to empty dict
 
-        print(f"🔄 VARIATION SETS: Using Set {active_set_index}/{len(variation_sets)-1}: '{active_set.get('set_name', 'Unnamed')}'")
+        print(f" VARIATION SETS: Using Set {active_set_index}/{len(variation_sets)-1}: '{active_set.get('set_name', 'Unnamed')}'")
         print(f"   Generation count: {generation_count}, Rotation mode: {rotation_mode}")
 
         visual_source = active_set
         use_template_fallback = True
     else:
         # No variation sets - use template defaults only (NO root-level fallback)
-        print(f"⚠️ NO VARIATION SETS: Using template defaults only")
+        print(f" NO VARIATION SETS: Using template defaults only")
         visual_source = {}
         use_template_fallback = True
 
@@ -299,7 +246,7 @@ def extract_image_instructions(template, channel):
     selected_style = get_field('image_style_variants', 4, 'Cinematic photography, photorealistic')
 
     # Log selected variants
-    print(f"   🎨 Selected variants:")
+    print(f"    Selected variants:")
     print(f"      Composition: {selected_composition}")
     print(f"      Lighting: {selected_lighting}")
     print(f"      Colors: {selected_colors}")
@@ -309,7 +256,6 @@ def extract_image_instructions(template, channel):
         # General rules from Template
         'role_definition': sections.get('role_definition', ''),
         'core_rules': sections.get('core_rules', []),
-        'output_schema': sections.get('output_schema', {}),
 
         # Visual style with VARIANT PARSING (NEW!)
         'visual_keywords': visual_source.get('visual_keywords') or sections.get('visual_keywords', 'cinematic, atmospheric, detailed'),
@@ -334,7 +280,6 @@ def extract_cta_instructions(template, channel):
     return {
         'role_definition': sections.get('role_definition', ''),
         'core_rules': sections.get('core_rules', []),
-        'output_schema': sections.get('output_schema', {}),
 
         # CTA settings - read from channel config (MEGA mode supports scene-based placements)
         'enabled': channel.get('cta_enabled', cta_config.get('enabled', False)),
@@ -358,13 +303,6 @@ def extract_thumbnail_instructions(template, channel):
     return {
         'role_definition': sections.get('role_definition', ''),
         'core_rules': sections.get('core_rules', []),
-        'output_schema': sections.get('output_schema', {}),
-
-        # Thumbnail settings
-        'aspect_ratio': thumbnail_config.get('aspect_ratio', '16:9'),
-        'resolution': thumbnail_config.get('resolution', '1280x720'),
-        'text_overlay_enabled': thumbnail_config.get('text_overlay_enabled', True),
-        'style': channel.get('image_style_variants', thumbnail_config.get('style', 'cinematic'))
     }
 
 
@@ -383,7 +321,6 @@ def extract_tts_instructions(template, channel):
     return {
         'role_definition': sections.get('role_definition', ''),
         'core_rules': sections.get('core_rules', []),
-        'output_schema': sections.get('output_schema', {}),
 
         # SSML generation rules
         'scene_variations': scene_variations,
@@ -392,11 +329,6 @@ def extract_tts_instructions(template, channel):
         'voice_selection_mode': voice_selection_mode,
         'voice_id': tts_config.get('voice_id', 'Matthew'),  # used if mode=manual
         'available_voices': tts_config.get('available_voices', []),  # used if mode=auto
-
-        # TTS settings (for reference, not used in generation)
-        'service': tts_config.get('service', 'aws-polly'),
-        'voice_engine': tts_config.get('voice_engine', 'neural'),
-        'voice_language': tts_config.get('voice_language', 'en-US')
     }
 
 
@@ -412,14 +344,10 @@ def extract_sfx_instructions(template, channel):
     return {
         'role_definition': sections.get('role_definition', ''),
         'core_rules': sections.get('core_rules', []),
-        'output_schema': sections.get('output_schema', {}),
 
         # SFX/Music libraries (GPT can ONLY use these)
         'sfx_library': sfx_library,
         'music_library': music_library,
-
-        # Timing rules
-        'timing_rules': template.get('timing_rules', {})
     }
 
 
@@ -434,18 +362,9 @@ def extract_description_instructions(template, channel):
     return {
         'role_definition': sections.get('role_definition', ''),
         'core_rules': sections.get('core_rules', []),
-        'output_schema': sections.get('output_schema', {}),
 
         # Description settings
-        'include_timestamps': description_config.get('include_timestamps', True),
-        'include_hashtags': description_config.get('include_hashtags', True),
-        'include_social_links': description_config.get('include_social_links', True),
         'seo_keywords': channel.get('seo_keywords', '') or channel.get('example_keywords_for_youtube', ''),
-
-        # Channel info (for placeholders)
-        'channel_description': channel.get('channel_description', ''),
-        'channel_watermark_url': channel.get('channel_watermark_url', ''),
-        'banner_url': channel.get('banner_url', '')
     }
 
 
@@ -457,11 +376,10 @@ def get_mega_output_schema():
     """
     return {
         "type": "object",
-        "required": ["story_title", "hook", "scenes", "cta_segments", "thumbnail", "description", "metadata"],
+        "required": ["story_title", "scenes", "cta_segments", "thumbnail", "description", "metadata"],
         "properties": {
             "story_title": {"type": "string"},
             "selected_voice": {"type": "string", "description": "Voice ID if auto mode, otherwise omitted"},
-            "hook": {"type": "string", "description": "Opening hook with SSML markup"},
             "scenes": {
                 "type": "array",
                 "items": {

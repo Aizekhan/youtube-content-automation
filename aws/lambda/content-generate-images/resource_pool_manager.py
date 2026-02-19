@@ -47,7 +47,7 @@ class DynamoDBResourcePool:
         if not uncached_ids:
             return {cid: self._cache[cid] for cid in channel_ids}
 
-        print(f"   📥 Batch loading {len(uncached_ids)} channel configs...")
+        print(f"    Batch loading {len(uncached_ids)} channel configs...")
 
         # DynamoDB batch_get_item підтримує до 100 items за раз
         results = {}
@@ -73,7 +73,7 @@ class DynamoDBResourcePool:
                         self._cache[channel_id] = config
 
                 except Exception as e:
-                    print(f"   ⚠️  Failed to load config for {channel_id}: {e}")
+                    print(f"     Failed to load config for {channel_id}: {e}")
                     results[channel_id] = None
 
         # Об'єднуємо з кешованими результатами
@@ -84,7 +84,7 @@ class DynamoDBResourcePool:
             elif cid in results:
                 final_results[cid] = results[cid]
 
-        print(f"   ✅ Loaded {len(final_results)} configs (from cache: {len(channel_ids) - len(uncached_ids)})")
+        print(f"    Loaded {len(final_results)} configs (from cache: {len(channel_ids) - len(uncached_ids)})")
         return final_results
 
     def get_channel_config_lazy(self, channel_id: str) -> Optional[Dict]:
@@ -114,7 +114,7 @@ class DynamoDBResourcePool:
                 return config
 
         except Exception as e:
-            print(f"   ⚠️  Failed to load config for {channel_id}: {e}")
+            print(f"     Failed to load config for {channel_id}: {e}")
 
         return None
 
@@ -141,7 +141,7 @@ class DynamoDBResourcePool:
         if not uncached_ids:
             return {tid: template_cache[tid] for tid in template_ids if tid in template_cache}
 
-        print(f"   📥 Batch loading {len(uncached_ids)} templates from {table_name}...")
+        print(f"    Batch loading {len(uncached_ids)} templates from {table_name}...")
 
         results = {}
 
@@ -164,7 +164,7 @@ class DynamoDBResourcePool:
                     template_cache[template_id] = item
 
             except Exception as e:
-                print(f"   ⚠️  Batch get failed for {table_name}: {e}")
+                print(f"     Batch get failed for {table_name}: {e}")
                 # Fallback до окремих запитів
                 for tid in batch:
                     try:
@@ -184,7 +184,7 @@ class DynamoDBResourcePool:
             elif tid in results:
                 final_results[tid] = results[tid]
 
-        print(f"   ✅ Loaded {len(final_results)} templates")
+        print(f"    Loaded {len(final_results)} templates")
         return final_results
 
 
@@ -248,7 +248,7 @@ def optimize_channel_configs_loading(all_prompts: List[Dict], dynamodb_resource=
 
     # Крок 1: Отримати всі унікальні channel IDs
     unique_channels = processor.get_unique_channels()
-    print(f"   🔍 Found {len(unique_channels)} unique channels")
+    print(f"    Found {len(unique_channels)} unique channels")
 
     # Крок 2: Завантажити ВСІ конфіги каналів одним batch запитом
     channel_configs = pool.batch_get_channel_configs(unique_channels)
@@ -257,7 +257,7 @@ def optimize_channel_configs_loading(all_prompts: List[Dict], dynamodb_resource=
     template_ids = processor.get_unique_template_ids(channel_configs)
 
     if template_ids:
-        print(f"   🔍 Found {len(template_ids)} unique thumbnail templates")
+        print(f"    Found {len(template_ids)} unique thumbnail templates")
         # Крок 4: Завантажити ВСІ шаблони одним batch запитом
         templates = pool.batch_get_templates(template_ids, 'ThumbnailTemplates')
     else:
@@ -281,10 +281,10 @@ def optimize_channel_configs_loading(all_prompts: List[Dict], dynamodb_resource=
             from lambda_function import get_dimensions_from_aspect_ratio
             width, height = get_dimensions_from_aspect_ratio(aspect_ratio, resolution)
             thumbnail_dimensions[channel_id] = (width, height)
-            print(f"   ✅ {channel_id[-6:]}: {aspect_ratio} = {width}x{height}")
+            print(f"    {channel_id[-6:]}: {aspect_ratio} = {width}x{height}")
 
-    print(f"   ✅ Total DynamoDB requests: 2 (batch) vs {len(unique_channels) * 2} (old way)")
-    print(f"   💰 Query cost reduction: {((len(unique_channels) * 2 - 2) / (len(unique_channels) * 2)) * 100:.0f}%")
+    print(f"    Total DynamoDB requests: 2 (batch) vs {len(unique_channels) * 2} (old way)")
+    print(f"    Query cost reduction: {((len(unique_channels) * 2 - 2) / (len(unique_channels) * 2)) * 100:.0f}%")
 
     return channel_configs, thumbnail_dimensions
 

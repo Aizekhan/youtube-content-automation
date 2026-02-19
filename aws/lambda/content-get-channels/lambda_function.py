@@ -133,7 +133,9 @@ def lambda_handler(event, context):
                 # FIX 2025-11-30: Include variation_sets for channels.html
                 'variation_sets': item.get('variation_sets', []),
                 'rotation_mode': item.get('rotation_mode', 'sequential'),
-                'generation_count': item.get('generation_count', 0)
+                'generation_count': item.get('generation_count', 0),
+                'factual_mode': item.get('factual_mode', 'fictional'),
+                'language': item.get('language', 'en')
             }
 
             channels.append(channel)

@@ -11,7 +11,7 @@ import json
 def lambda_handler(event, context):
     """Підготовка батчів зображень для паралельної обробки"""
 
-    print(f"📦 Prepare Image Batches")
+    print(f" Prepare Image Batches")
     print(f"Event keys: {list(event.keys())}")
 
     # Extract data
@@ -35,9 +35,9 @@ def lambda_handler(event, context):
                 else:
                     endpoint_url = body.get('endpoint')
             except json.JSONDecodeError as e:
-                print(f"⚠️  Failed to parse ec2_endpoint body: {e}")
+                print(f"  Failed to parse ec2_endpoint body: {e}")
         
-    print(f"📡 EC2 Endpoint extracted: {endpoint_url}")
+    print(f" EC2 Endpoint extracted: {endpoint_url}")
 
     # Get scenes from image_data
     image_data = event.get('image_data', {})
@@ -49,7 +49,7 @@ def lambda_handler(event, context):
     total_scenes = len(scenes)
 
     if total_scenes == 0:
-        print("⚠️  No scenes provided, returning empty batches")
+        print("  No scenes provided, returning empty batches")
         return {
             'batches': [],
             'total_batches': 0,
@@ -60,7 +60,7 @@ def lambda_handler(event, context):
     # Calculate total batches needed
     total_batches = (total_scenes + batch_size - 1) // batch_size
 
-    print(f"📊 Batching stats:")
+    print(f" Batching stats:")
     print(f"   Total scenes: {total_scenes}")
     print(f"   Batch size: {batch_size}")
     print(f"   Total batches: {total_batches}")
@@ -90,9 +90,9 @@ def lambda_handler(event, context):
         # Add endpoint only if we successfully extracted it
         if endpoint_url:
             batch['ec2_api_host'] = endpoint_url
-            print(f"   ✅ Batch {batch_idx}: Added endpoint {endpoint_url}")
+            print(f"    Batch {batch_idx}: Added endpoint {endpoint_url}")
         else:
-            print(f"   ⚠️  Batch {batch_idx}: No endpoint available")
+            print(f"     Batch {batch_idx}: No endpoint available")
 
         batches.append(batch)
 
@@ -107,6 +107,6 @@ def lambda_handler(event, context):
         'narrative_id': narrative_id
     }
 
-    print(f"✅ Created {total_batches} batches for {total_scenes} scenes")
+    print(f" Created {total_batches} batches for {total_scenes} scenes")
 
     return output

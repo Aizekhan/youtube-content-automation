@@ -45,14 +45,14 @@ from decimal import Decimal
 def lambda_handler(event, context):
     """Об'єднання результатів з різних батчів зображень"""
 
-    print(f"🔀 Merge Image Batches")
+    print(f" Merge Image Batches")
     print(f"Event keys: {list(event.keys())}")
 
     # Get batch results (can be in different formats depending on Step Function)
     batch_results = event.get('batch_results', event.get('batches', []))
 
     if not batch_results:
-        print("⚠️  No batch results provided")
+        print("  No batch results provided")
         return {
             'scene_images': [],
             'total_images_generated': 0,
@@ -61,7 +61,7 @@ def lambda_handler(event, context):
             'batches_processed': 0
         }
 
-    print(f"📦 Processing {len(batch_results)} batches")
+    print(f" Processing {len(batch_results)} batches")
 
     # Collect all scene images
     all_scene_images = []
@@ -90,7 +90,7 @@ def lambda_handler(event, context):
     # Sort by scene_id to maintain order
     all_scene_images.sort(key=lambda x: x.get('scene_id', 0))
 
-    print(f"\n✅ Merge complete:")
+    print(f"\n Merge complete:")
     print(f"   Total images: {len(all_scene_images)}")
     print(f"   Generated: {total_generated}")
     print(f"   Failed: {total_failed}")

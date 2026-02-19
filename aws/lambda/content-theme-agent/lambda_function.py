@@ -35,7 +35,7 @@ def lambda_handler(event, context):
         except:
             api_key = secret_string
 
-        print("✅ API key retrieved successfully")
+        print(" API key retrieved successfully")
 
         # 2. Отримуємо prompt config з AIPromptConfigs
         prompt_table = dynamodb.Table('AIPromptConfigs')
@@ -66,6 +66,9 @@ def lambda_handler(event, context):
         print(f"Channel config loaded for: {channel_config.get('channel_name', 'Unknown')}")
 
         # 4. Формуємо JSON input згідно з інструкцією Theme Agent
+        factual_mode = event.get('factual_mode', channel_config.get('factual_mode', 'fictional'))
+        print(f"Generation mode: {factual_mode}")
+
         user_input = {
             "channel_name": channel_config.get('channel_name', channel_name),
             "channel_config": {
@@ -73,7 +76,8 @@ def lambda_handler(event, context):
                 "tone": channel_config.get('tone', 'Neutral'),
                 "content_focus": channel_config.get('content_focus', ''),
                 "narrative_keywords": channel_config.get('narrative_keywords', ''),
-                "example_keywords_for_youtube": channel_config.get('example_keywords_for_youtube', '')
+                "example_keywords_for_youtube": channel_config.get('example_keywords_for_youtube', ''),
+                "factual_mode": factual_mode
             },
             "topics_to_generate": topics_to_generate,
             "avoid_list": avoid_list + input_titles  # Додаємо input_titles до avoid_list
@@ -150,7 +154,7 @@ def lambda_handler(event, context):
             }
         )
 
-        print(f"✅ Saved to DynamoDB: {channel_id} at {timestamp}")
+        print(f" Saved to DynamoDB: {channel_id} at {timestamp}")
 
         # 9. Return output for Step Functions
         output = {
@@ -161,11 +165,11 @@ def lambda_handler(event, context):
             'timestamp': timestamp
         }
 
-        print(f"✅ Success! Generated: {json.dumps(output, ensure_ascii=False)}")
+        print(f" Success! Generated: {json.dumps(output, ensure_ascii=False)}")
         return output
 
     except Exception as e:
-        print(f"❌ Error: {str(e)}")
+        print(f" Error: {str(e)}")
         import traceback
         traceback.print_exc()
 

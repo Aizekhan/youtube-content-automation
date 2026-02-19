@@ -32,15 +32,15 @@ def lambda_handler(event, context):
         try:
             body = json.loads(event['body']) if isinstance(event['body'], str) else event['body']
             user_id = body.get('user_id')
-            print(f"📦 Extracted user_id from body: {user_id}")
+            print(f" Extracted user_id from body: {user_id}")
         except json.JSONDecodeError:
-            print("⚠️ Failed to parse body as JSON")
+            print(" Failed to parse body as JSON")
 
     # Try API Gateway format (direct user_id in event)
     if not user_id:
         user_id = event.get('user_id')
         if user_id:
-            print(f"📦 Extracted user_id from event: {user_id}")
+            print(f" Extracted user_id from event: {user_id}")
 
     # If no user_id provided, check for legacy admin mode
     if not user_id:

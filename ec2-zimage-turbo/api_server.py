@@ -45,7 +45,7 @@ def load_model():
     """Load Z-Image-Turbo model into memory"""
     global pipeline, model_loaded
 
-    print(f"🚀 Loading Z-Image-Turbo model on {DEVICE}...")
+    print(f" Loading Z-Image-Turbo model on {DEVICE}...")
     start_time = time.time()
 
     try:
@@ -57,7 +57,7 @@ def load_model():
         pipeline.to(DEVICE)
 
         # Warm-up generation to compile kernels
-        print("🔥 Warming up model...")
+        print(" Warming up model...")
         _ = pipeline(
             prompt="test",
             num_inference_steps=9,
@@ -70,7 +70,7 @@ def load_model():
         load_time = time.time() - start_time
         model_loaded = True
 
-        print(f"✅ Model loaded successfully in {load_time:.2f}s")
+        print(f" Model loaded successfully in {load_time:.2f}s")
         print(f"   Device: {DEVICE}")
         print(f"   Model: {MODEL_NAME}")
 
@@ -82,7 +82,7 @@ def load_model():
         return True
 
     except Exception as e:
-        print(f"❌ Failed to load model: {e}")
+        print(f" Failed to load model: {e}")
         import traceback
         traceback.print_exc()
         model_loaded = False
@@ -172,7 +172,7 @@ def generate_image():
         if not prompt:
             return jsonify({"error": "No prompt provided"}), 400
 
-        print(f"\n🎨 Generating image:")
+        print(f"\n Generating image:")
         print(f"   Prompt: {prompt[:100]}...")
         print(f"   Size: {width}x{height}")
         print(f"   Seed: {seed}")
@@ -196,7 +196,7 @@ def generate_image():
         generation_count += 1
         total_generation_time += generation_time
 
-        print(f"✅ Generated in {generation_time:.2f}s")
+        print(f" Generated in {generation_time:.2f}s")
 
         # Save to temporary file
         timestamp = datetime.now().strftime('%Y%m%d_%H%M%S')
@@ -216,7 +216,7 @@ def generate_image():
         return response
 
     except Exception as e:
-        print(f"❌ Generation failed: {e}")
+        print(f" Generation failed: {e}")
         import traceback
         traceback.print_exc()
         return jsonify({"error": str(e)}), 500
@@ -247,33 +247,33 @@ def cleanup_old_images():
         for img_path in TEMP_DIR.glob("*.png"):
             if current_time - img_path.stat().st_mtime > 3600:  # 1 hour
                 img_path.unlink()
-                print(f"🗑️  Cleaned up old image: {img_path.name}")
+                print(f"  Cleaned up old image: {img_path.name}")
     except Exception as e:
-        print(f"⚠️  Cleanup failed: {e}")
+        print(f"  Cleanup failed: {e}")
 
 
 if __name__ == '__main__':
     print("="*60)
-    print("🚀 Z-Image-Turbo API Server")
+    print(" Z-Image-Turbo API Server")
     print("="*60)
 
     # Check CUDA availability
     if torch.cuda.is_available():
-        print(f"✅ CUDA available: {torch.cuda.get_device_name(0)}")
+        print(f" CUDA available: {torch.cuda.get_device_name(0)}")
         print(f"   CUDA version: {torch.version.cuda}")
         print(f"   PyTorch version: {torch.__version__}")
     else:
-        print("⚠️  CUDA not available, using CPU (slow!)")
+        print("  CUDA not available, using CPU (slow!)")
 
     # Load model
     if not load_model():
-        print("❌ Failed to load model, exiting...")
+        print(" Failed to load model, exiting...")
         sys.exit(1)
 
     # Clean up old images on startup
     cleanup_old_images()
 
-    print(f"\n✅ Server starting on port {API_PORT}")
+    print(f"\n Server starting on port {API_PORT}")
     print(f"   Health check: http://0.0.0.0:{API_PORT}/health")
     print(f"   Generate: http://0.0.0.0:{API_PORT}/generate")
     print(f"   Stats: http://0.0.0.0:{API_PORT}/stats")

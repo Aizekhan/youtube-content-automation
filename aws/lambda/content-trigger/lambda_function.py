@@ -24,8 +24,8 @@ CHANNELS_TABLE = dynamodb.Table('ChannelConfigs')
 def lambda_handler(event, context):
     """Manual trigger for content generation workflow (Multi-tenant)"""
     try:
-        logger.info('🚀 Content Trigger Lambda started')
-        logger.info(f'📦 Event: {json.dumps(event, default=str)}')
+        logger.info(' Content Trigger Lambda started')
+        logger.info(f' Event: {json.dumps(event, default=str)}')
 
         # Parse request
         body = event.get('body')
@@ -37,7 +37,7 @@ def lambda_handler(event, context):
         # Get user_id (REQUIRED)
         user_id = body.get('user_id') or event.get('user_id')
         if not user_id:
-            logger.error('❌ Missing user_id')
+            logger.error(' Missing user_id')
             return error_response(400, 'user_id is required')
 
         channels_input = body.get('channels', 'all')
@@ -45,8 +45,8 @@ def lambda_handler(event, context):
         dry_run = options.get('dry_run', False)
         force = options.get('force', False)
 
-        logger.info(f'👤 User ID: {user_id}')
-        logger.info(f'📝 Channels: {channels_input}')
+        logger.info(f' User ID: {user_id}')
+        logger.info(f' Channels: {channels_input}')
 
         # Get channel IDs
         if channels_input == 'all':
@@ -59,7 +59,7 @@ def lambda_handler(event, context):
         if not channel_ids:
             return error_response(400, f'No active channels for user {user_id}')
 
-        logger.info(f'✅ Found {len(channel_ids)} channels')
+        logger.info(f' Found {len(channel_ids)} channels')
 
         if dry_run:
             return success_response({
@@ -84,7 +84,7 @@ def lambda_handler(event, context):
             })
         )
 
-        logger.info(f'✅ Started: {response["executionArn"]}')
+        logger.info(f' Started: {response["executionArn"]}')
 
         return success_response({
             'success': True,
@@ -96,7 +96,7 @@ def lambda_handler(event, context):
         })
 
     except Exception as e:
-        logger.error(f'❌ Error: {str(e)}', exc_info=True)
+        logger.error(f' Error: {str(e)}', exc_info=True)
         return error_response(500, str(e))
 
 
@@ -116,11 +116,11 @@ def get_all_active_channels(user_id):
         channels = response.get('Items', [])
         channel_ids = [ch['channel_id'] for ch in channels if 'channel_id' in ch]
         
-        logger.info(f'📊 Found {len(channel_ids)} active channels for {user_id}')
+        logger.info(f' Found {len(channel_ids)} active channels for {user_id}')
         return channel_ids
 
     except Exception as e:
-        logger.error(f'❌ Error: {str(e)}')
+        logger.error(f' Error: {str(e)}')
         raise
 
 

@@ -122,6 +122,62 @@
             grid-column: 1 / -1;
         }
 
+        /* Generation Mode Toggle */
+        .generation-mode-toggle {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 12px;
+            margin-top: 4px;
+        }
+        .mode-card {
+            display: flex;
+            align-items: center;
+            gap: 12px;
+            padding: 14px 16px;
+            border: 2px solid #e2e8f0;
+            border-radius: 10px;
+            cursor: pointer;
+            background: #f8fafc;
+            transition: all 0.2s ease;
+            position: relative;
+        }
+        .mode-card:hover {
+            border-color: #667eea;
+            background: #f0f4ff;
+        }
+        .mode-card.active {
+            border-color: #667eea;
+            background: linear-gradient(135deg, #f0f4ff 0%, #e8ecff 100%);
+            box-shadow: 0 2px 8px rgba(102,126,234,0.2);
+        }
+        .mode-card-icon {
+            font-size: 26px;
+            flex-shrink: 0;
+        }
+        .mode-card-body {
+            flex: 1;
+        }
+        .mode-card-title {
+            font-weight: 700;
+            font-size: 14px;
+            color: #1a202c;
+            margin-bottom: 2px;
+        }
+        .mode-card-desc {
+            font-size: 12px;
+            color: #718096;
+        }
+        .mode-card-check {
+            font-size: 16px;
+            font-weight: 700;
+            color: #667eea;
+            opacity: 0;
+            transition: opacity 0.2s;
+        }
+        .mode-card.active .mode-card-check {
+            opacity: 1;
+        }
+
         .modal label {
             font-weight: 600;
             color: #2d3748;
@@ -616,13 +672,11 @@
                             </div>
 
                             <div class="form-group">
-                                <label>Мова контенту</label>
+                                <label>Мова контенту <span style="color:#a0aec0; font-weight:400;">(Qwen3-TTS)</span></label>
                                 <select id="language">
-                                    <option value="uk">Українська (uk)</option>
-                                    <option value="en">English (en)</option>
-                                    <option value="ru">Русский (ru)</option>
-                                    <option value="pl">Polski (pl)</option>
+                                    <!-- Populated dynamically from QWEN3_LANGUAGES config -->
                                 </select>
+                                <span class="field-hint">Тільки мови що підтримує Qwen3-TTS</span>
                             </div>
 
                             <div class="form-group">
@@ -652,47 +706,12 @@
                                 <span class="field-hint">Визначає емоційну криву, retention-пристрої та стиль написання для кожної сцени</span>
                             </div>
 
-                            <div class="form-group">
-                                <label>Тон оповіді</label>
-                                <input type="text" id="tone" placeholder="Epic / Dark / Investigative / Calm">
-                                <span class="field-hint">Загальний настрій контенту</span>
-                            </div>
-
-                            <div class="form-group">
-                                <label>Стиль наррації</label>
-                                <input type="text" id="narration_style" placeholder="Third-person documentary">
-                                <span class="field-hint">Наприклад: Third-person, First-person narrator</span>
-                            </div>
-
-                            <div class="form-group">
-                                <label>Тип кінцівки</label>
-                                <input type="text" id="preferred_ending_tone" placeholder="Cliffhanger / Closure / Unresolved">
-                                <span class="field-hint">Як зазвичай закінчуються відео</span>
-                            </div>
-
-                            <div class="form-group">
-                                <label>Персонажі в історіях</label>
-                                <input type="text" id="story_character_types" placeholder="detectives, victims, suspects, witnesses">
-                                <span class="field-hint">Типові персонажі для цього каналу</span>
-                            </div>
-
                             <div class="form-group full">
-                                <label>Теми контенту <span style="color:#a0aec0; font-weight:400;">(через кому — AI обирає одну для кожного відео)</span></label>
-                                <input type="text" id="content_focus" placeholder="ancient myths, forgotten empires, divine prophecies">
-                            </div>
-
-                            <div class="form-group full">
-                                <label>Ключові слова для AI <span style="color:#a0aec0; font-weight:400;">(через кому)</span></label>
-                                <textarea id="narrative_keywords" rows="2" placeholder="mystery, ancient power, forgotten legends, epic battles"></textarea>
-                                <span class="field-hint">Слова які AI використовує при написанні сценаріїв</span>
-                            </div>
-
-                            <div class="form-group">
-                                <label style="display:flex; align-items:center; gap:8px; cursor:pointer;">
-                                    <input type="checkbox" id="hook_enabled" style="width:auto;" checked>
-                                    Генерувати хуки на початку відео
-                                </label>
-                                <span class="field-hint">Перші ~30 секунд — attention-grabbing підводка</span>
+                                <label>Голос диктора <span style="color:#667eea; font-weight:600;">(TTS Speaker)</span></label>
+                                <select id="tts_voice_speaker">
+                                    <!-- Populated dynamically from QWEN3_SPEAKERS config -->
+                                </select>
+                                <span class="field-hint">Базовий голос для всіх сцен — тільки голоси Qwen3-TTS</span>
                             </div>
                         </div>
                     </div>
@@ -874,55 +893,38 @@
                                     <input type="number" id="max_tokens" min="8000" max="16000" step="1000" value="16000">
                                     <span class="field-hint">Максимум 16000</span>
                                 </div>
-                                <div class="form-group">
-                                    <label>Narrative Pace</label>
-                                    <select id="narrative_pace">
-                                        <option value="slow">Slow (повільний)</option>
-                                        <option value="medium">Medium (середній)</option>
-                                        <option value="fast">Fast (швидкий)</option>
-                                    </select>
-                                </div>
-                                <div class="form-group">
-                                    <label>Emotional Temperature</label>
-                                    <select id="emotional_temperature">
-                                        <option value="Low">Low</option>
-                                        <option value="Medium">Medium</option>
-                                        <option value="High">High</option>
-                                    </select>
-                                </div>
-                                <div class="form-group">
-                                    <label>Factual Mode</label>
-                                    <select id="factual_mode">
-                                        <option value="fictional">Fictional (вигаданий)</option>
-                                        <option value="factual">Factual (документальний)</option>
-                                        <option value="semi-factual">Semi-factual</option>
+                                
+                                
+                                <div class="form-group full">
+                                    <label>Режим генерації контенту</label>
+                                    <div class="generation-mode-toggle">
+                                        <div class="mode-card active" data-value="fictional" onclick="setGenerationMode('fictional')">
+                                            <div class="mode-card-icon">✨</div>
+                                            <div class="mode-card-body">
+                                                <div class="mode-card-title">Вигадані історії</div>
+                                                <div class="mode-card-desc">AI вигадує унікальні сюжети та персонажів</div>
+                                            </div>
+                                            <div class="mode-card-check">✓</div>
+                                        </div>
+                                        <div class="mode-card" data-value="factual" onclick="setGenerationMode('factual')">
+                                            <div class="mode-card-icon">📚</div>
+                                            <div class="mode-card-body">
+                                                <div class="mode-card-title">На основі реальних фактів</div>
+                                                <div class="mode-card-desc">Пошук реальних даних у Wikipedia</div>
+                                            </div>
+                                            <div class="mode-card-check">✓</div>
+                                        </div>
+                                    </div>
+                                    <!-- Hidden select — зчитується JS для збереження -->
+                                    <select id="factual_mode" style="display:none">
+                                        <option value="fictional">fictional</option>
+                                        <option value="factual">factual</option>
                                     </select>
                                 </div>
                             </div>
                         </div>
 
-                        <!-- Content Identity -->
-                        <div class="form-section">
-                            <h3 class="section-title">🧠 Ідентичність Каналу</h3>
-                            <div class="form-grid">
-                                <div class="form-group full">
-                                    <label>Channel Theme</label>
-                                    <textarea id="channel_theme" rows="2" placeholder="Документальні історії про нерозкриті злочини та древні цивілізації..."></textarea>
-                                </div>
-                                <div class="form-group full">
-                                    <label>Core Idea</label>
-                                    <textarea id="core_idea" rows="2" placeholder="Розкриваємо таємниці минулого через призму сучасних досліджень..."></textarea>
-                                </div>
-                                <div class="form-group full">
-                                    <label>Meta Theme (філософський підтекст)</label>
-                                    <textarea id="meta_theme" rows="2" placeholder="Пошук правди у світі де історія пишеться переможцями..."></textarea>
-                                </div>
-                                <div class="form-group full">
-                                    <label>Story Structure Pattern</label>
-                                    <input type="text" id="story_structure_pattern" placeholder="Hook → Build → Twist → Resolution">
-                                </div>
-                            </div>
-                        </div>
+
 
                         <!-- SEO & Monetization -->
                         <div class="form-section">

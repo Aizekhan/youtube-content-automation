@@ -83,14 +83,14 @@ def log_image_cost(channel_id, content_id, provider, num_images, cost_per_image,
         # Add user_id for multi-tenant support
         if user_id:
             item['user_id'] = user_id
-            print(f"✅ Logged {provider} cost for user {user_id}: ${float(total_cost):.6f} ({num_images} images)")
+            print(f" Logged {provider} cost for user {user_id}: ${float(total_cost):.6f} ({num_images} images)")
         else:
-            print(f"⚠️  Logging {provider} cost WITHOUT user_id: ${float(total_cost):.6f} ({num_images} images)")
+            print(f"  Logging {provider} cost WITHOUT user_id: ${float(total_cost):.6f} ({num_images} images)")
 
         cost_table.put_item(Item=item)
         return float(total_cost)
     except Exception as e:
-        print(f"❌ Failed to log cost: {str(e)}")
+        print(f" Failed to log cost: {str(e)}")
         return 0.0
 
 def generate_with_bedrock_sdxl(prompt, image_config):
@@ -138,7 +138,7 @@ def generate_with_bedrock_sdxl(prompt, image_config):
         }
 
     except Exception as e:
-        print(f"❌ Bedrock SDXL generation failed: {str(e)}")
+        print(f" Bedrock SDXL generation failed: {str(e)}")
         raise
 
 # DEPRECATED: generate_with_replicate_flux() removed
@@ -164,7 +164,7 @@ def generate_with_ec2_zimage(prompt, image_config):
 def start_ec2_sd35():
     """Start EC2 SD3.5 instance via ec2-sd35-control Lambda"""
     try:
-        print("🚀 Starting EC2 SD35 instance...")
+        print(" Starting EC2 SD35 instance...")
         response = lambda_client.invoke(
             FunctionName='ec2-sd35-control',
             InvocationType='RequestResponse',
@@ -175,10 +175,10 @@ def start_ec2_sd35():
         body = json.loads(result.get('body', '{}' ))
         
         endpoint = body.get('endpoint')
-        print(f"✅ EC2 started: {endpoint}")
+        print(f" EC2 started: {endpoint}")
         return endpoint
     except Exception as e:
-        print(f"❌ Failed to start EC2: {e}")
+        print(f" Failed to start EC2: {e}")
         raise
 
 
@@ -208,9 +208,9 @@ def stop_ec2_sd35():
             InvocationType='Event',
             Payload=json.dumps({'action': 'stop'})
         )
-        print("✅ EC2 stop initiated")
+        print(" EC2 stop initiated")
     except Exception as e:
-        print(f"⚠️  Failed to stop EC2 (non-critical): {e}")
+        print(f"  Failed to stop EC2 (non-critical): {e}")
 
 
 def wait_for_image_service(endpoint, max_wait=120):
@@ -284,7 +284,7 @@ def generate_with_ec2_flux(prompt, image_config, provider='ec2-flux-schnell'):
     try:
         # Get EC2 endpoint from global variable (Step Functions) or Secrets Manager
         if EC2_ENDPOINT:
-            print(f"📌 Using EC2 endpoint from Step Functions state")
+            print(f" Using EC2 endpoint from Step Functions state")
             # Parse endpoint from Step Functions Payload
             endpoint_data = EC2_ENDPOINT
             if isinstance(endpoint_data, dict) and 'body' in endpoint_data:
@@ -299,7 +299,7 @@ def generate_with_ec2_flux(prompt, image_config, provider='ec2-flux-schnell'):
                 ec2_endpoint = endpoint_data.get('endpoint', '')
             print(f"   Endpoint from state: {ec2_endpoint}")
         else:
-            print(f"📌 Using EC2 endpoint from Secrets Manager (fallback)")
+            print(f" Using EC2 endpoint from Secrets Manager (fallback)")
             secret = secrets_client.get_secret_value(SecretId='ec2-flux-endpoint')
             ec2_endpoint = secret['SecretString']
 
@@ -324,7 +324,7 @@ def generate_with_ec2_flux(prompt, image_config, provider='ec2-flux-schnell'):
             "steps": int(image_config.get('steps', 15))  # FLUX schnell optimal: 4-15 steps
         }
 
-        print(f"📡 Calling EC2 FLUX API at {flux_api_host}:{flux_api_port}")
+        print(f" Calling EC2 FLUX API at {flux_api_host}:{flux_api_port}")
         print(f"   Prompt: {prompt[:80]}...")
 
         conn = http.client.HTTPConnection(flux_api_host, flux_api_port, timeout=180)  # Increased from 90 to 180 for SD35
@@ -352,7 +352,7 @@ def generate_with_ec2_flux(prompt, image_config, provider='ec2-flux-schnell'):
             # Fallback to ec2-sd35 pricing if provider not found
             cost = PRICING['ec2-sd35']['hourly_rate'] / PRICING['ec2-sd35']['images_per_hour']
 
-        print(f"✅ Image generated successfully ({width}x{height}, cost: ${cost:.6f})")
+        print(f" Image generated successfully ({width}x{height}, cost: ${cost:.6f})")
 
         return {
             'image_bytes': image_bytes,
@@ -363,7 +363,7 @@ def generate_with_ec2_flux(prompt, image_config, provider='ec2-flux-schnell'):
         }
 
     except Exception as e:
-        print(f"❌ EC2 FLUX generation failed: {str(e)}")
+        print(f" EC2 FLUX generation failed: {str(e)}")
         raise
 
 # DEPRECATED: generate_with_vast_ai() removed
@@ -412,7 +412,7 @@ def upload_to_s3(image_bytes, channel_id, narrative_id, scene_id):
         s3_url = f"s3://{S3_BUCKET}/{key}"
         https_url = f"https://{S3_BUCKET}.s3.eu-central-1.amazonaws.com/{key}"
 
-        print(f"✅ Uploaded image to S3: {key}")
+        print(f" Uploaded image to S3: {key}")
 
         return {
             's3_url': s3_url,
@@ -421,7 +421,7 @@ def upload_to_s3(image_bytes, channel_id, narrative_id, scene_id):
         }
 
     except Exception as e:
-        print(f"❌ Failed to upload to S3: {str(e)}")
+        print(f" Failed to upload to S3: {str(e)}")
         raise
 
 def handle_multi_channel_batch(all_prompts, provider, user_id=None):
@@ -459,7 +459,7 @@ def handle_multi_channel_batch(all_prompts, provider, user_id=None):
         "images_generated": 10
     }
     """
-    print(f"🎨 Multi-Channel Batch Image Generation")
+    print(f" Multi-Channel Batch Image Generation")
     print(f"   Provider: {provider}")
     print(f"   Total prompts: {len(all_prompts)}")
 
@@ -470,16 +470,16 @@ def handle_multi_channel_batch(all_prompts, provider, user_id=None):
     channel_configs = {}
     thumbnail_dimensions = {}
 
-    # 🚀 ОПТИМІЗОВАНО: Batch loading замість N+1 запитів до DynamoDB
+    #  ОПТИМІЗОВАНО: Batch loading замість N+1 запитів до DynamoDB
     # Старий спосіб: N запитів для configs + N запитів для templates = 2N запитів
     # Новий спосіб: 1 batch запит для configs + 1 batch для templates = 2 запити!
-    print(f"   🚀 Using optimized batch loading...")
+    print(f"    Using optimized batch loading...")
     try:
         from resource_pool_manager import optimize_channel_configs_loading
         channel_configs, thumbnail_dimensions = optimize_channel_configs_loading(all_prompts, dynamodb)
     except (ImportError, Exception) as e:
         # Fallback to old method if module not available
-        print(f"   ⚠️  Batch loading failed ({e}), using legacy method...")
+        print(f"     Batch loading failed ({e}), using legacy method...")
         channel_configs = {}
         thumbnail_dimensions = {}
         unique_channels = set(p.get('channel_id') for p in all_prompts if p.get('channel_id'))
@@ -513,11 +513,11 @@ def handle_multi_channel_batch(all_prompts, provider, user_id=None):
                                 # Convert to actual dimensions
                                 width, height = get_dimensions_from_aspect_ratio(aspect_ratio, resolution)
                                 thumbnail_dimensions[channel_id] = (width, height)
-                                print(f"   ✅ {channel_id[-6:]}: Thumbnail {aspect_ratio} = {width}x{height}")
+                                print(f"    {channel_id[-6:]}: Thumbnail {aspect_ratio} = {width}x{height}")
                         except Exception as e:
-                            print(f"   ⚠️  Failed to load thumbnail template for {channel_id}: {e}")
+                            print(f"     Failed to load thumbnail template for {channel_id}: {e}")
             except Exception as e:
-                print(f"   ⚠️  Failed to load channel config for {channel_id}: {e}")
+                print(f"     Failed to load channel config for {channel_id}: {e}")
 
         # Default image config for scene images
     default_image_config = {
@@ -537,11 +537,11 @@ def handle_multi_channel_batch(all_prompts, provider, user_id=None):
         image_type = prompt_data.get('image_type', 'scene')  # 'scene' or 'thumbnail'
 
         if not prompt:
-            print(f"⚠️  Prompt {i+1}/{len(all_prompts)} is empty, skipping")
+            print(f"  Prompt {i+1}/{len(all_prompts)} is empty, skipping")
             continue
 
         if not channel_id or channel_id == 'unknown':
-            print(f"⚠️  Prompt {i+1}/{len(all_prompts)} missing channel_id, skipping")
+            print(f"  Prompt {i+1}/{len(all_prompts)} missing channel_id, skipping")
             continue
 
         # Determine image dimensions based on type
@@ -553,7 +553,7 @@ def handle_multi_channel_batch(all_prompts, provider, user_id=None):
                 'height': height,
                 'steps': default_image_config['steps']
             }
-            print(f"\n🖼️  Generating THUMBNAIL {i+1}/{len(all_prompts)}")
+            print(f"\n  Generating THUMBNAIL {i+1}/{len(all_prompts)}")
             print(f"   Channel: {channel_id[-6:]}")
             print(f"   Dimensions: {width}x{height} (from template)")
             print(f"   Prompt: {prompt[:80]}...")
@@ -568,7 +568,7 @@ def handle_multi_channel_batch(all_prompts, provider, user_id=None):
                 'height': image_settings.get('height', default_image_config['height']),
                 'steps': image_settings.get('steps', default_image_config['steps'])
             }
-            print(f"\n🎨 Generating SCENE image {i+1}/{len(all_prompts)}")
+            print(f"\n Generating SCENE image {i+1}/{len(all_prompts)}")
             print(f"   Channel: {channel_id[-6:]}")
             print(f"   Scene: {scene_number}")
             print(f"   Dimensions: {image_config['width']}x{image_config['height']}")
@@ -585,7 +585,7 @@ def handle_multi_channel_batch(all_prompts, provider, user_id=None):
             elif provider == 'aws-bedrock-sdxl':
                 result = generate_with_bedrock_sdxl(prompt, image_config)
             else:
-                print(f"⚠️  Unknown provider '{provider}', falling back to EC2 FLUX")
+                print(f"  Unknown provider '{provider}', falling back to EC2 FLUX")
                 result = generate_with_ec2_flux(prompt, image_config, provider=provider)
 
             # Upload to S3
@@ -617,10 +617,10 @@ def handle_multi_channel_batch(all_prompts, provider, user_id=None):
             scene_images.append(scene_image)
             total_cost += result['cost']
 
-            print(f"✅ Image {i+1} generated successfully (${result['cost']:.4f})")
+            print(f" Image {i+1} generated successfully (${result['cost']:.4f})")
 
         except Exception as e:
-            print(f"❌ Failed to generate image {i+1}: {str(e)}")
+            print(f" Failed to generate image {i+1}: {str(e)}")
 
             # Add failed entry
             scene_images.append({
@@ -634,7 +634,7 @@ def handle_multi_channel_batch(all_prompts, provider, user_id=None):
                 'generated_at': datetime.utcnow().isoformat() + 'Z'
             })
 
-    print(f"\n✅ Multi-channel batch completed!")
+    print(f"\n Multi-channel batch completed!")
     print(f"   Generated: {len([img for img in scene_images if img.get('status') == 'completed'])} images")
     print(f"   Failed: {len([img for img in scene_images if img.get('status') == 'failed'])} images")
     print(f"   Total cost: ${total_cost:.4f}")
@@ -657,7 +657,7 @@ def handle_multi_channel_batch(all_prompts, provider, user_id=None):
                     channel_costs[channel_id]['content_id'] = content_id
 
         # Log cost for each channel
-        print(f"📊 Logging costs to CostTracking table...")
+        print(f" Logging costs to CostTracking table...")
         for channel_id, data in channel_costs.items():
             if data['images'] > 0:
                 try:
@@ -669,9 +669,9 @@ def handle_multi_channel_batch(all_prompts, provider, user_id=None):
                         cost_per_image=data['cost'] / data['images'],
                         user_id=user_id
                     )
-                    print(f"   ✅ Logged {data['images']} images for {channel_id[-6:]}: ${data['cost']:.4f}")
+                    print(f"    Logged {data['images']} images for {channel_id[-6:]}: ${data['cost']:.4f}")
                 except Exception as e:
-                    print(f"   ❌ Failed to log costs for {channel_id}: {e}")
+                    print(f"    Failed to log costs for {channel_id}: {e}")
 
     return {
         'scene_images': scene_images,
@@ -733,22 +733,22 @@ def lambda_handler(event, context):
         }
     }
     """
-    print(f"🎨 Image Generator - Multi-Provider Version with BATCHING")
+    print(f" Image Generator - Multi-Provider Version with BATCHING")
     print(f"Event: {json.dumps(event, ensure_ascii=False, default=decimal_default)}")
 
     # Extract user_id for multi-tenant cost tracking
     user_id = event.get('user_id')
     if user_id:
-        print(f"✅ User ID: {user_id}")
+        print(f" User ID: {user_id}")
     else:
-        print(f"⚠️  WARNING: No user_id provided - costs will be logged without user association")
+        print(f"  WARNING: No user_id provided - costs will be logged without user association")
 
     # MULTI-CHANNEL BATCH MODE: Check if all_prompts is present (optimized multi-channel mode)
     all_prompts = event.get('all_prompts')
     multi_channel_mode = all_prompts is not None
 
     if multi_channel_mode:
-        print(f"🔄 MULTI-CHANNEL BATCH MODE DETECTED")
+        print(f" MULTI-CHANNEL BATCH MODE DETECTED")
         print(f"   Total prompts from all channels: {len(all_prompts)}")
 
         # Extract provider and EC2 endpoint from event (passed by Step Functions)
@@ -758,7 +758,7 @@ def lambda_handler(event, context):
         global EC2_ENDPOINT
         EC2_ENDPOINT = event.get('ec2_endpoint')
         if EC2_ENDPOINT:
-            print(f"✅ EC2 endpoint received from Step Functions")
+            print(f" EC2 endpoint received from Step Functions")
 
         # Wait for Z-Image service to be ready (EC2 may be running but service still starting)
         if EC2_ENDPOINT:
@@ -787,7 +787,7 @@ def lambda_handler(event, context):
         end_idx = min(start_idx + batch_size, total_scenes)
         scenes_to_process = scenes[start_idx:end_idx]
 
-        print(f"📦 BATCH MODE ENABLED")
+        print(f" BATCH MODE ENABLED")
         print(f"   Total scenes: {total_scenes}")
         print(f"   Batch size: {batch_size}")
         print(f"   Total batches: {total_batches}")
@@ -795,7 +795,7 @@ def lambda_handler(event, context):
         print(f"   Processing scenes: {start_idx + 1} to {end_idx}")
     else:
         scenes_to_process = scenes
-        print(f"📦 Processing ALL {total_scenes} scenes (no batching)")
+        print(f" Processing ALL {total_scenes} scenes (no batching)")
 
     try:
         # 1. Get channel config
@@ -809,7 +809,7 @@ def lambda_handler(event, context):
             raise Exception(f'Channel config not found for {channel_id}')
 
         channel_config = channel_response['Items'][0]
-        print(f"✅ Channel config loaded: {channel_config.get('channel_name', 'Unknown')}")
+        print(f" Channel config loaded: {channel_config.get('channel_name', 'Unknown')}")
 
         # 2. Get image generation settings from channel config
         image_settings = channel_config.get('image_generation', {})
@@ -818,7 +818,7 @@ def lambda_handler(event, context):
         width = image_settings.get('width', 1024)
         height = image_settings.get('height', 576)  # FLUX default 16:9 aspect ratio
 
-        print(f"🎨 Image provider: {provider}")
+        print(f" Image provider: {provider}")
         print(f"   Quality: {quality}, Size: {width}x{height}")
 
         # 3. Get API keys if needed
@@ -828,7 +828,7 @@ def lambda_handler(event, context):
                 secret = secrets_client.get_secret_value(SecretId='replicate/api-key')
                 api_keys['replicate'] = json.loads(secret['SecretString']).get('api_key')
             except:
-                print("⚠️  Replicate API key not found")
+                print("  Replicate API key not found")
 
         if provider.startswith('vast-ai'):
             try:
@@ -836,14 +836,14 @@ def lambda_handler(event, context):
                 vast_config = json.loads(secret['SecretString'])
                 api_keys['vast_ai'] = vast_config
             except:
-                print("⚠️  Vast.ai config not found")
+                print("  Vast.ai config not found")
 
         # 4. Auto-start Vast.ai instance if using vast-ai provider
         vast_instance_started = False
         control_api_url = 'https://xmstnomewqj2zlhrgkqxnnhkz40znusc.lambda-url.eu-central-1.on.aws'
 
         if provider.startswith('vast-ai') and 'vast_ai' in api_keys:
-            print("\n🔍 Checking Vast.ai instance status...")
+            print("\n Checking Vast.ai instance status...")
             is_running = check_vast_instance_status(control_api_url)
 
             if not is_running:
@@ -864,7 +864,7 @@ def lambda_handler(event, context):
                 ec2_instance_started = True
                 print("EC2 SD35 instance ready for generation")
             except Exception as e:
-                print(f"❌ Failed to start EC2: {e}")
+                print(f" Failed to start EC2: {e}")
                 raise
 
         # 5. Generate images for each scene
@@ -886,10 +886,10 @@ def lambda_handler(event, context):
             image_prompt = scene.get('image_prompt', '')
 
             if not image_prompt:
-                print(f"⚠️  Scene {scene_id} has no image_prompt, skipping")
+                print(f"  Scene {scene_id} has no image_prompt, skipping")
                 continue
 
-            print(f"\n🎨 Generating image for scene {scene_id}")
+            print(f"\n Generating image for scene {scene_id}")
             print(f"   Prompt: {image_prompt[:100]}...")
 
             try:
@@ -905,7 +905,7 @@ def lambda_handler(event, context):
 
 
                 else:
-                    print(f"⚠️  Unknown provider '{provider}', falling back to EC2 FLUX")
+                    print(f"  Unknown provider '{provider}', falling back to EC2 FLUX")
                     result = generate_with_ec2_flux(image_prompt, image_config)
 
                 # Upload to S3
@@ -933,10 +933,10 @@ def lambda_handler(event, context):
                 scene_images.append(scene_image)
                 total_cost += result['cost']
 
-                print(f"✅ Scene {scene_id} generated successfully (${result['cost']:.4f})")
+                print(f" Scene {scene_id} generated successfully (${result['cost']:.4f})")
 
             except Exception as e:
-                print(f"❌ Failed to generate image for scene {scene_id}: {str(e)}")
+                print(f" Failed to generate image for scene {scene_id}: {str(e)}")
 
                 # Add failed entry
                 scene_images.append({
@@ -980,14 +980,14 @@ def lambda_handler(event, context):
                 'batch_range': f"{start_idx + 1}-{end_idx}"
             }
 
-        print(f"\n✅ Image generation completed!")
+        print(f"\n Image generation completed!")
         print(f"   Generated: {output['images_generated']} images")
         print(f"   Failed: {output['images_failed']} images")
         print(f"   Total cost: ${total_cost:.4f}")
 
         # 7. Auto-stop Vast.ai instance if we started it
         if vast_instance_started:
-            print("\n💰 Auto-stopping Vast.ai instance to save costs...")
+            print("\n Auto-stopping Vast.ai instance to save costs...")
             stop_vast_instance(control_api_url)
 
         # 7b. Auto-stop EC2 SD35 instance if we started it
@@ -998,13 +998,13 @@ def lambda_handler(event, context):
         return output
 
     except Exception as e:
-        print(f"❌ ERROR: {str(e)}")
+        print(f" ERROR: {str(e)}")
         import traceback
         traceback.print_exc()
 
         # Stop Vast.ai instance if we started it (even on error to save costs)
         if 'vast_instance_started' in locals() and vast_instance_started:
-            print("\n💰 Stopping Vast.ai instance after error to save costs...")
+            print("\n Stopping Vast.ai instance after error to save costs...")
             stop_vast_instance(control_api_url)
 
         # Stop EC2 SD35 instance if we started it (even on error)
