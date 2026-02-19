@@ -75,6 +75,14 @@ You are a multi-specialist AI that combines the expertise of:
 **Core Rules**:
 {format_list(narrative_inst['core_rules'])}
 
+**TTS AUDIO WRITING RULES** (MANDATORY - no exceptions, applies to every scene in every language):
+- ALWAYS write ALL numbers, digits, years, dates, quantities, measurements, percentages as WORDS in narrative text
+- NEVER use digits or numeric symbols in narration fields (scene_narration, scene_text, dialogue, etc.)
+- Examples: five not 5 | nineteen eighty-seven not 1987 | two thousand and one not 2001 | three million not 3000000 | forty-two percent not 42% | January the fifth not January 5th | the nineteenth century not the 19th century
+- Ordinals as words: the first, the third, the twenty-second - NOT 1st, 3rd, 22nd
+- Currency as words: five hundred dollars not 500 dollars | one million euros not 1000000 euros
+- Dates as words: March the fifteenth, nineteen ninety-nine not March 15, 1999
+- This applies to ALL languages: write numbers as words in the channel language (Ukrainian, Russian, English, etc.)
 
 ---
 
@@ -185,10 +193,11 @@ For EACH scene, generate:
 ## IMPORTANT NOTES
 
 1. **PLAIN TEXT**: Scene narration must be PLAIN TEXT without any markup tags
-2. **SFX**: Use ONLY files from provided libraries - DO NOT invent names
-3. **CTA**: Make CTA creative and fit narrative tone (humor, mystery, suspense)
-4. **Consistency**: All components must align with channel tone and genre
-5. **Length**: Generate {config['constraints']['scene_count_target']} scenes, ~{config['constraints']['target_character_count']} characters total
+2. **NUMBERS AS WORDS**: NEVER use digits in narration - always spell out: five not 5, nineteen eighty-seven not 1987
+3. **SFX**: Use ONLY files from provided libraries - DO NOT invent names
+4. **CTA**: Make CTA creative and fit narrative tone (humor, mystery, suspense)
+5. **Consistency**: All components must align with channel tone and genre
+6. **Length**: Generate {config['constraints']['scene_count_target']} scenes, ~{config['constraints']['target_character_count']} characters total
 
 ---
 
@@ -204,7 +213,7 @@ You MUST return valid JSON following this exact schema:
     {{
       "scene_number": 1,
       "scene_title": "string",
-      "scene_narration": "string (PLAIN TEXT, no markup)",
+      "scene_narration": "string (PLAIN TEXT, no markup, all numbers as words)",
       "image_prompt": "string (detailed)",
       "negative_prompt": "string",
       "sfx_cues": ["filename1.mp3", "filename2.mp3"],
@@ -267,11 +276,12 @@ Generate ALL components in JSON format following the output schema provided abov
 
 Remember:
 1. Generate PLAIN TEXT narration (NO SSML tags)
-2. Use ONLY SFX/music from provided libraries
-3. Make CTA creative and in-theme
-4. Generate detailed image_prompt for each scene
-5. Create clickable thumbnail concept
-6. Write SEO-optimized description with timestamps
+2. Write ALL numbers, dates, years as WORDS - never use digits in narration
+3. Use ONLY SFX/music from provided libraries
+4. Make CTA creative and in-theme
+5. Generate detailed image_prompt for each scene
+6. Create clickable thumbnail concept
+7. Write SEO-optimized description with timestamps
 
 Return valid JSON only, no additional text.
 """
