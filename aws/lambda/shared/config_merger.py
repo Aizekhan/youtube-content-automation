@@ -344,83 +344,124 @@ def map_voice_profile_to_actual_voice(voice_profile, tts_service):
             'aws_polly_standard': 'Matthew',
             'elevenlabs': 'Adam',
             'google_tts': 'en-US-Neural2-D',
-            'qwen3_tts': 'Ryan'  # NEW: Qwen3-TTS
+            'qwen3_tts': 'ryan'
         },
         'authoritative_male': {
             'aws_polly_neural': 'Matthew',
             'aws_polly_standard': 'Matthew',
             'elevenlabs': 'Josh',
             'google_tts': 'en-US-Neural2-D',
-            'qwen3_tts': 'Ryan'  # NEW: Qwen3-TTS
+            'qwen3_tts': 'eric'
         },
         'neutral_male': {
             'aws_polly_neural': 'Joey',
             'aws_polly_standard': 'Joey',
             'elevenlabs': 'Sam',
             'google_tts': 'en-US-Neural2-A',
-            'qwen3_tts': 'Mark'  # NEW: Qwen3-TTS
+            'qwen3_tts': 'dylan'
         },
         'young_male': {
             'aws_polly_neural': 'Justin',
             'aws_polly_standard': 'Justin',
             'elevenlabs': 'Antoni',
             'google_tts': 'en-US-Neural2-A',
-            'qwen3_tts': 'Mark'  # NEW: Qwen3-TTS
+            'qwen3_tts': 'aiden'
         },
         'soft_female': {
             'aws_polly_neural': 'Joanna',
             'aws_polly_standard': 'Joanna',
             'elevenlabs': 'Bella',
             'google_tts': 'en-US-Neural2-C',
-            'qwen3_tts': 'Lily'  # NEW: Qwen3-TTS
+            'qwen3_tts': 'serena'
         },
         'gentle_female': {
             'aws_polly_neural': 'Salli',
             'aws_polly_standard': 'Salli',
             'elevenlabs': 'Rachel',
             'google_tts': 'en-US-Neural2-E',
-            'qwen3_tts': 'Lily'  # NEW: Qwen3-TTS
+            'qwen3_tts': 'vivian'
         },
         'neutral_female': {
             'aws_polly_neural': 'Kendra',
             'aws_polly_standard': 'Kendra',
             'elevenlabs': 'Domi',
             'google_tts': 'en-US-Neural2-F',
-            'qwen3_tts': 'Emily'  # NEW: Qwen3-TTS
+            'qwen3_tts': 'ono_anna'
         },
         'warm_female': {
             'aws_polly_neural': 'Joanna',
             'aws_polly_standard': 'Joanna',
             'elevenlabs': 'Bella',
             'google_tts': 'en-US-Neural2-C',
-            'qwen3_tts': 'Emily'  # NEW: Qwen3-TTS
+            'qwen3_tts': 'sohee'
         },
 
         # ============================================
-        # Qwen3-TTS Speakers (NEW)
+        # Qwen3-TTS Speakers (supported: aiden, dylan, eric, ono_anna, ryan, serena, sohee, uncle_fu, vivian)
         # ============================================
         'qwen3_ryan': {
-            'qwen3_tts': 'Ryan',
-            'aws_polly_neural': 'Matthew',  # Fallback
+            'qwen3_tts': 'ryan',
+            'aws_polly_neural': 'Matthew',
             'aws_polly_standard': 'Matthew'
         },
+        'qwen3_serena': {
+            'qwen3_tts': 'serena',
+            'aws_polly_neural': 'Joanna',
+            'aws_polly_standard': 'Joanna'
+        },
+        'qwen3_vivian': {
+            'qwen3_tts': 'vivian',
+            'aws_polly_neural': 'Emma',
+            'aws_polly_standard': 'Emma'
+        },
+        'qwen3_dylan': {
+            'qwen3_tts': 'dylan',
+            'aws_polly_neural': 'Joey',
+            'aws_polly_standard': 'Joey'
+        },
+        'qwen3_aiden': {
+            'qwen3_tts': 'aiden',
+            'aws_polly_neural': 'Justin',
+            'aws_polly_standard': 'Justin'
+        },
+        'qwen3_eric': {
+            'qwen3_tts': 'eric',
+            'aws_polly_neural': 'Matthew',
+            'aws_polly_standard': 'Matthew'
+        },
+        'qwen3_ono_anna': {
+            'qwen3_tts': 'ono_anna',
+            'aws_polly_neural': 'Kendra',
+            'aws_polly_standard': 'Kendra'
+        },
+        'qwen3_uncle_fu': {
+            'qwen3_tts': 'uncle_fu',
+            'aws_polly_neural': 'Joey',
+            'aws_polly_standard': 'Joey'
+        },
+        'qwen3_sohee': {
+            'qwen3_tts': 'sohee',
+            'aws_polly_neural': 'Salli',
+            'aws_polly_standard': 'Salli'
+        },
+        # Backward compat aliases
         'qwen3_lily': {
-            'qwen3_tts': 'Lily',
+            'qwen3_tts': 'serena',
             'aws_polly_neural': 'Joanna',
             'aws_polly_standard': 'Joanna'
         },
         'qwen3_emily': {
-            'qwen3_tts': 'Emily',
+            'qwen3_tts': 'vivian',
             'aws_polly_neural': 'Emma',
             'aws_polly_standard': 'Emma'
         },
         'qwen3_mark': {
-            'qwen3_tts': 'Mark',
+            'qwen3_tts': 'dylan',
             'aws_polly_neural': 'Joey',
             'aws_polly_standard': 'Joey'
         },
         'qwen3_jane': {
-            'qwen3_tts': 'Jane',
+            'qwen3_tts': 'serena',
             'aws_polly_neural': 'Kendra',
             'aws_polly_standard': 'Kendra'
         }

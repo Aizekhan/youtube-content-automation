@@ -29,14 +29,19 @@ const QWEN3_LANGUAGES = [
     ];
 
 // Голоси Qwen3-TTS (source of truth — matches speaker normalization in content-audio-qwen3tts)
+// Supported speakers: aiden, dylan, eric, ono_anna, ryan, serena, sohee, uncle_fu, vivian
 const QWEN3_SPEAKERS = [
-    { value: '',      label: '\u2014 Ryan (\u0437\u0430 \u0437\u0430\u043c\u043e\u0432\u0447\u0443\u0432\u0430\u043d\u043d\u044f\u043c) \u2014' },
-    { value: 'Ryan',  label: 'Ryan  \u2014 \u0433\u043b\u0438\u0431\u043e\u043a\u0438\u0439 \u0447\u043e\u043b\u043e\u0432\u0456\u0447\u0438\u0439' },
-    { value: 'Mark',  label: 'Mark  \u2014 \u043d\u0435\u0439\u0442\u0440\u0430\u043b\u044c\u043d\u0438\u0439 \u0447\u043e\u043b\u043e\u0432\u0456\u0447\u0438\u0439' },
-    { value: 'Lily',  label: 'Lily  \u2014 \u043c\u0027\u044f\u043a\u0438\u0439 \u0436\u0456\u043d\u043e\u0447\u0438\u0439' },
-    { value: 'Emily', label: 'Emily \u2014 \u043d\u0435\u0439\u0442\u0440\u0430\u043b\u044c\u043d\u0438\u0439 \u0436\u0456\u043d\u043e\u0447\u0438\u0439' },
-    { value: 'Jane',  label: 'Jane  \u2014 \u0442\u0435\u043f\u043b\u0438\u0439 \u0436\u0456\u043d\u043e\u0447\u0438\u0439' }
-    ];
+    { value: '',         label: '— ryan (за замовчуванням) —' },
+    { value: 'ryan',     label: 'Ryan      — глибокий чоловічий' },
+    { value: 'eric',     label: 'Eric      — авторитетний чоловічий' },
+    { value: 'dylan',    label: 'Dylan     — нейтральний чоловічий' },
+    { value: 'aiden',    label: 'Aiden     — молодий чоловічий' },
+    { value: 'uncle_fu', label: 'Uncle Fu  — зрілий чоловічий' },
+    { value: 'serena',   label: 'Serena    — тепла жіноча' },
+    { value: 'vivian',   label: 'Vivian    — нейтральна жіноча' },
+    { value: 'ono_anna', label: 'Ono Anna  — м\'яка жіноча' },
+    { value: 'sohee',    label: 'Sohee     — молода жіноча' }
+];
 
 // Populate speaker dropdown from QWEN3_SPEAKERS
 function populateSpeakerDropdown(selectEl, selectedValue) {

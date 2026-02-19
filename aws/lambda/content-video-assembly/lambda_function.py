@@ -468,7 +468,19 @@ def assemble_video(content, assets, template, work_dir):
             scene_videos.append(thumbnail_video)
             print(f" Thumbnail intro created: {thumbnail_video}")
 
-    for i, (audio, image) in enumerate(zip(assets['audio'], assets['images'])):
+    have_images = len(assets['images']) > 0
+
+    if have_images:
+        # Normal path: pair each audio with its corresponding image
+        pairs = list(zip(assets['audio'], assets['images']))
+    else:
+        # Fallback: no images available (e.g. EC2 capacity issue) — use black background
+        print("WARNING: No images available - generating video with black background")
+        pairs = [(audio, None) for audio in assets['audio']]
+
+    ken_burns = visual_effects.get('effects', {}).get('ken_burns', {})
+
+    for i, (audio, image) in enumerate(pairs):
         print(f"\nProcessing scene {i+1}...")
 
         scene_video = os.path.join(work_dir, f'scene_{i+1}.mp4')
@@ -476,10 +488,22 @@ def assemble_video(content, assets, template, work_dir):
         # Get duration from audio
         duration_sec = float(audio['duration_ms']) / 1000
 
-        # Apply Ken Burns effect if enabled
-        ken_burns = visual_effects.get('effects', {}).get('ken_burns', {})
-
-        if ken_burns.get('enabled'):
+        if image is None:
+            # No image: black background + audio
+            cmd = [
+                FFMPEG_PATH,
+                '-f', 'lavfi',
+                '-i', 'color=c=black:s=1920x1080:r=30',
+                '-i', audio['path'],
+                '-c:v', 'libx264',
+                '-preset', 'veryfast',
+                '-crf', '23',
+                '-c:a', 'aac',
+                '-shortest',
+                '-y',
+                scene_video
+            ]
+        elif ken_burns.get('enabled'):
             # Ken Burns: slow zoom and pan
             zoom_max = ken_burns.get('zoom_range', {}).get('max', 1.2)
             zoom_min = ken_burns.get('zoom_range', {}).get('min', 1.0)
@@ -499,8 +523,8 @@ def assemble_video(content, assets, template, work_dir):
                 '-i', audio['path'],
                 '-vf', f"scale=1920:1080:force_original_aspect_ratio=increase,crop=1920:1080,zoompan=z='min(zoom+{zoom_rate},{zoom_max})':d={total_frames}:s=1920x1080:fps=30",
                 '-c:v', 'libx264',
-                '-preset', 'veryfast',  # Changed from 'fast' to 'veryfast' for 2x speed
-                '-crf', '23',  # Quality setting (lower = better quality, 23 is good default)
+                '-preset', 'veryfast',
+                '-crf', '23',
                 '-c:a', 'aac',
                 '-shortest',
                 '-y',
@@ -515,8 +539,8 @@ def assemble_video(content, assets, template, work_dir):
                 '-i', audio['path'],
                 '-vf', 'scale=1920:1080:force_original_aspect_ratio=increase,crop=1920:1080',
                 '-c:v', 'libx264',
-                '-preset', 'veryfast',  # Changed from 'fast' to 'veryfast' for 2x speed
-                '-crf', '23',  # Quality setting
+                '-preset', 'veryfast',
+                '-crf', '23',
                 '-c:a', 'aac',
                 '-shortest',
                 '-y',
@@ -527,15 +551,20 @@ def assemble_video(content, assets, template, work_dir):
         result = subprocess.run(cmd, capture_output=True, text=True)
 
         if result.returncode != 0:
-            print(f" FFmpeg FAILED for scene {i+1}")
+            print(f"FFmpeg FAILED for scene {i+1}")
             print(f"Return code: {result.returncode}")
             print(f"STDERR:\n{result.stderr}")
             print(f"STDOUT:\n{result.stdout}")
-            print(f"Image path: {image['path']}, exists: {os.path.exists(image['path'])}")
+            if image:
+                print(f"Image path: {image['path']}, exists: {os.path.exists(image['path'])}")
             print(f"Audio path: {audio['path']}, exists: {os.path.exists(audio['path'])}")
             raise Exception(f"FFmpeg failed for scene {i+1}: {result.stderr[:500]}")
 
         scene_videos.append(scene_video)
+
+    # Guard: must have at least one scene to concatenate
+    if not scene_videos:
+        raise Exception("No scenes to concatenate: no audio files available")
 
     # Concatenate all scene videos
     print(f"\nConcatenating {len(scene_videos)} scenes...")

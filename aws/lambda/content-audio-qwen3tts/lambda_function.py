@@ -391,8 +391,31 @@ def generate_with_qwen3(ec2_endpoint, text, language='English', speaker='Ryan', 
         }
         language_normalized = lang_map.get(language.lower() if language else 'en', language or 'English')
 
-        # Normalize speaker (server default is "Ryan", not "default")
-        speaker_normalized = 'Ryan' if not speaker or speaker.lower() == 'default' else speaker
+        # Supported speakers in Qwen3-TTS model
+        SUPPORTED_SPEAKERS = {'aiden', 'dylan', 'eric', 'ono_anna', 'ryan', 'serena', 'sohee', 'uncle_fu', 'vivian'}
+        # Legacy speaker name mapping (old names -> new supported names)
+        SPEAKER_ALIAS = {
+            # Old Qwen3 names (no longer supported)
+            'jane': 'serena', 'lily': 'serena', 'emily': 'vivian',
+            'mark': 'dylan', 'ryan': 'ryan',
+            # Generic names
+            'female': 'serena', 'woman': 'serena', 'girl': 'vivian',
+            'male': 'ryan', 'man': 'ryan', 'boy': 'aiden', 'default': 'ryan',
+            # Aliases
+            'anna': 'ono_anna', 'fu': 'uncle_fu',
+        }
+        if not speaker:
+            speaker_normalized = 'ryan'
+        else:
+            s = speaker.lower()
+            if s in SUPPORTED_SPEAKERS:
+                speaker_normalized = s
+            elif s in SPEAKER_ALIAS:
+                speaker_normalized = SPEAKER_ALIAS[s]
+            else:
+                # Unknown speaker: fallback to ryan (male) or serena (female)
+                print(f"WARNING: Unknown speaker '{speaker}', falling back to 'serena'")
+                speaker_normalized = 'serena'
 
         payload = {
             'scenes': [{'scene_number': 1, 'scene_narration': text}],
