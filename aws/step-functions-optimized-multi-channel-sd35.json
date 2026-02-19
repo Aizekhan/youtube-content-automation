@@ -196,7 +196,7 @@
                 "data.$": "$.Payload"
               },
               "ResultPath": "$.ec2Endpoint",
-              "Next": "GenerateAllImagesBatched",
+              "Next": "CheckEC2ImageEndpoint",
               "Retry": [
                 {
                   "ErrorEquals": ["States.ALL"],
@@ -204,7 +204,27 @@
                   "MaxAttempts": 3,
                   "BackoffRate": 2.0
                 }
+              ],
+              "Catch": [
+                {
+                  "ErrorEquals": ["States.ALL"],
+                  "ResultPath": "$.ec2ImageError",
+                  "Next": "PreparePhase3WithoutImages",
+                  "Comment": "EC2 unavailable (capacity/timeout) - continue without images"
+                }
               ]
+            },
+            "CheckEC2ImageEndpoint": {
+              "Type": "Choice",
+              "Comment": "Check if EC2 returned a valid endpoint (statusCode 200/202 + endpoint field)",
+              "Choices": [
+                {
+                  "Variable": "$.ec2Endpoint.data.endpoint",
+                  "IsPresent": true,
+                  "Next": "GenerateAllImagesBatched"
+                }
+              ],
+              "Default": "PreparePhase3WithoutImages"
             },
             "GenerateAllImagesBatched": {
               "Type": "Task",
