@@ -37,10 +37,10 @@ jobs:
       - name: Deploy Narrative Architect Lambda
         run: |
           cd aws/lambda/content-narrative
-          zip -r narrative.zip lambda_function.py
+          python3 create_zip.py
           aws lambda update-function-code \
             --function-name content-narrative \
-            --zip-file fileb://narrative.zip \
+            --zip-file fileb://function.zip \
             --region eu-central-1
           echo "✅ Narrative Architect deployed successfully"
 
