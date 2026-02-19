@@ -1,12 +1,41 @@
 import json
 import boto3
 import time
+import http.client
+import socket
 
 ec2 = boto3.client('ec2', region_name='eu-central-1')
 
 # EC2 Configuration - Z-Image-Turbo
 INSTANCE_ID = 'i-0c311fcd95ed6efd3'
 INSTANCE_NAME = 'z-image-turbo-server'
+SERVICE_PORT = 5000
+MAX_STARTUP_WAIT = 480  # 8 minutes - g5.xlarge needs time to load models
+
+def wait_for_service(ip, max_wait=MAX_STARTUP_WAIT):
+    """Wait until Z-Image service is ready to accept requests."""
+    print(f"Waiting for Z-Image service at {ip}:{SERVICE_PORT} (max {max_wait}s)...")
+    waited = 0
+    interval = 15
+
+    while waited < max_wait:
+        try:
+            conn = http.client.HTTPConnection(ip, SERVICE_PORT, timeout=5)
+            conn.request('GET', '/health')
+            resp = conn.getresponse()
+            conn.close()
+            if resp.status < 500:
+                print(f"Z-Image service ready after {waited}s (HTTP {resp.status})")
+                return True
+            else:
+                print(f"Service not ready ({waited}/{max_wait}s), HTTP {resp.status}, retrying...")
+        except (ConnectionRefusedError, socket.timeout, OSError) as e:
+            print(f"Service not ready ({waited}/{max_wait}s): {str(e)[:60]}, retrying in {interval}s...")
+        time.sleep(interval)
+        waited += interval
+
+    print(f"WARNING: Z-Image service not ready after {max_wait}s, returning endpoint anyway")
+    return False
 
 def lambda_handler(event, context):
     """Control EC2 instance for Z-Image-Turbo"""
@@ -60,20 +89,22 @@ def lambda_handler(event, context):
             return error_result
 
 def start_instance():
-    """Start EC2 instance"""
+    """Start EC2 instance and wait for service to be ready"""
     response = ec2.describe_instances(InstanceIds=[INSTANCE_ID])
     instance = response['Reservations'][0]['Instances'][0]
     state = instance['State']['Name']
 
     if state == 'running':
         public_ip = instance.get('PublicIpAddress')
-        endpoint = f"http://{public_ip}:5000"
+        endpoint = f"http://{public_ip}:{SERVICE_PORT}"
+        print(f"Instance already running: {endpoint}, waiting for service...")
+        wait_for_service(public_ip)
         return {
             'statusCode': 200,
             'status': 'running', 'state': 'running',
             'endpoint': endpoint,
             'instance_id': INSTANCE_ID,
-            'message': 'Already running'
+            'message': 'Already running, service ready'
         }
     elif state == 'stopped':
         print(f"Starting instance: {INSTANCE_ID}")
@@ -84,15 +115,17 @@ def start_instance():
 
         instance = ec2.describe_instances(InstanceIds=[INSTANCE_ID])['Reservations'][0]['Instances'][0]
         public_ip = instance.get('PublicIpAddress')
-        endpoint = f"http://{public_ip}:5000"
+        endpoint = f"http://{public_ip}:{SERVICE_PORT}"
 
-        print(f"Instance started: {endpoint}")
+        print(f"Instance started: {endpoint}, waiting for service to be ready...")
+        wait_for_service(public_ip)
+
         return {
             'statusCode': 200,
             'status': 'running', 'state': 'running',
             'endpoint': endpoint,
             'instance_id': INSTANCE_ID,
-            'message': 'Started successfully'
+            'message': 'Started successfully, service ready'
         }
     else:
         return {
@@ -125,5 +158,5 @@ def get_status():
 
     result = {'statusCode': 200, 'status': state, 'state': state, 'instance_id': INSTANCE_ID}
     if public_ip:
-        result['endpoint'] = f"http://{public_ip}:5000"
+        result['endpoint'] = f"http://{public_ip}:{SERVICE_PORT}"
     return result
