@@ -1,0 +1,818 @@
+<!DOCTYPE html>
+<html lang="uk">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Редагування Конфігів Каналів</title>
+    <style>
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+        body { 
+            font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            min-height: 100vh;
+            padding: 20px;
+        }
+        .container { max-width: 1400px; margin: 0 auto; }
+        .header {
+            background: white;
+            padding: 30px;
+            border-radius: 15px;
+            box-shadow: 0 10px 30px rgba(0,0,0,0.2);
+            margin-bottom: 30px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+        h1 { color: #667eea; font-size: 32px; }
+        .btn {
+            background: #667eea;
+            color: white;
+            border: none;
+            padding: 12px 24px;
+            border-radius: 8px;
+            cursor: pointer;
+            font-size: 16px;
+            transition: all 0.3s;
+            margin-left: 10px;
+        }
+        .btn:hover { background: #5568d3; transform: translateY(-2px); }
+        .btn-secondary { background: #48bb78; }
+        .btn-secondary:hover { background: #38a169; }
+        
+        .channels-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(300px, 1fr));
+            gap: 20px;
+            margin-bottom: 40px;
+        }
+        .channel-card {
+            background: white;
+            border-radius: 12px;
+            padding: 20px;
+            box-shadow: 0 5px 15px rgba(0,0,0,0.1);
+            cursor: pointer;
+            transition: all 0.3s;
+        }
+.channel-card.inactive {
+    opacity: 0.5;
+    border: 2px solid #e2e8f0;
+}
+.channel-card.active {
+    border: 2px solid #48bb78;
+}
+.toggle-status {
+    position: absolute;
+    top: 10px;
+    right: 10px;
+    width: 50px;
+    height: 24px;
+    background: #cbd5e0;
+    border-radius: 12px;
+    cursor: pointer;
+    transition: all 0.3s;
+}
+.toggle-status.active {
+    background: #48bb78;
+}
+.toggle-status::after {
+    content: '';
+    position: absolute;
+    top: 2px;
+    left: 2px;
+    width: 20px;
+    height: 20px;
+    background: white;
+    border-radius: 50%;
+    transition: all 0.3s;
+}
+.toggle-status.active::after {
+    left: 28px;
+}
+.channel-card {
+    position: relative;
+}
+.active-counter {
+    color: #48bb78;
+    font-weight: 600;
+    font-size: 18px;
+}
+        .channel-card:hover {
+            transform: translateY(-5px);
+            box-shadow: 0 10px 25px rgba(0,0,0,0.2);
+        }
+        .channel-avatar {
+            width: 80px;
+            height: 80px;
+            border-radius: 50%;
+            margin-bottom: 15px;
+            object-fit: cover;
+        }
+        .channel-title {
+            font-size: 18px;
+            font-weight: 600;
+            color: #2d3748;
+            margin-bottom: 8px;
+        }
+        .channel-genre {
+            color: #718096;
+            font-size: 14px;
+        }
+        
+        /* Modal */
+        .modal {
+            display: none;
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: rgba(0,0,0,0.7);
+            z-index: 1000;
+            overflow-y: auto;
+            padding: 20px;
+        }
+        .modal-content {
+            background: white;
+            max-width: 1200px;
+            margin: 40px auto;
+            border-radius: 15px;
+            padding: 40px;
+            position: relative;
+        }
+        .close-modal {
+            position: absolute;
+            top: 20px;
+            right: 20px;
+            font-size: 32px;
+            cursor: pointer;
+            color: #a0aec0;
+        }
+        .close-modal:hover { color: #667eea; }
+        
+        .form-section {
+            margin-bottom: 40px;
+            padding-bottom: 30px;
+            border-bottom: 2px solid #e2e8f0;
+        }
+        .form-section:last-child { border-bottom: none; }
+        .section-title {
+            font-size: 24px;
+            color: #667eea;
+            margin-bottom: 20px;
+            display: flex;
+            align-items: center;
+        }
+        .section-title::before {
+            content: '';
+            width: 5px;
+            height: 24px;
+            background: #667eea;
+            margin-right: 12px;
+            border-radius: 3px;
+        }
+        
+        .form-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+            gap: 20px;
+        }
+        .form-group {
+            display: flex;
+            flex-direction: column;
+        }
+        .form-group.full {
+            grid-column: 1 / -1;
+        }
+        label {
+            font-weight: 600;
+            color: #2d3748;
+            margin-bottom: 8px;
+            font-size: 14px;
+        }
+        input, textarea, select {
+            padding: 12px;
+            border: 2px solid #e2e8f0;
+            border-radius: 8px;
+            font-size: 14px;
+            transition: border 0.3s;
+        }
+        input:focus, textarea:focus, select:focus {
+            outline: none;
+            border-color: #667eea;
+        }
+        textarea {
+            min-height: 60px;
+            resize: vertical;
+            font-family: inherit;
+        }
+        
+        .save-btn {
+            width: 100%;
+            padding: 16px;
+            background: #48bb78;
+            color: white;
+            border: none;
+            border-radius: 8px;
+            font-size: 18px;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.3s;
+            margin-top: 30px;
+        }
+        .save-btn:hover {
+            background: #38a169;
+            transform: translateY(-2px);
+        }
+        
+        .loading {
+            text-align: center;
+            padding: 40px;
+            color: white;
+            font-size: 18px;
+        }
+        .error {
+            background: #fc8181;
+            color: white;
+            padding: 15px;
+            border-radius: 8px;
+            margin-bottom: 20px;
+        }
+        .success {
+            background: #48bb78;
+            color: white;
+            padding: 15px;
+            border-radius: 8px;
+            margin-bottom: 20px;
+        }
+        
+        .field-hint {
+            font-size: 12px;
+            color: #718096;
+            margin-top: 4px;
+            font-style: italic;
+        }
+        .nav-menu {
+            background: white;
+            border-radius: 12px;
+            padding: 0.5rem;
+            margin-bottom: 2rem;
+            box-shadow: 0 5px 15px rgba(0,0,0,0.1);
+        }
+
+        .nav-menu a {
+            color: #4a5568;
+            text-decoration: none;
+            padding: 0.75rem 1.5rem;
+            border-radius: 8px;
+            transition: all 0.3s ease;
+            display: inline-block;
+            margin: 0.25rem;
+        }
+
+        .nav-menu a:hover {
+            background: rgba(102, 126, 234, 0.1);
+            color: #667eea;
+        }
+
+        .nav-menu a.active {
+            background: linear-gradient(135deg, #667eea, #764ba2);
+            color: white;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <!-- Navigation Menu -->
+        <div class="nav-menu" style="margin-top: 20px;">
+            <a href="index.html"><i class="bi bi-house"></i> Home</a>
+            <a href="channel-configs.html" class="active"><i class="bi bi-collection-play"></i> Channels</a>
+            <a href="dashboard.html"><i class="bi bi-speedometer2"></i> Dashboard</a>
+            <a href="costs.html"><i class="bi bi-cash-coin"></i> Costs</a>
+            <a href="content.html"><i class="bi bi-folder2-open"></i> Content</a>
+        </div>
+
+        <div class="header">
+            <div>
+                <h1>📝 Редагування Конфігів Каналів</h1>
+                <p style="color: #718096; margin-top: 8px;">Налаштування параметрів для генерації контенту</p>
+            </div>
+            <div>
+                <button class="btn btn-secondary" onclick="initDefaults()">🔄 Заповнити дефолтні конфіги</button>
+                <button class="btn" onclick="location.href='/admin.html'">← Назад до Admin</button>
+            </div>
+        </div>
+        
+        <div id="loadingMsg" class="loading">Завантаження каналів...</div>
+        <div id="errorMsg" class="error" style="display:none;"></div>
+        <div id="channelsGrid" class="channels-grid"></div>
+    </div>
+
+    <!-- Modal -->
+    <div id="editModal" class="modal">
+        <div class="modal-content">
+            <span class="close-modal" onclick="closeModal()">&times;</span>
+            <h2 id="modalTitle" style="color: #667eea; margin-bottom: 30px;">Редагування каналу</h2>
+            
+            <form id="configForm">
+                <input type="hidden" id="channel_id">
+                
+                <!-- SECTION 1: TTS & VOICE -->
+                <div class="form-section">
+                    <h3 class="section-title">🎙️ TTS & Озвучка</h3>
+                    <div class="form-grid">
+                        <div class="form-group">
+                            <label>TTS Voice Profile (AWS Neural)</label>
+                            <select id="tts_voice_profile">
+                                <optgroup label="🎙️ Жіночі голоси">
+                                    <option value="joanna_female">Joanna - Жіночий (чіткий, професійний)</option>
+                                    <option value="salli_female">Salli - Жіночий (теплий, дружній)</option>
+                                    <option value="kimberly_female">Kimberly - Жіночий (енергійний, молодий)</option>
+                                    <option value="kendra_female">Kendra - Жіночий (впевнений, професійний)</option>
+                                    <option value="ivy_female">Ivy - Жіночий (молодий, дружній)</option>
+                                    <option value="ruth_female">Ruth - Жіночий (авторитетний)</option>
+                                    <option value="danielle_female">Danielle - Жіночий (м'який, приємний)</option>
+                                </optgroup>
+                                <optgroup label="🎤 Чоловічі голоси">
+                                    <option value="matthew_male" selected>Matthew - Чоловічий (авторитетний, глибокий)</option>
+                                    <option value="joey_male">Joey - Чоловічий (нейтральний, чіткий)</option>
+                                    <option value="justin_male">Justin - Чоловічий (молодий, енергійний)</option>
+                                    <option value="gregory_male">Gregory - Чоловічий (британський, авторитетний)</option>
+                                    <option value="kevin_male">Kevin - Чоловічий (молодий, дружній)</option>
+                                    <option value="stephen_male">Stephen - Чоловічий (професійний)</option>
+                                </optgroup>
+                            </select>
+                            <span class="field-hint">Виберіть голос AWS Polly Neural для озвучки</span>
+                        </div>
+                        
+                        <div class="form-group">
+                            <label>TTS Service</label>
+                            <select id="tts_service">
+                                <option value="aws_polly_neural">AWS Polly Neural (рекомендовано)</option>
+                                <option value="aws_polly_standard">AWS Polly Standard</option>
+                                <option value="elevenlabs">ElevenLabs</option>
+                                <option value="google_tts">Google TTS</option>
+                            </select>
+                            <span class="field-hint">Який TTS сервіс використовувати</span>
+                        </div>
+                        
+                        <div class="form-group full">
+                            <label>TTS Mood Variants</label>
+                            <input type="text" id="tts_mood_variants" placeholder="whispered, suspenseful, calm">
+                            <span class="field-hint">Емоційні теги через кому (для SSML)</span>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- SECTION 2: VIDEO DURATION -->
+                <div class="form-section">
+                    <h3 class="section-title">⏱️ Тривалість і Структура</h3>
+                    <div class="form-grid">
+                        <div class="form-group">
+                            <label>Тривалість відео (хвилини)</label>
+                            <input type="number" id="video_duration_target" min="5" max="20" value="10">
+                            <span class="field-hint">Цільова тривалість відео (5-20 хв)</span>
+                        </div>
+                        
+                        <div class="form-group">
+                            <label>Цільова к-ть символів</label>
+                            <input type="number" id="target_character_count" min="5000" max="16000" value="8000">
+                            <span class="field-hint">Максимум 16000 символів (обмеження GPT-4o). Для 10 хв: slow=7700, medium=8800, fast=9900</span>
+                        </div>
+                        
+                        <div class="form-group">
+                            <label>Кількість сцен</label>
+                            <input type="number" id="scene_count_target" min="10" max="30" value="18">
+                            <span class="field-hint">К-ть окремих сцен/картинок у відео</span>
+                        </div>
+                        
+                        <div class="form-group">
+                            <label>Narrative Pace</label>
+                            <select id="narrative_pace">
+                                <option value="slow">Slow (повільний)</option>
+                                <option value="medium">Medium (середній)</option>
+                                <option value="fast">Fast (швидкий)</option>
+                            </select>
+                            <span class="field-hint">Швидкість наррації</span>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- SECTION 3: AI IMAGE GENERATION -->
+                <div class="form-section">
+                    <h3 class="section-title">🎨 AI Генерація Зображень</h3>
+                    <div class="form-grid">
+                        <div class="form-group">
+                            <label>Image Generation Service</label>
+                            <select id="image_generation_service">
+                                <option value="replicate_sdxl">Replicate (SDXL) — рекомендовано</option>
+                                <option value="stability_ai">Stability AI</option>
+                                <option value="leonardo_ai">Leonardo.ai</option>
+                                <option value="openai_dalle3">OpenAI DALL-E 3</option>
+                            </select>
+                            <span class="field-hint">Сервіс для генерації зображень</span>
+                        </div>
+                        
+                        <div class="form-group">
+                            <label>Image Model</label>
+                            <select id="image_model">
+                                <option value="sdxl_1.0">SDXL 1.0</option>
+                                <option value="sdxl_turbo">SDXL Turbo (швидше)</option>
+                                <option value="leonardo_phoenix">Leonardo Phoenix</option>
+                                <option value="dalle_3">DALL-E 3</option>
+                            </select>
+                            <span class="field-hint">Модель для генерації</span>
+                        </div>
+                        
+                        <div class="form-group">
+                            <label>Image Resolution</label>
+                            <select id="image_resolution">
+                                <option value="1920x1080">1920×1080 (16:9, YouTube)</option>
+                                <option value="1024x1024">1024×1024 (квадрат)</option>
+                                <option value="1080x1920">1080×1920 (9:16, Shorts)</option>
+                                <option value="1536x1024">1536×1024 (3:2)</option>
+                            </select>
+                            <span class="field-hint">Роздільна здатність зображень</span>
+                        </div>
+                        
+                        <div class="form-group full">
+                            <label>Negative Prompt (що прибрати)</label>
+                            <textarea id="negative_prompt" placeholder="blurry, low quality, distorted, text, watermark"></textarea>
+                            <span class="field-hint">Через кому: що НЕ повинно бути на картинці</span>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- SECTION 4: CONTENT & STYLE -->
+                <div class="form-section">
+                    <h3 class="section-title">📝 Контент & Стиль</h3>
+                    <div class="form-grid">
+                        <div class="form-group full">
+                            <label>Channel Theme</label>
+                            <textarea id="channel_theme"></textarea>
+                        </div>
+                        <div class="form-group"><label>Назва каналу</label><input type="text" id="channel_name"></div>
+                        <div class="form-group"><label>Жанр</label><input type="text" id="genre"></div>
+                        <div class="form-group full"><label>Core Idea</label><textarea id="core_idea"></textarea></div>
+                        <div class="form-group"><label>Тон</label><input type="text" id="tone"></div>
+                        <div class="form-group"><label>Narration Style</label><input type="text" id="narration_style"></div>
+                        <div class="form-group"><label>Цільова Аудиторія</label><input type="text" id="target_audience"></div>
+                        <div class="form-group"><label>Format</label><input type="text" id="format"></div>
+                        <div class="form-group"><label>Factual Mode</label><select id="factual_mode"><option>true</option><option>false</option></select></div>
+                        <div class="form-group"><label>Content Focus</label><input type="text" id="content_focus"></div>
+                        <div class="form-group"><label>Story Structure</label><input type="text" id="story_structure_pattern"></div>
+                        <div class="form-group full"><label>Visual Keywords</label><textarea id="visual_keywords"></textarea></div>
+                        <div class="form-group full"><label>Narrative Keywords</label><textarea id="narrative_keywords"></textarea></div>
+                        <div class="form-group"><label>Preferred Ending</label><input type="text" id="preferred_ending_tone"></div>
+                        <div class="form-group"><label>Emotional Temp</label><input type="text" id="emotional_temperature"></div>
+                        <div class="form-group full"><label>Music Variants</label><textarea id="recommended_music_variants"></textarea></div>
+                        <div class="form-group"><label>Image Style</label><input type="text" id="image_style_variants"></div>
+                        <div class="form-group"><label>Color Palettes</label><input type="text" id="color_palettes"></div>
+                        <div class="form-group"><label>Lighting</label><input type="text" id="lighting_variants"></div>
+                        <div class="form-group"><label>Composition</label><input type="text" id="composition_variants"></div>
+                        <div class="form-group"><label>Visual Reference</label><input type="text" id="visual_reference_type"></div>
+                        <div class="form-group"><label>Visual Atmosphere</label><input type="text" id="visual_atmosphere"></div>
+                        <div class="form-group"><label>Story Settings</label><input type="text" id="story_setting_variants"></div>
+                        <div class="form-group"><label>Character Types</label><input type="text" id="story_character_types"></div>
+                        <div class="form-group"><label>Point of View</label><input type="text" id="story_point_of_view_variants"></div>
+                        <div class="form-group"><label>Music Tempo</label><input type="text" id="music_tempo_variants"></div>
+                        <div class="form-group"><label>YouTube Keywords</label><input type="text" id="example_keywords_for_youtube"></div>
+                        <div class="form-group full"><label>Meta Theme</label><textarea id="meta_theme"></textarea></div>
+                        <div class="form-group full"><label>Variation Logic</label><textarea id="unique_variation_logic"></textarea></div>
+                    </div>
+                </div>
+
+                <!-- SECTION 5: CHANNEL INFO -->
+                <div class="form-section">
+                    <h3 class="section-title">ℹ️ Інформація про Канал</h3>
+                    <div class="form-grid">
+                        <div class="form-group full"><label>Опис каналу</label><textarea id="channel_description" style="min-height: 80px;"></textarea></div>
+                        <div class="form-group"><label>Thumbnail URL</label><input type="url" id="thumbnail_url" placeholder="https://..."></div>
+                        <div class="form-group"><label>Banner URL</label><input type="url" id="banner_url" placeholder="https://..."></div>
+                        <div class="form-group"><label>Watermark URL</label><input type="url" id="channel_watermark_url" placeholder="https://..."></div>
+                        <div class="form-group"><label>Featured Video ID</label><input type="text" id="featured_video_id"></div>
+                        <div class="form-group"><label>SEO Keywords</label><input type="text" id="seo_keywords"></div>
+                    </div>
+                </div>
+
+                <!-- SECTION 6: PUBLISHING SCHEDULE -->
+                <div class="form-section">
+                    <h3 class="section-title">📅 Графік Публікацій</h3>
+                    <div class="form-grid">
+                        <div class="form-group"><label>Час публікацій (через кому)</label><input type="text" id="publish_times" placeholder="10:05, 15:30, 20:15"></div>
+                        <div class="form-group"><label>Дні публікацій (через кому)</label><input type="text" id="publish_days" placeholder="Mon, Tue, Wed, Thu, Fri"></div>
+                        <div class="form-group"><label>Відео на день</label><input type="number" id="daily_upload_count" min="0" max="10" value="1"></div>
+                        <div class="form-group"><label>Часовий пояс</label><select id="timezone"><option>Europe/Kyiv</option><option>Europe/London</option><option>Europe/Berlin</option><option>UTC</option></select></div>
+                    </div>
+                </div>
+
+                <!-- SECTION 7: MONETIZATION -->
+                <div class="form-section">
+                    <h3 class="section-title">💰 Монетизація & Налаштування</h3>
+                    <div class="form-grid">
+                        <div class="form-group"><label>Монетизація</label><select id="monetization_enabled"><option value="true">Увімкнено</option><option value="false">Вимкнено</option></select></div>
+                        <div class="form-group"><label>AdSense</label><select id="adsense_enabled"><option value="true">Увімкнено</option><option value="false">Вимкнено</option></select></div>
+                        <div class="form-group"><label>AdSense Account ID</label><input type="text" id="adsense_account_id"></div>
+                        <div class="form-group"><label>Мова субтитрів</label><select id="auto_caption_language"><option value="uk">Українська</option><option value="en">Англійська</option><option value="ru">Російська</option></select></div>
+                        <div class="form-group"><label>Ліцензія</label><select id="default_license"><option>Standard YouTube License</option><option>Creative Commons - Attribution</option></select></div>
+                        <div class="form-group"><label>Дозволити вбудування</label><select id="allow_embedding"><option value="true">Так</option><option value="false">Ні</option></select></div>
+                    </div>
+                </div>
+
+                <button type="button" class="save-btn" onclick="saveConfig()">💾 Зберегти зміни</button>
+            </form>
+        </div>
+    </div>
+
+    <script>
+        let channels = [];
+        let currentChannel = null;
+
+        async function loadChannels() {
+            try {
+                const response = await fetch('/api/channels.php', {
+                    headers: { 'Authorization': 'Basic ' + btoa('admin:FHrifd45') }
+                });
+                channels = await response.json();
+                displayChannels();
+            } catch (error) {
+                document.getElementById('loadingMsg').style.display = 'none';
+                document.getElementById('errorMsg').textContent = 'Помилка: ' + error.message;
+                document.getElementById('errorMsg').style.display = 'block';
+            }
+        }
+
+        async function openChannel(channelId) {
+            try {
+                const response = await fetch(`/api/get-channel-config.php?channel_id=${channelId}`, {
+                    headers: { 'Authorization': 'Basic ' + btoa('admin:FHrifd45') }
+                });
+                const config = await response.json();
+                currentChannel = config;
+                populateForm(config);
+                document.getElementById('editModal').style.display = 'block';
+                document.body.style.overflow = 'hidden';
+            } catch (error) {
+                alert('Помилка: ' + error.message);
+            }
+        }
+
+        function populateForm(config) {
+            document.getElementById('modalTitle').textContent = config.channel_name || config.channel_title || 'Редагування';
+            
+            const fields = [
+                'channel_id', 'channel_name', 'channel_theme', 'genre', 'core_idea', 'tone', 'narration_style',
+                'target_audience', 'format', 'factual_mode', 'content_focus', 'story_structure_pattern',
+                'visual_keywords', 'narrative_keywords', 'narrative_pace', 'preferred_ending_tone',
+                'emotional_temperature', 'tts_voice_profile', 'tts_service', 'tts_mood_variants',
+                'recommended_music_variants', 'image_style_variants', 'color_palettes', 'lighting_variants',
+                'composition_variants', 'visual_reference_type', 'visual_atmosphere', 'story_setting_variants',
+                'story_character_types', 'story_point_of_view_variants', 'music_tempo_variants',
+                'example_keywords_for_youtube', 'meta_theme', 'unique_variation_logic',
+                'channel_description', 'thumbnail_url', 'banner_url', 'channel_watermark_url',
+                'featured_video_id', 'seo_keywords', 'publish_times', 'publish_days',
+                'daily_upload_count', 'timezone', 'monetization_enabled', 'adsense_enabled',
+                'adsense_account_id', 'auto_caption_language', 'default_license', 'allow_embedding',
+                'video_duration_target', 'target_character_count', 'scene_count_target',
+                'image_generation_service', 'image_model', 'image_resolution', 'negative_prompt'
+            ];
+            
+            fields.forEach(field => {
+                const element = document.getElementById(field);
+                if (element && config[field] !== undefined && config[field] !== null) {
+                    element.value = config[field];
+                }
+            });
+        }
+
+        async function saveConfig() {
+            const form = document.getElementById('configForm');
+            const formData = new FormData();
+            
+            const fields = Array.from(form.querySelectorAll('input, textarea, select'));
+            fields.forEach(field => {
+                if (field.id) {
+                    formData.append(field.id, field.value);
+                }
+            });
+
+            try {
+                const response = await fetch('/api/update-channel-config.php', {
+                    method: 'POST',
+                    headers: { 'Authorization': 'Basic ' + btoa('admin:FHrifd45') },
+                    body: formData
+                });
+                const result = await response.json();
+                
+                if (result.success) {
+                    alert('✅ Конфіг успішно збережено!');
+                    closeModal();
+                function displayChannels() {
+            document.getElementById('loadingMsg').style.display = 'none';
+            
+            // Лічильник активних
+            const activeCount = channels.filter(ch => ch.is_active === true || ch.is_active === 'true').length;
+            const headerP = document.querySelector('.header p');
+            if (headerP) {
+                headerP.innerHTML = `Налаштування параметрів для генерації контенту <span class="active-counter">(Активних: ${activeCount}/${channels.length})</span>`;
+            }
+            
+            const grid = document.getElementById('channelsGrid');
+            grid.innerHTML = channels.map(ch => {
+                const isActive = ch.is_active === true || ch.is_active === 'true';
+                return `
+                    <div class="channel-card ${isActive ? 'active' : 'inactive'}" onclick="openChannel('${ch.channel_id}')">
+                        <div class="toggle-status ${isActive ? 'active' : ''}" onclick="event.stopPropagation(); toggleStatus('${ch.channel_id}', ${!isActive})"></div>
+                        <img src="${ch.thumbnail_url || 'https://via.placeholder.com/80'}" class="channel-avatar" onerror="this.src='https://via.placeholder.com/80'">
+                        <div class="channel-title">${ch.channel_title || 'Unknown'}</div>
+                        <div class="channel-genre">${ch.subscriber_count || 0} підписників</div>
+                    </div>
+                `;
+            }).join('');
+        }
+
+        async function toggleStatus(channelId, newStatus) {
+            try {
+                const formData = new FormData();
+                formData.append('channel_id', channelId);
+                formData.append('is_active', newStatus.toString());
+                
+                const response = await fetch('/api/toggle-channel-status.php', {
+                    method: 'POST',
+                    headers: { 'Authorization': 'Basic ' + btoa('admin:FHrifd45') },
+                    body: formData
+                });
+                
+                const result = await response.json();
+                if (result.success) {
+                    const channel = channels.find(ch => ch.channel_id === channelId);
+                    if (channel) {
+                        channel.is_active = result.is_active;
+                    }
+                    displayChannels();
+                } else {
+                    alert('Помилка: ' + result.error);
+                }
+            } catch (error) {
+                alert('Помилка: ' + error.message);
+            }
+        }
+
+                    loadChannels();
+                } else {
+                    alert('❌ Помилка: ' + (result.error || 'Unknown error'));
+                }
+            } catch (error) {
+                alert('❌ Помилка: ' + error.message);
+            }
+        }
+
+        function closeModal() {
+            document.getElementById('editModal').style.display = 'none';
+            document.body.style.overflow = 'auto';
+        }
+
+        async function initDefaults() {
+            if (!confirm('Заповнити дефолтні значення для ВСІХ каналів?')) return;
+            
+            try {
+                const response = await fetch('/api/init-channel-configs.php', {
+                    method: 'POST',
+                    headers: { 'Authorization': 'Basic ' + btoa('admin:FHrifd45') }
+                });
+                const result = await response.json();
+                alert(result.message);
+                function displayChannels() {
+            document.getElementById('loadingMsg').style.display = 'none';
+            
+            // Лічильник активних
+            const activeCount = channels.filter(ch => ch.is_active === true || ch.is_active === 'true').length;
+            const headerP = document.querySelector('.header p');
+            if (headerP) {
+                headerP.innerHTML = `Налаштування параметрів для генерації контенту <span class="active-counter">(Активних: ${activeCount}/${channels.length})</span>`;
+            }
+            
+            const grid = document.getElementById('channelsGrid');
+            grid.innerHTML = channels.map(ch => {
+                const isActive = ch.is_active === true || ch.is_active === 'true';
+                return `
+                    <div class="channel-card ${isActive ? 'active' : 'inactive'}" onclick="openChannel('${ch.channel_id}')">
+                        <div class="toggle-status ${isActive ? 'active' : ''}" onclick="event.stopPropagation(); toggleStatus('${ch.channel_id}', ${!isActive})"></div>
+                        <img src="${ch.thumbnail_url || 'https://via.placeholder.com/80'}" class="channel-avatar" onerror="this.src='https://via.placeholder.com/80'">
+                        <div class="channel-title">${ch.channel_title || 'Unknown'}</div>
+                        <div class="channel-genre">${ch.subscriber_count || 0} підписників</div>
+                    </div>
+                `;
+            }).join('');
+        }
+
+        async function toggleStatus(channelId, newStatus) {
+            try {
+                const formData = new FormData();
+                formData.append('channel_id', channelId);
+                formData.append('is_active', newStatus.toString());
+                
+                const response = await fetch('/api/toggle-channel-status.php', {
+                    method: 'POST',
+                    headers: { 'Authorization': 'Basic ' + btoa('admin:FHrifd45') },
+                    body: formData
+                });
+                
+                const result = await response.json();
+                if (result.success) {
+                    const channel = channels.find(ch => ch.channel_id === channelId);
+                    if (channel) {
+                        channel.is_active = result.is_active;
+                    }
+                    displayChannels();
+                } else {
+                    alert('Помилка: ' + result.error);
+                }
+            } catch (error) {
+                alert('Помилка: ' + error.message);
+            }
+        }
+
+                loadChannels();
+            } catch (error) {
+                alert('Помилка: ' + error.message);
+            }
+        }
+
+                function displayChannels() {
+            document.getElementById('loadingMsg').style.display = 'none';
+            
+            // Лічильник активних
+            const activeCount = channels.filter(ch => ch.is_active === true || ch.is_active === 'true').length;
+            const headerP = document.querySelector('.header p');
+            if (headerP) {
+                headerP.innerHTML = `Налаштування параметрів для генерації контенту <span class="active-counter">(Активних: ${activeCount}/${channels.length})</span>`;
+            }
+            
+            const grid = document.getElementById('channelsGrid');
+            grid.innerHTML = channels.map(ch => {
+                const isActive = ch.is_active === true || ch.is_active === 'true';
+                return `
+                    <div class="channel-card ${isActive ? 'active' : 'inactive'}" onclick="openChannel('${ch.channel_id}')">
+                        <div class="toggle-status ${isActive ? 'active' : ''}" onclick="event.stopPropagation(); toggleStatus('${ch.channel_id}', ${!isActive})"></div>
+                        <img src="${ch.thumbnail_url || 'https://via.placeholder.com/80'}" class="channel-avatar" onerror="this.src='https://via.placeholder.com/80'">
+                        <div class="channel-title">${ch.channel_title || 'Unknown'}</div>
+                        <div class="channel-genre">${ch.subscriber_count || 0} підписників</div>
+                    </div>
+                `;
+            }).join('');
+        }
+
+        async function toggleStatus(channelId, newStatus) {
+            try {
+                const formData = new FormData();
+                formData.append('channel_id', channelId);
+                formData.append('is_active', newStatus.toString());
+                
+                const response = await fetch('/api/toggle-channel-status.php', {
+                    method: 'POST',
+                    headers: { 'Authorization': 'Basic ' + btoa('admin:FHrifd45') },
+                    body: formData
+                });
+                
+                const result = await response.json();
+                if (result.success) {
+                    const channel = channels.find(ch => ch.channel_id === channelId);
+                    if (channel) {
+                        channel.is_active = result.is_active;
+                    }
+                    displayChannels();
+                } else {
+                    alert('Помилка: ' + result.error);
+                }
+            } catch (error) {
+                alert('Помилка: ' + error.message);
+            }
+        }
+
+        loadChannels();
+
+        // Валідація для target_character_count - максимум 16000 (обмеження GPT-4o)
+        const targetCharCountInput = document.getElementById('target_character_count');
+        if (targetCharCountInput) {
+            targetCharCountInput.addEventListener('input', function() {
+                const value = parseInt(this.value);
+                if (value > 16000) {
+                    this.value = 16000;
+                    alert('⚠️ Максимальна кількість символів: 16000 (обмеження моделі GPT-4o)');
+                }
+            });
+
+            targetCharCountInput.addEventListener('blur', function() {
+                const value = parseInt(this.value);
+                if (value > 16000) {
+                    this.value = 16000;
+                }
+            });
+        }
+
+        document.addEventListener('keydown', (e) => {
+            if (e.key === 'Escape') closeModal();
+        });
+    </script>
+</body>
+</html>
