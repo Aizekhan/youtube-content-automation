@@ -54,10 +54,32 @@ jobs:
             --region eu-central-1
           echo "✅ Prompts API deployed successfully"
 
+      - name: Deploy Image Generation Lambda
+        run: |
+          cd aws/lambda/content-generate-images
+          python3 create_zip.py
+          aws lambda update-function-code \
+            --function-name content-generate-images \
+            --zip-file fileb://function.zip \
+            --region eu-central-1
+          echo "✅ Image Generation deployed successfully"
+
+      - name: Deploy Video Assembly Lambda
+        run: |
+          cd aws/lambda/content-video-assembly
+          python3 create_zip.py
+          aws lambda update-function-code \
+            --function-name content-video-assembly \
+            --zip-file fileb://function.zip \
+            --region eu-central-1
+          echo "✅ Video Assembly deployed successfully"
+
       - name: Deployment Summary
         run: |
           echo "🚀 Deployment completed!"
           echo "- Theme Agent: content-theme-agent"
           echo "- Narrative Architect: content-narrative"
           echo "- Prompts API: prompts-api"
+          echo "- Image Generation: content-generate-images"
+          echo "- Video Assembly: content-video-assembly"
           echo "- Region: eu-central-1"

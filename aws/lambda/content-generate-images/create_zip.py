@@ -6,12 +6,8 @@ with zipfile.ZipFile('function.zip', 'w', zipfile.ZIP_DEFLATED) as zipf:
     # Add lambda_function.py at root
     zipf.write('lambda_function.py', 'lambda_function.py')
 
-    # Add shared/config_merger.py
-    zipf.write('shared/config_merger.py', 'shared/config_merger.py')
-
 print("Created function.zip with:")
 print("   - lambda_function.py")
-print("   - shared/config_merger.py")
 
 # Verify contents
 with zipfile.ZipFile('function.zip', 'r') as zipf:
