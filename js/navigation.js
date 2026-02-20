@@ -22,9 +22,6 @@ const NAVIGATION_HTML = `
                 <a href="costs.html" class="nav-link">
                     <i class="bi bi-currency-dollar"></i> Costs
                 </a>
-                <a href="prompts-editor.html" class="nav-link">
-                    <i class="bi bi-pencil-square"></i> Prompts
-                </a>
                 <a href="audio-library.html" class="nav-link">
                     <i class="bi bi-music-note-list"></i> Audio Library
                 </a>
