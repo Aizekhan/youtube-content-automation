@@ -28,34 +28,40 @@ import random
 
 def merge_mega_configuration(
     channel_config,
-    narrative_template,
-    image_template,
-    cta_template,
-    thumbnail_template,
-    tts_template,
-    sfx_template,
-    description_template,
+    narrative_template=None,
+    image_template=None,
+    cta_template=None,
+    thumbnail_template=None,
+    tts_template=None,
+    sfx_template=None,
+    description_template=None,
     story_blueprint=None
 ):
     """
-    Merge ALL templates + ChannelConfig into mega_config
+    Build mega_config for content generation
+
+    UPDATED 2026-02-20: Templates system removed
+    All template parameters now optional (default None)
+    Returns minimal config - New Story Engine will provide full configuration
 
     Args:
         channel_config (dict): ChannelConfig from DynamoDB
-        narrative_template (dict): NarrativeTemplate
-        image_template (dict): ImageTemplate
-        cta_template (dict): CTATemplate
-        thumbnail_template (dict): ThumbnailTemplate
-        tts_template (dict): TTSTemplate
-        sfx_template (dict): SFXTemplate
-        description_template (dict): DescriptionTemplate
-        story_blueprint (dict|None): StoryBlueprint from StoryTemplates table, or None
+        All template params: DEPRECATED, kept for backward compatibility
 
     Returns:
-        dict: Merged mega_config with all instructions
+        dict: mega_config with minimal defaults
     """
 
-    # Extract ai_config from each template
+    # Templates deprecated - use empty dicts
+    narrative_template = narrative_template or {}
+    image_template = image_template or {}
+    cta_template = cta_template or {}
+    thumbnail_template = thumbnail_template or {}
+    tts_template = tts_template or {}
+    sfx_template = sfx_template or {}
+    description_template = description_template or {}
+
+    # Extract ai_config from each template (will be empty)
     narrative_ai = narrative_template.get('ai_config', {})
     image_ai = image_template.get('ai_config', {})
     cta_ai = cta_template.get('ai_config', {})
@@ -124,148 +130,26 @@ def extract_narrative_instructions(template, channel):
 
 def extract_image_instructions(template, channel):
     """
-    Extract image generation instructions
+    Extract image generation instructions - Simplified version
 
-    ARCHITECTURE (2025-11-21 UPDATED):
-    - General rules (role_definition, core_rules) from ImageTemplate
-    - Visual style from Variation Sets with VARIANT PARSING
-    - Priority: Variation Set → Template fallback (NO root-level fallback)
-    - Variant Parsing: Comma-separated values → random selection per generation
+    NOTE: Templates system removed. This returns minimal defaults.
+    New Story Engine will provide image instructions dynamically.
     """
-    import random
     ai_config = template.get('ai_config', {})
     sections = ai_config.get('sections', {})
 
-    # VARIATION SETS SUPPORT (UPDATED 2025-11-21)
-    variation_sets = channel.get('variation_sets', [])
-
-    # Parse JSON if stored as string (PHP backend compatibility)
-    if isinstance(variation_sets, str):
-        try:
-            variation_sets = json.loads(variation_sets)
-            print(f" Parsed variation_sets from JSON string")
-        except json.JSONDecodeError as e:
-            print(f" Failed to parse variation_sets JSON: {e}")
-            variation_sets = []
-
-    # DEEP PARSE: Each item in array might also be a JSON string
-    if isinstance(variation_sets, list):
-        parsed_sets = []
-        for idx, item in enumerate(variation_sets):
-            if isinstance(item, str):
-                try:
-                    parsed_sets.append(json.loads(item))
-                    print(f"    Parsed variation set {idx} from JSON string")
-                except json.JSONDecodeError:
-                    parsed_sets.append(item)  # Keep as-is if can't parse
-            else:
-                parsed_sets.append(item)
-        variation_sets = parsed_sets
-
-    generation_count = int(channel.get('generation_count', 0))
-
-    # Helper function: Parse comma-separated variants and select one
-    def pick_variant(field_value, seed_offset):
-        """
-        Parse comma-separated variants and randomly select ONE.
-        Uses generation_count + offset as seed for deterministic selection.
-        """
-        if not field_value:
-            return ''
-
-        # Split by comma and clean
-        variants = [v.strip() for v in str(field_value).split(',') if v.strip()]
-
-        if not variants:
-            return ''
-
-        if len(variants) == 1:
-            return variants[0]
-
-        # Deterministic random selection
-        random.seed(int(generation_count) + seed_offset)
-        selected = random.choice(variants)
-
-        return selected
-
-    # Determine visual source
-    # FACTUAL MODE: skip Variation Sets — let OpenAI use real historical context
-    factual_mode = channel.get('factual_mode', 'fictional')
-    if factual_mode == 'factual':
-        print(f"Factual mode: skipping Variation Sets — historical context drives image prompts")
-        visual_source = {}
-        use_template_fallback = False  # Also skip template defaults — pure historical context
-    elif variation_sets and len(variation_sets) > 0:
-        # Use active variation set
-        rotation_mode = channel.get('rotation_mode', 'sequential')
-
-        if rotation_mode == 'sequential':
-            active_set_index = generation_count % len(variation_sets)
-        elif rotation_mode == 'random':
-            random.seed(int(generation_count))
-            active_set_index = random.randint(0, len(variation_sets) - 1)
-        else:  # manual
-            active_set_index = channel.get('manual_set_index', 0)
-
-        if active_set_index >= len(variation_sets):
-            active_set_index = 0
-
-        active_set = variation_sets[active_set_index]
-
-        # CRITICAL FIX: Parse active_set if it's still a JSON string
-        if isinstance(active_set, str):
-            try:
-                active_set = json.loads(active_set)
-                print(f"    PARSED active_set from JSON string")
-            except json.JSONDecodeError as e:
-                print(f"    WARNING: active_set is string but can't parse: {e}")
-                active_set = {}  # Fallback to empty dict
-
-        print(f" VARIATION SETS: Using Set {active_set_index}/{len(variation_sets)-1}: '{active_set.get('set_name', 'Unnamed')}'")
-        print(f"   Generation count: {generation_count}, Rotation mode: {rotation_mode}")
-
-        visual_source = active_set
-        use_template_fallback = True
-    else:
-        # No variation sets - use template defaults only (NO root-level fallback)
-        print(f" NO VARIATION SETS: Using template defaults only")
-        visual_source = {}
-        use_template_fallback = True
-
-    # Parse and select variants (with template fallback)
-    def get_field(field_name, seed_offset, template_default=''):
-        value = visual_source.get(field_name)
-        if not value and use_template_fallback:
-            value = sections.get(field_name, template_default)
-        return pick_variant(value, seed_offset) if value else template_default
-
-    # Extract with variant parsing
-    selected_composition = get_field('composition_variants', 1, 'Rule of thirds, depth of field')
-    selected_lighting = get_field('lighting_variants', 2, 'Dramatic shadows, golden hour')
-    selected_colors = get_field('color_palettes', 3, 'Warm tones, cool shadows')
-    selected_style = get_field('image_style_variants', 4, 'Cinematic photography, photorealistic')
-
-    # Log selected variants
-    print(f"    Selected variants:")
-    print(f"      Composition: {selected_composition}")
-    print(f"      Lighting: {selected_lighting}")
-    print(f"      Colors: {selected_colors}")
-    print(f"      Style: {selected_style}")
-
+    # Return minimal defaults (Templates & Variation Sets removed)
     return {
-        # General rules from Template
         'role_definition': sections.get('role_definition', ''),
         'core_rules': sections.get('core_rules', []),
-
-        # Visual style with VARIANT PARSING (NEW!)
-        'visual_keywords': visual_source.get('visual_keywords') or sections.get('visual_keywords', 'cinematic, atmospheric, detailed'),
-        'visual_atmosphere': visual_source.get('visual_atmosphere') or sections.get('visual_atmosphere', 'Mysterious, dramatic, immersive'),
-        'image_style_variants': selected_style,  # ← PARSED!
-        'color_palettes': selected_colors,  # ← PARSED!
-        'lighting_variants': selected_lighting,  # ← PARSED!
-        'composition_variants': selected_composition,  # ← PARSED!
-        'visual_reference_type': visual_source.get('visual_reference_type') or sections.get('visual_reference_type', 'Cinematic / Photorealistic'),
-        'negative_prompt': visual_source.get('negative_prompt') or sections.get('negative_prompt', 'blurry, low quality, distorted, ugly, text, watermark, deformed')
+        'visual_keywords': '',
+        'visual_atmosphere': '',
+        'image_style_variants': '',
+        'color_palettes': '',
+        'lighting_variants': '',
+        'composition_variants': '',
+        'visual_reference_type': '',
+        'negative_prompt': 'blurry, low quality, distorted'
     }
 
 

@@ -1,0 +1,37 @@
+=== VARIATION SETS UI REMOVAL GUIDE ===
+
+Files to update:
+
+1. channels.html
+   - Line 297: Remove /* Variation Sets Styles */
+   - Line 732-750: Remove <select id="rotation_mode"> section
+   - Line 751-757: Remove variation-sets-counter and variation-sets-list
+
+2. js/channels-unified.js
+   - Line 570-578: Remove Variation Sets management code
+   - Line 855-868: Remove variation_sets FormData append
+   - Line 1213-1217: Remove deprecated visual fields comments
+   - Line 1270-1274: Remove deprecated visual fields comments
+   - Line 1458-1486: Remove variation_sets loading/counter code
+
+=== PROMPTS UI TAB REMOVAL ===
+
+File to delete:
+- prompts-editor.html (entire file)
+
+Navigation links to remove:
+- Check index.html / navigation.js for "Prompts" tab link
+
+=== QUICK FIX ===
+
+Comment out major blocks for now, full removal later:
+
+In channels.html:
+<!-- REMOVED: Variation Sets section
+<section id="variation-sets-section">
+...
+</section>
+-->
+
+In channels-unified.js:
+// REMOVED: variation_sets logic (see CLEANUP_STATUS_CHECKPOINT.md)

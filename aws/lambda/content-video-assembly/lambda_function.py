@@ -17,7 +17,7 @@ dynamodb = boto3.resource('dynamodb', region_name='eu-central-1')
 
 # Tables
 content_table = dynamodb.Table('GeneratedContent')
-template_table = dynamodb.Table('VideoEditingTemplates')
+# VideoEditingTemplates removed - see CLEANUP_STATUS_CHECKPOINT.md
 
 # FFmpeg path (will be in Lambda Layer)
 FFMPEG_PATH = '/opt/bin/ffmpeg'
@@ -244,14 +244,9 @@ def get_content(channel_id, content_id, user_id=None):
     print(f"Found content via scan")
     return items[0]
 def get_template(template_id):
-    """Fetch video editing template"""
-    response = template_table.get_item(Key={'template_id': template_id})
-
-    if 'Item' not in response:
-        print(f"Template {template_id} not found, using defaults")
-        return get_default_template()
-
-    return response['Item']
+    """Fetch video editing template - SIMPLIFIED (Templates removed)"""
+    print(f"Templates system removed - using defaults (template_id={template_id} ignored)")
+    return get_default_template()
 
 
 def get_default_template():

@@ -495,26 +495,12 @@ def handle_multi_channel_batch(all_prompts, provider, user_id=None):
                     channel_config = channel_response['Items'][0]
                     channel_configs[channel_id] = channel_config
 
-                    # Load thumbnail template for this channel
-                    selected_thumbnail_template = channel_config.get('selected_thumbnail_template')
-                    if selected_thumbnail_template:
-                        try:
-                            thumbnail_table = dynamodb.Table('ThumbnailTemplates')
-                            thumbnail_response = thumbnail_table.get_item(
-                                Key={'template_id': selected_thumbnail_template}
-                            )
-                            if 'Item' in thumbnail_response:
-                                thumbnail_template = thumbnail_response['Item']
-                                thumbnail_config = thumbnail_template.get('thumbnail_config', {})
-                                aspect_ratio = thumbnail_config.get('aspect_ratio', '16:9')
-                                resolution = thumbnail_config.get('resolution', '1920x1080')
-
-                                # Convert to actual dimensions
-                                width, height = get_dimensions_from_aspect_ratio(aspect_ratio, resolution)
-                                thumbnail_dimensions[channel_id] = (width, height)
-                                print(f"    {channel_id[-6:]}: Thumbnail {aspect_ratio} = {width}x{height}")
-                        except Exception as e:
-                            print(f"     Failed to load thumbnail template for {channel_id}: {e}")
+                    # Thumbnail dimensions (Templates system removed - use defaults)
+                    aspect_ratio = '16:9'  # YouTube standard
+                    resolution = '1920x1080'
+                    width, height = get_dimensions_from_aspect_ratio(aspect_ratio, resolution)
+                    thumbnail_dimensions[channel_id] = (width, height)
+                    print(f"    {channel_id[-6:]}: Thumbnail {aspect_ratio} = {width}x{height}")
             except Exception as e:
                 print(f"     Failed to load channel config for {channel_id}: {e}")
 

@@ -194,75 +194,8 @@ def parse_known_json_fields(template):
     return template
 
 
-def load_story_blueprint(channel_config):
-    """Load Story Blueprint from StoryTemplates based on channel story_template field.
-    Returns None if no template set (AI decides freely)."""
-    template_id = (channel_config.get('story_template') or '').strip()
-    if not template_id:
-        print(' No story_template set — AI generates freely')
-        return None
-
-    try:
-        table = dynamodb.Table('StoryTemplates')
-        response = table.get_item(Key={'template_id': template_id})
-        blueprint = response.get('Item')
-        if blueprint:
-            print(f" Story blueprint loaded: {blueprint.get('name', template_id)}")
-            print(f"   Pacing: {blueprint.get('pacing_profile')} | Opening: {blueprint.get('opening_strategy')}")
-            print(f"   Scenes: {len(blueprint.get('scene_blueprints', []))}")
-        else:
-            print(f" Story template '{template_id}' not found — skipping blueprint")
-        return blueprint
-    except Exception as e:
-        print(f" Failed to load story blueprint: {e} — continuing without blueprint")
-        return None
-
-def load_all_templates(channel_config):
-    """Load all 7 templates for MEGA generation"""
-
-    templates = {}
-    template_types = {
-        'narrative': ('NarrativeTemplates', 'narrative_template', 'narr-universal'),
-        'image': ('ImageGenerationTemplates', 'image_template', 'img-universal-sd35'),
-        'cta': ('CTATemplates', 'cta_template', 'cta_template_1762366857242_3zx29p'),
-        'thumbnail': ('ThumbnailTemplates', 'thumbnail_template', 'thumb-universal'),
-        'tts': ('TTSTemplates', 'tts_template', 'tts-universal'),
-        'sfx': ('SFXTemplates', 'sfx_template', 'sfx_universal_v1'),
-        'description': ('DescriptionTemplates', 'description_template', 'description_universal_v1')
-    }
-
-    for key, (table_name, config_field, default_id) in template_types.items():
-        template_id = channel_config.get(config_field, default_id)
-        table = dynamodb.Table(table_name)
-
-        try:
-            response = table.get_item(Key={'template_id': template_id})
-            template = response.get('Item', {})
-
-            # Parse known JSON fields first
-            template = parse_known_json_fields(template)
-
-            # Then recursively parse any remaining nested JSON
-            template = parse_json_fields_recursive(template)
-
-            # Ensure ai_config exists and has sections
-            if 'ai_config' not in template or not isinstance(template.get('ai_config'), dict):
-                template['ai_config'] = {'sections': {}}
-            elif 'sections' not in template['ai_config']:
-                template['ai_config']['sections'] = {}
-            elif not isinstance(template['ai_config']['sections'], dict):
-                template['ai_config']['sections'] = {}
-
-            templates[f'{key}_template'] = template
-            print(f"Loaded {key} template: {template_id}")
-        except Exception as e:
-            print(f"Failed to load {key} template: {e}")
-            import traceback
-            traceback.print_exc()
-            # Provide minimal valid structure
-            templates[f'{key}_template'] = {'ai_config': {'sections': {}}}
-
-    return templates
+# REMOVED: load_all_templates() and load_story_blueprint()
+# Templates system deleted - see CLEANUP_STATUS_CHECKPOINT.md
 
 
 def lambda_handler(event, context):
@@ -380,28 +313,10 @@ def lambda_handler(event, context):
                 'timestamp': timestamp
             }
 
-        # 2.5. Load Story Blueprint
-        print(chr(10) + ' Loading story blueprint...')
-        story_blueprint = load_story_blueprint(channel_config)
-
-        # 3. Load ALL 7 Templates
-        print("\n Loading templates...")
-        templates = load_all_templates(channel_config)
-
-        # 4. Merge into MEGA configuration
-        print("\n Merging configurations...")
+        # 2.5. Build MEGA configuration (Templates system removed)
+        print("\n Building mega configuration...")
         try:
-            mega_config = merge_mega_configuration(
-                channel_config,
-                templates['narrative_template'],
-                templates['image_template'],
-                templates['cta_template'],
-                templates['thumbnail_template'],
-                templates['tts_template'],
-                templates['sfx_template'],
-                templates['description_template'],
-                story_blueprint=story_blueprint
-            )
+            mega_config = merge_mega_configuration(channel_config)
         except Exception as merge_error:
             print(f"ERROR in merge_mega_configuration: {merge_error}")
             import traceback
