@@ -10,7 +10,6 @@ import os
 
 # Add shared directory to path
 sys.path.insert(0, os.path.join(os.path.dirname(__file__), 'shared'))
-from config_merger import merge_configuration
 
 bedrock_runtime = boto3.client('bedrock-runtime', region_name='eu-central-1')
 s3 = boto3.client('s3', region_name='eu-central-1')
