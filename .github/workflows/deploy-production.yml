@@ -107,6 +107,12 @@ jobs:
           - save-phase1-to-s3
           - load-phase1-from-s3
           - telegram-error-notifier
+          - content-topics-add
+          - content-topics-list
+          - content-topics-get-next
+          - content-topics-update-status
+          - content-topics-bulk-add
+          - content-build-master-config
 
       fail-fast: false  # Continue deploying other functions even if one fails
 
@@ -206,15 +212,43 @@ jobs:
           aws-secret-access-key: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
           aws-region: ${{ env.AWS_REGION }}
 
-      - name: Sync HTML files to production server
+      - name: Setup SSH key
         run: |
-          # Note: This requires SSH access to production server
-          # For now, just show what would be deployed
-          echo "Frontend files changed:"
-          git diff --name-only HEAD^ HEAD | grep -E "\.(html|css|js)$"
+          mkdir -p ~/.ssh
+          echo "${{ secrets.PROD_SSH_KEY }}" > ~/.ssh/id_rsa
+          chmod 600 ~/.ssh/id_rsa
+          ssh-keyscan -H 212.233.127.141 >> ~/.ssh/known_hosts
 
-          # TODO: Add actual deployment via SSH or S3 sync
-          echo "Frontend deployment will be configured with production server details"
+      - name: Deploy Frontend files to production server
+        run: |
+          echo "Deploying frontend files to production..."
+
+          # Get list of changed files
+          CHANGED_FILES=$(git diff --name-only HEAD^ HEAD | grep -E "\.(html|css|js)$" || true)
+
+          if [ -z "$CHANGED_FILES" ]; then
+            echo "No frontend files changed"
+            exit 0
+          fi
+
+          echo "Changed files:"
+          echo "$CHANGED_FILES"
+
+          # Deploy each changed file
+          for file in $CHANGED_FILES; do
+            if [[ "$file" == js/* ]]; then
+              echo "Deploying $file to /var/www/html/n8n-creator-space/js/"
+              scp -o StrictHostKeyChecking=no "$file" root@212.233.127.141:/var/www/html/n8n-creator-space/js/
+            elif [[ "$file" == css/* ]]; then
+              echo "Deploying $file to /var/www/html/n8n-creator-space/css/"
+              scp -o StrictHostKeyChecking=no "$file" root@212.233.127.141:/var/www/html/n8n-creator-space/css/
+            elif [[ "$file" == *.html ]]; then
+              echo "Deploying $file to /var/www/html/n8n-creator-space/"
+              scp -o StrictHostKeyChecking=no "$file" root@212.233.127.141:/var/www/html/n8n-creator-space/
+            fi
+          done
+
+          echo "Frontend deployment completed successfully!"
 
   # Job 5: Notify on completion
   notify:
