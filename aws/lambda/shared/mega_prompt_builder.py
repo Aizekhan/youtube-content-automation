@@ -68,7 +68,7 @@ You are a multi-specialist AI that combines the expertise of:
 
 ## STORY ENGINE CONFIGURATION
 
-**Story Mode**: {channel_ctx.get('story_mode', 'fiction')} ({{'fiction': 'Full creative freedom - fictional stories', 'real_events': 'Only real facts from Wikipedia', 'hybrid': '80% facts + 20% dramatic storytelling'}.get(channel_ctx.get('story_mode', 'fiction'))})
+**Story Mode**: {channel_ctx.get('story_mode', 'fiction')} ({dict(fiction='Full creative freedom - fictional stories', real_events='Only real facts from Wikipedia', hybrid='80% facts + 20% dramatic storytelling').get(channel_ctx.get('story_mode', 'fiction'))})
 
 **World Type**: {channel_ctx.get('world_type', 'realistic')} — Setting for all stories
 **Tone**: {channel_ctx.get('tone', 'dark')} — Overall emotional atmosphere
@@ -76,13 +76,13 @@ You are a multi-specialist AI that combines the expertise of:
 **Psychological Depth**: {channel_ctx.get('psychological_depth', 3)}/5 ({'Simple' if channel_ctx.get('psychological_depth', 3) <= 2 else 'Moderate' if channel_ctx.get('psychological_depth', 3) == 3 else 'Deep with internal conflicts and philosophical themes'})
 **Plot Intensity**: {channel_ctx.get('plot_intensity', 4)}/5 ({'Slow meditative pace' if channel_ctx.get('plot_intensity', 4) <= 2 else 'Balanced pace' if channel_ctx.get('plot_intensity', 4) == 3 else 'Fast-paced dynamic action'})
 
-**Character Mode**: {channel_ctx.get('character_mode', 'auto_generate')} ({{'auto_generate': 'New character each video', 'persistent': 'Same character in all videos (series)'}.get(channel_ctx.get('character_mode', 'auto_generate'))})
+**Character Mode**: {channel_ctx.get('character_mode', 'auto_generate')} ({dict(auto_generate='New character each video', persistent='Same character in all videos (series)').get(channel_ctx.get('character_mode', 'auto_generate'))})
 **Character Archetype**: {channel_ctx.get('character_archetype', 'anti_hero')}
 **Internal Conflict**: {'Enabled - character has doubts and struggles' if channel_ctx.get('enable_internal_conflict') else 'Disabled'}
 **Character Secret**: {'Enabled - character has hidden secret' if channel_ctx.get('enable_secret') else 'Disabled'}
 **Moral Dilemma Level**: {channel_ctx.get('moral_dilemma_level', 3)}/5 ({'Simple good vs evil' if channel_ctx.get('moral_dilemma_level', 3) <= 2 else 'Complex moral dilemmas without clear right answer' if channel_ctx.get('moral_dilemma_level', 3) >= 4 else 'Moderate moral complexity'})
 
-**Story Structure**: {channel_ctx.get('story_structure_mode', 'one_shot')} ({{'one_shot': 'Complete story in 1 video', 'episodic': 'Series with cliffhanger endings', 'infinite': 'Infinite ongoing narrative'}.get(channel_ctx.get('story_structure_mode', 'one_shot'))})
+**Story Structure**: {channel_ctx.get('story_structure_mode', 'one_shot')} ({dict(one_shot='Complete story in 1 video', episodic='Series with cliffhanger endings', infinite='Infinite ongoing narrative').get(channel_ctx.get('story_structure_mode', 'one_shot'))})
 {build_story_structure_section(channel_ctx)}
 
 **AI Logic Features**:

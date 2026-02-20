@@ -266,6 +266,8 @@ def lambda_handler(event, context):
         # MANUAL NARRATIVE BYPASS: If channel has manual_mode_enabled=true AND manual_narrative, skip OpenAI and use pre-written story
         manual_mode_enabled = channel_config.get('manual_mode_enabled') in ['true', True, '1', 1]
         manual_narrative = channel_config.get('manual_narrative')
+        print(f" DEBUG: manual_mode_enabled={channel_config.get('manual_mode_enabled')} → {manual_mode_enabled}")
+        print(f" DEBUG: manual_narrative exists={bool(manual_narrative)} length={len(str(manual_narrative)) if manual_narrative else 0}")
         if manual_mode_enabled and manual_narrative:
             print(" MANUAL NARRATIVE MODE: Using pre-written story from channel config")
             if isinstance(manual_narrative, str):
@@ -469,10 +471,9 @@ def lambda_handler(event, context):
 
         print(f" Saved to DynamoDB")
 
-        # 10. Get image provider
-        image_template = templates['image_template']
-        image_settings = image_template.get('image_settings', {})
-        image_provider = image_settings.get('provider', 'ec2-sd35')
+        # 10. Get image provider from channel config (Templates system removed)
+        image_generation_config = channel_config.get('image_generation', {})
+        image_provider = image_generation_config.get('provider', 'ec2-sd35')
 
         # 11. Return output for Step Functions
         print("\n Building output...")
