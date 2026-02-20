@@ -556,6 +556,9 @@ async function openConfigModal(channelId) {
         // Populate form values
         populateForm(config);
 
+        // Initialize Story Engine UI handlers
+        initializeStoryEngineUI();
+
         // Note: loadImageGenerationSettings() removed - deprecated feature
         // Image generation now uses selected_image_template + visual guidance fields
 
@@ -597,6 +600,18 @@ function populateForm(config) {
         // Production Settings
         'video_duration_target', 'target_character_count', 'scene_count_target', 'max_tokens',
         // TTS Settings 'format',        'example_keywords_for_youtube', 'unique_variation_logic'
+        // Story Engine - Manual Input Mode
+        'manual_mode_enabled', 'manual_theme', 'manual_narrative',
+        // Story Engine - Story Mode
+        'story_mode',
+        // Story Engine - Story DNA
+        'world_type', 'tone', 'psychological_depth', 'plot_intensity',
+        // Story Engine - Character Engine
+        'character_mode', 'character_archetype', 'enable_internal_conflict', 'enable_secret', 'moral_dilemma_level',
+        // Story Engine - Story Structure
+        'story_structure_mode', 'story_structure_template',
+        // Story Engine - Logic & Consistency
+        'generate_plan_before_writing', 'auto_consistency_check', 'character_motivation_validation', 'no_cliches_mode', 'surprise_injection_level'
     ];
     
     fields.forEach(field => {
@@ -1319,5 +1334,184 @@ function formatUptime(seconds) {
 
 // REMOVED: Variation Sets Management (Templates system deleted)
 // See CLEANUP_STATUS_CHECKPOINT.md for details
+
+// ============================================================================
+// STORY ENGINE UI HANDLERS
+// ============================================================================
+
+/**
+ * Set Story Mode (Fiction / Real Events / Hybrid)
+ */
+function setStoryMode(mode) {
+    // Update hidden select
+    const selectEl = document.getElementById('story_mode');
+    if (selectEl) {
+        selectEl.value = mode;
+    }
+
+    // Update visual cards
+    const cards = document.querySelectorAll('.mode-card');
+    cards.forEach(card => {
+        if (card.dataset.value === mode) {
+            card.style.border = '2px solid #667eea';
+            card.style.background = '#f0f4ff';
+        } else {
+            card.style.border = '2px solid #e0e0e0';
+            card.style.background = 'white';
+        }
+    });
+}
+
+/**
+ * Update slider value display
+ */
+function updateSliderValue(slider, valueId) {
+    const valueDisplay = document.getElementById(valueId);
+    if (valueDisplay) {
+        valueDisplay.textContent = slider.value;
+    }
+}
+
+/**
+ * Generate empty narrative template
+ */
+function generateManualNarrativeTemplate() {
+    const template = {
+        "story_title": "Your Story Title Here",
+        "scenes": [
+            {
+                "scene_number": 1,
+                "scene_title": "Scene Title",
+                "scene_narration": "Narration text for this scene...",
+                "image_prompt": "Detailed image generation prompt...",
+                "negative_prompt": "blurry, low quality, distorted",
+                "music_track": "optional_music.mp3",
+                "sfx_cues": ["optional_sound1.mp3"],
+                "timing_estimates": [0, 5]
+            }
+        ],
+        "metadata": {
+            "total_scenes": 1,
+            "estimated_duration_seconds": 60
+        }
+    };
+
+    const textarea = document.getElementById('manual_narrative');
+    if (textarea) {
+        textarea.value = JSON.stringify(template, null, 2);
+    }
+}
+
+/**
+ * Validate and preview manual narrative JSON
+ */
+function validateManualNarrative() {
+    const textarea = document.getElementById('manual_narrative');
+    const previewDiv = document.getElementById('manual-narrative-preview');
+
+    if (!textarea || !previewDiv) return;
+
+    try {
+        const narrative = JSON.parse(textarea.value);
+
+        // Validate structure
+        if (!narrative.story_title) {
+            throw new Error('Missing story_title');
+        }
+        if (!narrative.scenes || !Array.isArray(narrative.scenes)) {
+            throw new Error('Missing or invalid scenes array');
+        }
+        if (narrative.scenes.length === 0) {
+            throw new Error('Scenes array is empty');
+        }
+
+        // Validate each scene
+        narrative.scenes.forEach((scene, index) => {
+            if (!scene.scene_number) throw new Error(`Scene ${index + 1}: missing scene_number`);
+            if (!scene.scene_title) throw new Error(`Scene ${index + 1}: missing scene_title`);
+            if (!scene.scene_narration) throw new Error(`Scene ${index + 1}: missing scene_narration`);
+            if (!scene.image_prompt) throw new Error(`Scene ${index + 1}: missing image_prompt`);
+        });
+
+        // Generate preview HTML
+        let previewHTML = `
+            <div style="border-left: 4px solid #48bb78; padding-left: 12px; margin-bottom: 15px;">
+                <strong style="color: #48bb78;">✓ Valid JSON</strong>
+            </div>
+            <div style="margin-bottom: 12px;">
+                <strong>Title:</strong> ${narrative.story_title}
+            </div>
+            <div style="margin-bottom: 12px;">
+                <strong>Scenes:</strong> ${narrative.scenes.length}
+            </div>
+            <div style="border-top: 1px solid #e0e0e0; padding-top: 12px;">
+        `;
+
+        narrative.scenes.forEach(scene => {
+            previewHTML += `
+                <div style="margin-bottom: 10px; padding: 8px; background: white; border-radius: 4px; border: 1px solid #e0e0e0;">
+                    <strong>Scene ${scene.scene_number}:</strong> ${scene.scene_title}<br>
+                    <span style="font-size: 12px; color: #718096;">
+                        ${scene.scene_narration.substring(0, 80)}${scene.scene_narration.length > 80 ? '...' : ''}
+                    </span>
+                </div>
+            `;
+        });
+
+        previewHTML += '</div>';
+        previewDiv.innerHTML = previewHTML;
+
+        showNotification('✓ Valid narrative JSON', 'success');
+
+    } catch (error) {
+        previewDiv.innerHTML = `
+            <div style="border-left: 4px solid #f56565; padding-left: 12px;">
+                <strong style="color: #f56565;">✗ Invalid JSON</strong><br>
+                <span style="font-size: 13px; color: #718096;">${error.message}</span>
+            </div>
+        `;
+        showNotification('Invalid JSON: ' + error.message, 'danger');
+    }
+}
+
+/**
+ * Initialize Story Engine UI event listeners
+ */
+function initializeStoryEngineUI() {
+    // Manual Mode checkbox - show/hide manual input fields
+    const manualModeCheckbox = document.getElementById('manual_mode_enabled');
+    const manualInputFields = document.getElementById('manual-input-fields');
+
+    if (manualModeCheckbox && manualInputFields) {
+        manualModeCheckbox.addEventListener('change', function() {
+            manualInputFields.style.display = this.checked ? 'block' : 'none';
+        });
+
+        // Initialize visibility based on current state
+        manualInputFields.style.display = manualModeCheckbox.checked ? 'block' : 'none';
+    }
+
+    // Initialize Story Mode cards
+    const storyModeSelect = document.getElementById('story_mode');
+    if (storyModeSelect && storyModeSelect.value) {
+        setStoryMode(storyModeSelect.value);
+    }
+
+    // Initialize slider values
+    const sliders = [
+        { sliderId: 'psychological_depth', valueId: 'psychological_depth_value' },
+        { sliderId: 'plot_intensity', valueId: 'plot_intensity_value' },
+        { sliderId: 'moral_dilemma_level', valueId: 'moral_dilemma_level_value' },
+        { sliderId: 'surprise_injection_level', valueId: 'surprise_injection_level_value' }
+    ];
+
+    sliders.forEach(({ sliderId, valueId }) => {
+        const slider = document.getElementById(sliderId);
+        const valueDisplay = document.getElementById(valueId);
+        if (slider && valueDisplay) {
+            valueDisplay.textContent = slider.value;
+        }
+    });
+}
 
 

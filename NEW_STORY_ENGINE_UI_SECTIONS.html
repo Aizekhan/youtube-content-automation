@@ -1,0 +1,399 @@
+                <!-- ═══ SECTION 3: MANUAL INPUT MODE ═══ -->
+                <details class="advanced-settings">
+                    <summary>✍️ Manual Input Mode</summary>
+                    <div class="advanced-settings-body">
+
+                        <!-- Enable Manual Mode -->
+                        <div class="form-group full">
+                            <label>
+                                <input type="checkbox" id="manual_mode_enabled" style="margin-right: 8px; width: auto;">
+                                Enable Manual Input (skip AI generation)
+                            </label>
+                            <span class="field-hint">
+                                ⚠️ Коли увімкнено - пропускаються AI етапи генерації theme/planning/narrative.
+                                Система одразу переходить до audio/images/video з вашого готового narrative.
+                            </span>
+                        </div>
+
+                        <!-- Manual Input Fields -->
+                        <div id="manual-input-fields" style="display: none;">
+
+                            <!-- Story Title -->
+                            <div class="form-group full">
+                                <label>📌 Story Title / Theme</label>
+                                <input type="text" id="manual_theme"
+                                       placeholder="Example: The Last Samurai's Secret">
+                                <span class="field-hint">Назва історії або тема відео</span>
+                            </div>
+
+                            <!-- Narrative JSON -->
+                            <div class="form-group full">
+                                <label>📝 Story Narrative (JSON format)</label>
+                                <textarea id="manual_narrative" rows="15"
+                                          style="font-family: monospace; font-size: 12px;"
+                                          placeholder="Paste narrative JSON here..."></textarea>
+                                <span class="field-hint">
+                                    <strong>Формат JSON має містити:</strong> story_title, scenes (array)<br>
+                                    <strong>Кожна scene має містити:</strong> scene_number, scene_title, scene_narration, image_prompt
+                                    <br><br>
+                                    <details style="margin-top: 10px;">
+                                        <summary style="cursor: pointer; color: #667eea; font-weight: 600;">📋 Показати приклад структури JSON</summary>
+                                        <pre style="background: #f5f5f5; padding: 15px; border-radius: 8px; font-size: 11px; overflow-x: auto; margin-top: 10px;">{
+  "story_title": "The Last Samurai's Secret",
+  "scenes": [
+    {
+      "scene_number": 1,
+      "scene_title": "The Village Burns",
+      "scene_narration": "In fifteen eighty-seven, a quiet village in feudal Japan faced an unimaginable horror...",
+      "image_prompt": "Japanese feudal village on fire at night, cinematic wide shot, dramatic orange lighting, smoke rising, wooden houses burning...",
+      "negative_prompt": "blurry, low quality, distorted, anime",
+      "music_track": "dramatic_japanese.mp3",
+      "sfx_cues": ["fire_crackling.mp3", "wind_howling.mp3"],
+      "timing_estimates": [0, 5, 10, 15]
+    },
+    {
+      "scene_number": 2,
+      "scene_title": "The Survivor",
+      "scene_narration": "Among the ashes, one man remained standing...",
+      "image_prompt": "Lone samurai standing in burning village ruins, backlit by flames...",
+      "negative_prompt": "blurry, low quality",
+      "music_track": "epic_orchestral.mp3",
+      "sfx_cues": ["sword_unsheath.mp3"],
+      "timing_estimates": [0, 8]
+    }
+  ],
+  "metadata": {
+    "total_scenes": 2,
+    "estimated_duration_seconds": 120
+  }
+}</pre>
+                                    </details>
+                                </span>
+                            </div>
+
+                            <!-- Buttons -->
+                            <div class="form-group full">
+                                <button type="button" class="btn btn-secondary"
+                                        onclick="generateManualNarrativeTemplate()"
+                                        style="margin-right: 10px;">
+                                    📋 Generate Empty Template
+                                </button>
+                                <button type="button" class="btn btn-secondary"
+                                        onclick="validateManualNarrative()">
+                                    ✅ Validate JSON
+                                </button>
+                            </div>
+
+                            <!-- Preview -->
+                            <div class="form-group full">
+                                <label>👁️ Preview</label>
+                                <div id="manual-narrative-preview"
+                                     style="background: #f5f5f5; padding: 15px; border-radius: 8px;
+                                            max-height: 300px; overflow-y: auto; font-size: 13px; line-height: 1.6;">
+                                    <em style="color: #718096;">Preview will appear after validation...</em>
+                                </div>
+                            </div>
+
+                        </div>
+
+                    </div>
+                </details>
+
+                <!-- ═══ SECTION 4: STORY MODE ═══ -->
+                <details class="advanced-settings">
+                    <summary>🎭 Story Mode (Fiction / Real Events / Hybrid)</summary>
+                    <div class="advanced-settings-body">
+
+                        <div class="form-group full">
+                            <label>Режим створення історії</label>
+                            <div id="story-mode-cards" style="display: grid; grid-template-columns: repeat(3, 1fr); gap: 15px; margin-top: 10px;">
+
+                                <!-- Fiction Mode -->
+                                <div class="mode-card" data-value="fiction" onclick="setStoryMode('fiction')"
+                                     style="cursor: pointer; padding: 20px; border: 2px solid #e0e0e0; border-radius: 10px; text-align: center; transition: all 0.3s; background: white;">
+                                    <div style="font-size: 48px; margin-bottom: 12px;">✨</div>
+                                    <h4 style="margin: 0 0 8px 0; color: #2d3748; font-size: 16px;">Fiction</h4>
+                                    <p style="margin: 0; font-size: 13px; color: #718096; line-height: 1.4;">Повна творча свобода AI. Вигадані персонажі та сюжети.</p>
+                                </div>
+
+                                <!-- Real Events Mode -->
+                                <div class="mode-card" data-value="real_events" onclick="setStoryMode('real_events')"
+                                     style="cursor: pointer; padding: 20px; border: 2px solid #e0e0e0; border-radius: 10px; text-align: center; transition: all 0.3s; background: white;">
+                                    <div style="font-size: 48px; margin-bottom: 12px;">📚</div>
+                                    <h4 style="margin: 0 0 8px 0; color: #2d3748; font-size: 16px;">Real Events</h4>
+                                    <p style="margin: 0; font-size: 13px; color: #718096; line-height: 1.4;">Тільки реальні факти з Wikipedia. Без вигадки.</p>
+                                </div>
+
+                                <!-- Hybrid Mode -->
+                                <div class="mode-card" data-value="hybrid" onclick="setStoryMode('hybrid')"
+                                     style="cursor: pointer; padding: 20px; border: 2px solid #e0e0e0; border-radius: 10px; text-align: center; transition: all 0.3s; background: white;">
+                                    <div style="font-size: 48px; margin-bottom: 12px;">🎬</div>
+                                    <h4 style="margin: 0 0 8px 0; color: #2d3748; font-size: 16px;">Hybrid</h4>
+                                    <p style="margin: 0; font-size: 13px; color: #718096; line-height: 1.4;">Реальні факти + кінематографічна подача.</p>
+                                </div>
+
+                            </div>
+
+                            <!-- Hidden select for form submission -->
+                            <select id="story_mode" style="display: none;">
+                                <option value="fiction">fiction</option>
+                                <option value="real_events">real_events</option>
+                                <option value="hybrid">hybrid</option>
+                            </select>
+
+                            <span class="field-hint" style="display: block; margin-top: 15px;">
+                                <strong>Fiction:</strong> AI повністю вигадує історії<br>
+                                <strong>Real Events:</strong> AI використовує лише факти з Wikipedia<br>
+                                <strong>Hybrid:</strong> 80% фактів + 20% драматична подача
+                            </span>
+                        </div>
+
+                    </div>
+                </details>
+
+                <!-- ═══ SECTION 5: STORY DNA ═══ -->
+                <details class="advanced-settings">
+                    <summary>🧬 Story DNA (Характер каналу)</summary>
+                    <div class="advanced-settings-body">
+
+                        <div class="form-grid">
+
+                            <!-- World Type -->
+                            <div class="form-group full">
+                                <label>🌍 World Type (Тип світу)</label>
+                                <select id="world_type">
+                                    <option value="realistic">Realistic (сучасний реальний світ)</option>
+                                    <option value="medieval_fantasy">Medieval Fantasy (середньовіччя, магія, дракони)</option>
+                                    <option value="cyberpunk">Cyberpunk (майбутнє, технології, неон)</option>
+                                    <option value="post_apocalyptic">Post-Apocalyptic (після катастрофи, виживання)</option>
+                                    <option value="alternate_reality">Alternate Reality (альтернативна історія)</option>
+                                </select>
+                                <span class="field-hint">Світ в якому відбуваються історії на каналі</span>
+                            </div>
+
+                            <!-- Tone -->
+                            <div class="form-group full">
+                                <label>🎨 Tone (Емоційна тональність)</label>
+                                <select id="tone">
+                                    <option value="dark">Dark (темний, похмурий, драматичний)</option>
+                                    <option value="emotional">Emotional (емоційний, зворушливий, людяний)</option>
+                                    <option value="epic">Epic (епічний, грандіозний, героїчний)</option>
+                                    <option value="calm">Calm (спокійний, медитативний, філософський)</option>
+                                    <option value="disturbing">Disturbing (тривожний, моторошний, напружений)</option>
+                                </select>
+                                <span class="field-hint">Загальна емоційна атмосфера історій</span>
+                            </div>
+
+                            <!-- Psychological Depth -->
+                            <div class="form-group full">
+                                <label>🧠 Psychological Depth (Психологічна глибина)</label>
+                                <input type="range" id="psychological_depth" min="1" max="5" value="3" step="1"
+                                       oninput="updateSliderValue(this, 'psychological_depth_value')">
+                                <div style="display: flex; justify-content: space-between; margin-top: 8px; font-size: 12px; color: #718096;">
+                                    <span>1 (Поверхнево)</span>
+                                    <span id="psychological_depth_value" style="font-weight: 700; color: #667eea; font-size: 16px;">3</span>
+                                    <span>5 (Дуже глибоко)</span>
+                                </div>
+                                <span class="field-hint">
+                                    1 = проста подача без деталей<br>
+                                    3 = помірна глибина<br>
+                                    5 = складні персонажі, внутрішні конфлікти, філософські питання
+                                </span>
+                            </div>
+
+                            <!-- Plot Intensity -->
+                            <div class="form-group full">
+                                <label>⚡ Plot Intensity (Інтенсивність сюжету)</label>
+                                <input type="range" id="plot_intensity" min="1" max="5" value="4" step="1"
+                                       oninput="updateSliderValue(this, 'plot_intensity_value')">
+                                <div style="display: flex; justify-content: space-between; margin-top: 8px; font-size: 12px; color: #718096;">
+                                    <span>1 (Повільний)</span>
+                                    <span id="plot_intensity_value" style="font-weight: 700; color: #667eea; font-size: 16px;">4</span>
+                                    <span>5 (Дуже швидкий)</span>
+                                </div>
+                                <span class="field-hint">
+                                    1 = повільний, медитативний темп<br>
+                                    3 = збалансований темп<br>
+                                    5 = динамічний екшн, швидкі зміни
+                                </span>
+                            </div>
+
+                        </div>
+
+                    </div>
+                </details>
+
+                <!-- ═══ SECTION 6: CHARACTER ENGINE ═══ -->
+                <details class="advanced-settings">
+                    <summary>👤 Character Engine (Персонажі)</summary>
+                    <div class="advanced-settings-body">
+
+                        <div class="form-grid">
+
+                            <!-- Character Mode -->
+                            <div class="form-group full">
+                                <label>Режим персонажів</label>
+                                <select id="character_mode">
+                                    <option value="auto_generate">Auto Generate (новий персонаж кожної історії)</option>
+                                    <option value="persistent">Persistent Character (той самий персонаж у всіх відео - серіал)</option>
+                                </select>
+                                <span class="field-hint">
+                                    Auto = кожна історія має унікального персонажа<br>
+                                    Persistent = всі відео про одного персонажа (для серіалів)
+                                </span>
+                            </div>
+
+                            <!-- Character Archetype -->
+                            <div class="form-group full">
+                                <label>Архетип персонажа</label>
+                                <select id="character_archetype">
+                                    <option value="anti_hero">Anti-Hero (анти-герой, моральна двозначність)</option>
+                                    <option value="innocent">Innocent (невинний, чистий, наївний)</option>
+                                    <option value="broken_genius">Broken Genius (геній зі складним минулим)</option>
+                                    <option value="survivor">Survivor (виживач, сильний духом)</option>
+                                    <option value="villain_pov">Villain POV (історія з позиції лиходія)</option>
+                                </select>
+                                <span class="field-hint">Базовий тип персонажа для історій</span>
+                            </div>
+
+                            <!-- Character Features -->
+                            <div class="form-group full">
+                                <label style="display: block; margin-bottom: 10px;">Особливості персонажів</label>
+
+                                <label style="display: block; margin-bottom: 8px; cursor: pointer;">
+                                    <input type="checkbox" id="enable_internal_conflict" style="margin-right: 8px; width: auto;">
+                                    Enable Internal Conflict (внутрішній конфлікт, сумніви)
+                                </label>
+
+                                <label style="display: block; margin-bottom: 8px; cursor: pointer;">
+                                    <input type="checkbox" id="enable_secret" style="margin-right: 8px; width: auto;">
+                                    Enable Character Secret (персонаж має таємницю)
+                                </label>
+
+                                <span class="field-hint">
+                                    Internal Conflict = персонаж має внутрішню боротьбу, сумніви<br>
+                                    Character Secret = у персонажа є прихована таємниця
+                                </span>
+                            </div>
+
+                            <!-- Moral Dilemma Level -->
+                            <div class="form-group full">
+                                <label>⚖️ Moral Dilemma Level (Рівень моральних дилем)</label>
+                                <input type="range" id="moral_dilemma_level" min="1" max="5" value="3" step="1"
+                                       oninput="updateSliderValue(this, 'moral_dilemma_level_value')">
+                                <div style="display: flex; justify-content: space-between; margin-top: 8px; font-size: 12px; color: #718096;">
+                                    <span>1 (Просто)</span>
+                                    <span id="moral_dilemma_level_value" style="font-weight: 700; color: #667eea; font-size: 16px;">3</span>
+                                    <span>5 (Складно)</span>
+                                </div>
+                                <span class="field-hint">
+                                    1 = прості вибори (добро vs зло)<br>
+                                    5 = складні моральні дилеми без правильної відповіді
+                                </span>
+                            </div>
+
+                        </div>
+
+                    </div>
+                </details>
+
+                <!-- ═══ SECTION 7: STORY STRUCTURE ═══ -->
+                <details class="advanced-settings">
+                    <summary>📖 Story Structure (Структура історії)</summary>
+                    <div class="advanced-settings-body">
+
+                        <div class="form-grid">
+
+                            <!-- Story Mode -->
+                            <div class="form-group full">
+                                <label>Режим оповідання</label>
+                                <select id="story_structure_mode">
+                                    <option value="one_shot">One-Shot Story (завершена історія за 1 відео)</option>
+                                    <option value="episodic">Episodic Series (серіал з епізодами)</option>
+                                    <option value="infinite">Infinite Narrative (нескінченна історія)</option>
+                                </select>
+                                <span class="field-hint">
+                                    One-Shot = історія починається і закінчується в одному відео<br>
+                                    Episodic = кожне відео - епізод з cliffhanger<br>
+                                    Infinite = історія тягнеться нескінченно
+                                </span>
+                            </div>
+
+                            <!-- Structure Template -->
+                            <div class="form-group full">
+                                <label>Шаблон структури (можна редагувати)</label>
+                                <textarea id="story_structure_template" rows="10"
+                                          style="font-family: monospace; font-size: 13px;">1. Hook (емоційний гачок перші 5 секунд)
+2. World introduction (покажи світ)
+3. Protagonist (представ головного героя)
+4. Conflict (конфлікт або проблема)
+5. Rising tension (наростання напруги)
+6. Twist (несподіваний поворот)
+7. Cliffhanger (закінчення що змушує хотіти продовження)</textarea>
+                                <span class="field-hint">
+                                    Базова структура для AI. Можна змінювати під ваші потреби.
+                                </span>
+                            </div>
+
+                        </div>
+
+                    </div>
+                </details>
+
+                <!-- ═══ SECTION 8: LOGIC & CONSISTENCY ═══ -->
+                <details class="advanced-settings">
+                    <summary>🧠 Logic & Consistency (Логіка та послідовність)</summary>
+                    <div class="advanced-settings-body">
+
+                        <div class="form-grid">
+
+                            <!-- Logic Checkboxes -->
+                            <div class="form-group full">
+                                <label style="display: block; margin-bottom: 10px;">AI Логіка та перевірки</label>
+
+                                <label style="display: block; margin-bottom: 8px; cursor: pointer;">
+                                    <input type="checkbox" id="generate_plan_before_writing" checked style="margin-right: 8px; width: auto;">
+                                    Generate Plan Before Writing (спочатку план, потім narrative)
+                                </label>
+
+                                <label style="display: block; margin-bottom: 8px; cursor: pointer;">
+                                    <input type="checkbox" id="auto_consistency_check" checked style="margin-right: 8px; width: auto;">
+                                    Auto Consistency Check (перевірка логічних суперечностей)
+                                </label>
+
+                                <label style="display: block; margin-bottom: 8px; cursor: pointer;">
+                                    <input type="checkbox" id="character_motivation_validation" checked style="margin-right: 8px; width: auto;">
+                                    Character Motivation Validation (перевірка мотивації персонажів)
+                                </label>
+
+                                <label style="display: block; margin-bottom: 8px; cursor: pointer;">
+                                    <input type="checkbox" id="no_cliches_mode" style="margin-right: 8px; width: auto;">
+                                    No Clichés Mode (уникати кліше та банальностей)
+                                </label>
+
+                                <span class="field-hint">
+                                    Увімкнені опції покращують якість, але збільшують час генерації
+                                </span>
+                            </div>
+
+                            <!-- Surprise Injection Level -->
+                            <div class="form-group full">
+                                <label>🎲 Surprise Injection Level (Рівень несподіванок)</label>
+                                <input type="range" id="surprise_injection_level" min="1" max="5" value="3" step="1"
+                                       oninput="updateSliderValue(this, 'surprise_injection_level_value')">
+                                <div style="display: flex; justify-content: space-between; margin-top: 8px; font-size: 12px; color: #718096;">
+                                    <span>1 (Передбачувано)</span>
+                                    <span id="surprise_injection_level_value" style="font-weight: 700; color: #667eea; font-size: 16px;">3</span>
+                                    <span>5 (Максимум несподіванок)</span>
+                                </div>
+                                <span class="field-hint">
+                                    1 = класичний передбачуваний сюжет<br>
+                                    5 = максимум несподіваних поворотів та сюрпризів
+                                </span>
+                            </div>
+
+                        </div>
+
+                    </div>
+                </details>
+
