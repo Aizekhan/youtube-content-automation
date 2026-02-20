@@ -1,0 +1,577 @@
+/**
+ * Topics Queue Manager
+ * Sprint 1 - Task 1.7
+ */
+
+// Lambda Function URLs
+const LAMBDA_URLS = {
+    LIST: 'https://7rjgjxlq6r2xf6uds3umkwfmdm0yrkhc.lambda-url.eu-central-1.on.aws/',
+    ADD: 'https://vrddclaa37szm5wk46yvimaovq0acntf.lambda-url.eu-central-1.on.aws/',
+    GET_NEXT: 'https://y47kwb2yylyyafsi2mlt2siuta0kppuk.lambda-url.eu-central-1.on.aws/',
+    UPDATE_STATUS: 'https://6h5sy3jqn7alvrqhpf36yohls40awfnu.lambda-url.eu-central-1.on.aws/',
+    BULK_ADD: 'https://tiavvd5mptxn2czclztgd37eju0rgdab.lambda-url.eu-central-1.on.aws/'
+};
+
+// Global state
+let currentUserId = null;
+let currentChannelId = null;
+let allTopics = [];
+let editingTopicId = null;
+
+/**
+ * Initialize on page load
+ */
+document.addEventListener('DOMContentLoaded', async () => {
+    console.log('Topics Manager initialized');
+
+    // Load user_id from localStorage
+    currentUserId = localStorage.getItem('user_id');
+    if (!currentUserId) {
+        showToast('Please log in first', 'error');
+        setTimeout(() => window.location.href = 'login.html', 2000);
+        return;
+    }
+
+    // Load channels for dropdown
+    await loadChannels();
+
+    // Add topic count updater for bulk textarea
+    const bulkTextarea = document.getElementById('bulkTopicsList');
+    if (bulkTextarea) {
+        bulkTextarea.addEventListener('input', updateBulkTopicCount);
+    }
+});
+
+/**
+ * Load channels list for dropdown
+ */
+async function loadChannels() {
+    try {
+        // Get channels from ChannelConfigs (using existing API endpoint)
+        const response = await fetch('https://7rggdjm5wl.execute-api.eu-central-1.amazonaws.com/default/content-get-channels', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ user_id: currentUserId })
+        });
+
+        const data = await response.json();
+
+        if (data.success && data.channels) {
+            const channelSelect = document.getElementById('channelSelect');
+            channelSelect.innerHTML = '<option value="">Select Channel...</option>';
+
+            data.channels.forEach(channel => {
+                const option = document.createElement('option');
+                option.value = channel.channel_id;
+                option.textContent = channel.channel_name || channel.channel_id;
+                channelSelect.appendChild(option);
+            });
+
+            // Auto-select first channel if only one
+            if (data.channels.length === 1) {
+                channelSelect.value = data.channels[0].channel_id;
+                currentChannelId = data.channels[0].channel_id;
+                await loadTopics();
+            }
+        }
+    } catch (error) {
+        console.error('Error loading channels:', error);
+        showToast('Failed to load channels', 'error');
+    }
+}
+
+/**
+ * Load topics from Lambda
+ */
+async function loadTopics() {
+    const channelSelect = document.getElementById('channelSelect');
+    const selectedChannel = channelSelect.value;
+
+    if (!selectedChannel) {
+        document.getElementById('emptyState').style.display = 'block';
+        document.getElementById('topicsTable').style.display = 'none';
+        return;
+    }
+
+    currentChannelId = selectedChannel;
+
+    const statusFilter = document.getElementById('statusFilter').value;
+    const sortBy = document.getElementById('sortBy').value;
+
+    // Show loading
+    document.getElementById('loadingState').style.display = 'block';
+    document.getElementById('emptyState').style.display = 'none';
+    document.getElementById('topicsTable').style.display = 'none';
+
+    try {
+        const payload = {
+            user_id: currentUserId,
+            channel_id: currentChannelId,
+            status: statusFilter === 'all' ? null : statusFilter,
+            limit: 100
+        };
+
+        const response = await fetch(LAMBDA_URLS.LIST, {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify(payload)
+        });
+
+        const data = await response.json();
+
+        if (data.success && data.topics) {
+            allTopics = data.topics;
+
+            // Apply sorting
+            if (sortBy === 'priority') {
+                allTopics.sort((a, b) => b.priority - a.priority);
+            } else if (sortBy === 'created') {
+                allTopics.sort((a, b) => new Date(b.created_at) - new Date(a.created_at));
+            } else if (sortBy === 'updated') {
+                allTopics.sort((a, b) => new Date(b.updated_at) - new Date(a.updated_at));
+            }
+
+            renderTopics();
+        } else {
+            document.getElementById('loadingState').style.display = 'none';
+            document.getElementById('emptyState').style.display = 'block';
+        }
+    } catch (error) {
+        console.error('Error loading topics:', error);
+        showToast('Failed to load topics', 'error');
+        document.getElementById('loadingState').style.display = 'none';
+        document.getElementById('emptyState').style.display = 'block';
+    }
+}
+
+/**
+ * Render topics table
+ */
+function renderTopics() {
+    const tbody = document.getElementById('topicsTableBody');
+    tbody.innerHTML = '';
+
+    document.getElementById('loadingState').style.display = 'none';
+
+    if (allTopics.length === 0) {
+        document.getElementById('emptyState').style.display = 'block';
+        document.getElementById('topicsTable').style.display = 'none';
+        return;
+    }
+
+    document.getElementById('emptyState').style.display = 'none';
+    document.getElementById('topicsTable').style.display = 'table';
+
+    allTopics.forEach(topic => {
+        const row = document.createElement('tr');
+
+        // Topic Text
+        const topicTextCell = document.createElement('td');
+        topicTextCell.className = 'topic-text-cell';
+        topicTextCell.textContent = topic.topic_text;
+        topicTextCell.title = topic.topic_text;
+        row.appendChild(topicTextCell);
+
+        // Status
+        const statusCell = document.createElement('td');
+        statusCell.innerHTML = `<span class="status-badge status-${topic.status}">${topic.status.replace('_', ' ')}</span>`;
+        row.appendChild(statusCell);
+
+        // Priority
+        const priorityCell = document.createElement('td');
+        const priorityClass = topic.priority >= 200 ? 'priority-high' : (topic.priority >= 100 ? 'priority-medium' : 'priority-low');
+        priorityCell.innerHTML = `<span class="priority-badge ${priorityClass}">${topic.priority}</span>`;
+        row.appendChild(priorityCell);
+
+        // Source
+        const sourceCell = document.createElement('td');
+        sourceCell.textContent = topic.source || 'manual';
+        row.appendChild(sourceCell);
+
+        // Created At
+        const createdCell = document.createElement('td');
+        createdCell.textContent = formatDate(topic.created_at);
+        row.appendChild(createdCell);
+
+        // Actions
+        const actionsCell = document.createElement('td');
+        actionsCell.innerHTML = `
+            <div class="action-btns">
+                <button class="btn-icon" onclick="viewTopic('${topic.topic_id}')" title="View Details">
+                    <i class="bi bi-eye"></i>
+                </button>
+                <button class="btn-icon" onclick="changeStatus('${topic.topic_id}', '${topic.status}')" title="Change Status">
+                    <i class="bi bi-arrow-repeat"></i>
+                </button>
+                <button class="btn-icon" onclick="deleteTopic('${topic.topic_id}')" title="Delete">
+                    <i class="bi bi-trash"></i>
+                </button>
+            </div>
+        `;
+        row.appendChild(actionsCell);
+
+        tbody.appendChild(row);
+    });
+}
+
+/**
+ * Open Add Topic Modal
+ */
+function openAddTopicModal() {
+    if (!currentChannelId) {
+        showToast('Please select a channel first', 'error');
+        return;
+    }
+
+    editingTopicId = null;
+    document.getElementById('modalTitle').textContent = 'Add New Topic';
+    document.getElementById('topicForm').reset();
+    document.getElementById('topicPriority').value = 100;
+    document.getElementById('toneSuggestion').value = 'dark';
+    document.getElementById('topicModal').classList.add('active');
+}
+
+/**
+ * Close Topic Modal
+ */
+function closeTopicModal() {
+    document.getElementById('topicModal').classList.remove('active');
+    editingTopicId = null;
+}
+
+/**
+ * Save Topic (Add or Update)
+ */
+async function saveTopic(event) {
+    event.preventDefault();
+
+    const topicText = document.getElementById('topicText').value.trim();
+    const context = document.getElementById('topicContext').value.trim();
+    const toneSuggestion = document.getElementById('toneSuggestion').value;
+    const priority = parseInt(document.getElementById('topicPriority').value);
+    const keyElementsRaw = document.getElementById('keyElements').value.trim();
+
+    const keyElements = keyElementsRaw ? keyElementsRaw.split(',').map(el => el.trim()).filter(el => el.length > 0) : [];
+
+    const payload = {
+        user_id: currentUserId,
+        channel_id: currentChannelId,
+        topic_text: topicText,
+        topic_description: {
+            context: context,
+            tone_suggestion: toneSuggestion,
+            key_elements: keyElements
+        },
+        priority: priority
+    };
+
+    try {
+        const response = await fetch(LAMBDA_URLS.ADD, {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify(payload)
+        });
+
+        const data = await response.json();
+
+        if (data.success) {
+            showToast('Topic added successfully!', 'success');
+            closeTopicModal();
+            await loadTopics();
+        } else {
+            showToast(data.error || 'Failed to add topic', 'error');
+        }
+    } catch (error) {
+        console.error('Error saving topic:', error);
+        showToast('Failed to save topic', 'error');
+    }
+}
+
+/**
+ * View Topic Details
+ */
+function viewTopic(topicId) {
+    const topic = allTopics.find(t => t.topic_id === topicId);
+    if (!topic) return;
+
+    alert(`Topic: ${topic.topic_text}\n\nStatus: ${topic.status}\nPriority: ${topic.priority}\n\nContext: ${topic.topic_description?.context || 'N/A'}\nTone: ${topic.topic_description?.tone_suggestion || 'N/A'}\nKey Elements: ${topic.topic_description?.key_elements?.join(', ') || 'N/A'}\n\nCreated: ${formatDate(topic.created_at)}\nUpdated: ${formatDate(topic.updated_at)}`);
+}
+
+/**
+ * Change Topic Status
+ */
+async function changeStatus(topicId, currentStatus) {
+    const topic = allTopics.find(t => t.topic_id === topicId);
+    if (!topic) return;
+
+    // Valid transitions based on state machine
+    const validTransitions = {
+        'draft': ['approved', 'deleted'],
+        'approved': ['queued', 'deleted'],
+        'queued': ['in_progress', 'deleted'],
+        'in_progress': ['published', 'failed', 'deleted'],
+        'published': ['archived', 'deleted'],
+        'failed': ['queued', 'deleted'],
+        'archived': ['deleted']
+    };
+
+    const allowedStatuses = validTransitions[currentStatus] || [];
+
+    if (allowedStatuses.length === 0) {
+        showToast('No valid status transitions available', 'error');
+        return;
+    }
+
+    const newStatus = prompt(`Change status from "${currentStatus}" to:\n\n${allowedStatuses.join('\n')}\n\nEnter new status:`);
+
+    if (!newStatus) return;
+
+    if (!allowedStatuses.includes(newStatus.toLowerCase())) {
+        showToast('Invalid status transition', 'error');
+        return;
+    }
+
+    try {
+        const payload = {
+            user_id: currentUserId,
+            channel_id: currentChannelId,
+            topic_id: topicId,
+            new_status: newStatus.toLowerCase()
+        };
+
+        const response = await fetch(LAMBDA_URLS.UPDATE_STATUS, {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify(payload)
+        });
+
+        const data = await response.json();
+
+        if (data.success) {
+            showToast(`Status updated to ${newStatus}`, 'success');
+            await loadTopics();
+        } else {
+            showToast(data.error || 'Failed to update status', 'error');
+        }
+    } catch (error) {
+        console.error('Error updating status:', error);
+        showToast('Failed to update status', 'error');
+    }
+}
+
+/**
+ * Delete Topic
+ */
+async function deleteTopic(topicId) {
+    if (!confirm('Are you sure you want to delete this topic?')) return;
+
+    const topic = allTopics.find(t => t.topic_id === topicId);
+    if (!topic) return;
+
+    try {
+        const payload = {
+            user_id: currentUserId,
+            channel_id: currentChannelId,
+            topic_id: topicId,
+            new_status: 'deleted'
+        };
+
+        const response = await fetch(LAMBDA_URLS.UPDATE_STATUS, {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify(payload)
+        });
+
+        const data = await response.json();
+
+        if (data.success) {
+            showToast('Topic deleted', 'success');
+            await loadTopics();
+        } else {
+            showToast(data.error || 'Failed to delete topic', 'error');
+        }
+    } catch (error) {
+        console.error('Error deleting topic:', error);
+        showToast('Failed to delete topic', 'error');
+    }
+}
+
+/**
+ * Show toast notification
+ */
+function showToast(message, type = 'success') {
+    const toast = document.getElementById('toast');
+    const toastMessage = document.getElementById('toastMessage');
+    const toastIcon = document.getElementById('toastIcon');
+
+    toast.className = `toast toast-${type} active`;
+    toastMessage.textContent = message;
+
+    if (type === 'success') {
+        toastIcon.className = 'bi bi-check-circle';
+    } else {
+        toastIcon.className = 'bi bi-exclamation-circle';
+    }
+
+    setTimeout(() => {
+        toast.classList.remove('active');
+    }, 3000);
+}
+
+/**
+ * Open Bulk Add Modal
+ */
+function openBulkAddModal() {
+    if (!currentChannelId) {
+        showToast('Please select a channel first', 'error');
+        return;
+    }
+
+    document.getElementById('bulkForm').reset();
+    document.getElementById('bulkPriority').value = 100;
+    document.getElementById('bulkStatus').value = 'draft';
+    document.getElementById('bulkTone').value = 'dark';
+    document.getElementById('bulkSeason').value = 1;
+    document.getElementById('bulkAutoDetect').value = 'true';
+    document.getElementById('topicCount').textContent = '0';
+    document.getElementById('bulkModal').classList.add('active');
+}
+
+/**
+ * Close Bulk Modal
+ */
+function closeBulkModal() {
+    document.getElementById('bulkModal').classList.remove('active');
+}
+
+/**
+ * Update topic count as user types
+ */
+function updateBulkTopicCount() {
+    const textarea = document.getElementById('bulkTopicsList');
+    const countSpan = document.getElementById('topicCount');
+
+    const text = textarea.value.trim();
+    if (!text) {
+        countSpan.textContent = '0';
+        return;
+    }
+
+    const lines = text.split('\n').filter(line => line.trim().length > 0);
+    countSpan.textContent = lines.length;
+
+    // Warn if over 500
+    if (lines.length > 500) {
+        countSpan.style.color = '#ef4444';
+        countSpan.textContent = `${lines.length} (max 500!)`;
+    } else {
+        countSpan.style.color = '#10b981';
+    }
+}
+
+/**
+ * Save Bulk Topics
+ */
+async function saveBulkTopics(event) {
+    event.preventDefault();
+
+    const topicsText = document.getElementById('bulkTopicsList').value.trim();
+    const seriesId = document.getElementById('bulkSeriesId').value.trim();
+    const season = parseInt(document.getElementById('bulkSeason').value);
+    const priority = parseInt(document.getElementById('bulkPriority').value);
+    const status = document.getElementById('bulkStatus').value;
+    const toneSuggestion = document.getElementById('bulkTone').value;
+    const autoDetect = document.getElementById('bulkAutoDetect').value === 'true';
+    const keyElementsRaw = document.getElementById('bulkKeyElements').value.trim();
+
+    // Parse topics
+    const topics = topicsText.split('\n').filter(line => line.trim().length > 0);
+
+    if (topics.length === 0) {
+        showToast('Please enter at least one topic', 'error');
+        return;
+    }
+
+    if (topics.length > 500) {
+        showToast('Maximum 500 topics allowed per bulk add', 'error');
+        return;
+    }
+
+    const keyElements = keyElementsRaw ? keyElementsRaw.split(',').map(el => el.trim()).filter(el => el.length > 0) : [];
+
+    const payload = {
+        user_id: currentUserId,
+        channel_id: currentChannelId,
+        topics: topics,
+        default_priority: priority,
+        default_status: status,
+        series_id: seriesId || undefined,
+        season: season,
+        auto_detect_episode: autoDetect,
+        tone_suggestion: toneSuggestion,
+        key_elements: keyElements
+    };
+
+    try {
+        showToast('Adding topics in bulk...', 'success');
+
+        const response = await fetch(LAMBDA_URLS.BULK_ADD, {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify(payload)
+        });
+
+        const data = await response.json();
+
+        if (data.success) {
+            const message = `Successfully added ${data.topics_added} topics` +
+                (data.series_id ? ` (Series: ${data.series_id}, Episodes: ${data.episodes_detected || 0})` : '');
+            showToast(message, 'success');
+            closeBulkModal();
+            await loadTopics();
+        } else {
+            showToast(data.error || 'Failed to add topics', 'error');
+        }
+    } catch (error) {
+        console.error('Error saving bulk topics:', error);
+        showToast('Failed to save bulk topics', 'error');
+    }
+}
+
+/**
+ * Format date
+ */
+function formatDate(dateStr) {
+    if (!dateStr) return 'N/A';
+    const date = new Date(dateStr);
+    const now = new Date();
+    const diff = now - date;
+
+    // Less than 1 minute
+    if (diff < 60000) return 'Just now';
+
+    // Less than 1 hour
+    if (diff < 3600000) {
+        const minutes = Math.floor(diff / 60000);
+        return `${minutes}m ago`;
+    }
+
+    // Less than 24 hours
+    if (diff < 86400000) {
+        const hours = Math.floor(diff / 3600000);
+        return `${hours}h ago`;
+    }
+
+    // Less than 7 days
+    if (diff < 604800000) {
+        const days = Math.floor(diff / 86400000);
+        return `${days}d ago`;
+    }
+
+    // Full date
+    return date.toLocaleDateString('en-US', {
+        month: 'short',
+        day: 'numeric',
+        year: date.getFullYear() !== now.getFullYear() ? 'numeric' : undefined
+    });
+}

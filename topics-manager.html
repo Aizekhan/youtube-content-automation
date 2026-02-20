@@ -1,0 +1,608 @@
+<!DOCTYPE html>
+<html lang="uk">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Topics Queue Manager - n8n Creator Space</title>
+
+    <!-- Bootstrap Icons -->
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.1/font/bootstrap-icons.css" rel="stylesheet">
+
+    <!-- Unified Navigation CSS -->
+    <link rel="stylesheet" href="css/unified-navigation.css">
+
+    <style>
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+            background: linear-gradient(135deg, #0f172a 0%, #1e293b 100%);
+            color: #e5e7eb;
+            min-height: 100vh;
+            padding-bottom: 2rem;
+        }
+
+        .container {
+            max-width: 1600px;
+            margin: 0 auto;
+            padding: 0 1.5rem;
+        }
+
+        .page-header {
+            margin-bottom: 2rem;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            flex-wrap: wrap;
+            gap: 1rem;
+        }
+
+        .page-title {
+            font-size: 2rem;
+            font-weight: 700;
+            color: #e5e7eb;
+        }
+
+        .header-actions {
+            display: flex;
+            gap: 1rem;
+            align-items: center;
+        }
+
+        .btn {
+            padding: 0.75rem 1.5rem;
+            border: none;
+            border-radius: 8px;
+            font-size: 1rem;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.3s;
+            display: inline-flex;
+            align-items: center;
+            gap: 0.5rem;
+        }
+
+        .btn-primary {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+        }
+
+        .btn-primary:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 10px 20px rgba(102, 126, 234, 0.3);
+        }
+
+        .btn-secondary {
+            background: rgba(255, 255, 255, 0.1);
+            color: #e5e7eb;
+            border: 1px solid rgba(255, 255, 255, 0.2);
+        }
+
+        .btn-secondary:hover {
+            background: rgba(255, 255, 255, 0.15);
+        }
+
+        /* Filters */
+        .filters-bar {
+            background: rgba(255, 255, 255, 0.05);
+            padding: 1.5rem;
+            border-radius: 12px;
+            margin-bottom: 2rem;
+            display: flex;
+            gap: 1rem;
+            flex-wrap: wrap;
+            align-items: center;
+        }
+
+        .filter-group {
+            display: flex;
+            flex-direction: column;
+            gap: 0.5rem;
+        }
+
+        .filter-label {
+            font-size: 0.875rem;
+            color: rgba(226, 232, 240, 0.7);
+            font-weight: 500;
+        }
+
+        .filter-select {
+            padding: 0.5rem 1rem;
+            background: rgba(255, 255, 255, 0.1);
+            border: 1px solid rgba(255, 255, 255, 0.2);
+            border-radius: 6px;
+            color: #e5e7eb;
+            font-size: 0.875rem;
+            min-width: 180px;
+        }
+
+        /* Topics Table */
+        .topics-table-container {
+            background: rgba(255, 255, 255, 0.05);
+            border-radius: 12px;
+            overflow: hidden;
+        }
+
+        .topics-table {
+            width: 100%;
+            border-collapse: collapse;
+        }
+
+        .topics-table thead {
+            background: rgba(255, 255, 255, 0.08);
+        }
+
+        .topics-table th {
+            padding: 1rem;
+            text-align: left;
+            font-weight: 600;
+            color: #e5e7eb;
+            font-size: 0.875rem;
+            text-transform: uppercase;
+            letter-spacing: 0.05em;
+        }
+
+        .topics-table td {
+            padding: 1rem;
+            border-top: 1px solid rgba(255, 255, 255, 0.1);
+            color: #e5e7eb;
+        }
+
+        .topics-table tbody tr {
+            transition: background 0.2s;
+        }
+
+        .topics-table tbody tr:hover {
+            background: rgba(255, 255, 255, 0.05);
+        }
+
+        /* Status Badge */
+        .status-badge {
+            display: inline-block;
+            padding: 0.375rem 0.75rem;
+            border-radius: 12px;
+            font-size: 0.75rem;
+            font-weight: 600;
+            text-transform: uppercase;
+            letter-spacing: 0.05em;
+        }
+
+        .status-draft { background: rgba(156, 163, 175, 0.2); color: #9ca3af; }
+        .status-approved { background: rgba(59, 130, 246, 0.2); color: #3b82f6; }
+        .status-queued { background: rgba(245, 158, 11, 0.2); color: #f59e0b; }
+        .status-in_progress { background: rgba(16, 185, 129, 0.2); color: #10b981; }
+        .status-published { background: rgba(34, 197, 94, 0.2); color: #22c55e; }
+        .status-failed { background: rgba(239, 68, 68, 0.2); color: #ef4444; }
+        .status-archived { background: rgba(107, 114, 128, 0.2); color: #6b7280; }
+
+        /* Priority Badge */
+        .priority-badge {
+            display: inline-flex;
+            align-items: center;
+            gap: 0.25rem;
+            padding: 0.25rem 0.5rem;
+            border-radius: 6px;
+            font-size: 0.875rem;
+            font-weight: 600;
+        }
+
+        .priority-high { background: rgba(239, 68, 68, 0.2); color: #ef4444; }
+        .priority-medium { background: rgba(245, 158, 11, 0.2); color: #f59e0b; }
+        .priority-low { background: rgba(107, 114, 128, 0.2); color: #6b7280; }
+
+        /* Action Buttons */
+        .action-btns {
+            display: flex;
+            gap: 0.5rem;
+        }
+
+        .btn-icon {
+            padding: 0.5rem;
+            background: rgba(255, 255, 255, 0.1);
+            border: 1px solid rgba(255, 255, 255, 0.2);
+            border-radius: 6px;
+            color: #e5e7eb;
+            cursor: pointer;
+            transition: all 0.2s;
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+        }
+
+        .btn-icon:hover {
+            background: rgba(255, 255, 255, 0.2);
+            transform: translateY(-1px);
+        }
+
+        /* Modal */
+        .modal {
+            display: none;
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: rgba(0, 0, 0, 0.7);
+            z-index: 10000;
+            overflow-y: auto;
+            padding: 20px;
+        }
+
+        .modal.active { display: flex; align-items: center; justify-content: center; }
+
+        .modal-content {
+            background: white;
+            max-width: 800px;
+            width: 100%;
+            border-radius: 15px;
+            padding: 40px;
+            position: relative;
+            color: #1e293b;
+        }
+
+        .modal-header {
+            margin-bottom: 2rem;
+        }
+
+        .modal-title {
+            font-size: 1.5rem;
+            font-weight: 700;
+            color: #1e293b;
+        }
+
+        .close-modal {
+            position: absolute;
+            top: 20px;
+            right: 20px;
+            font-size: 28px;
+            cursor: pointer;
+            color: #64748b;
+        }
+
+        .close-modal:hover { color: #667eea; }
+
+        /* Form */
+        .form-group {
+            margin-bottom: 1.5rem;
+        }
+
+        .form-label {
+            display: block;
+            margin-bottom: 0.5rem;
+            font-weight: 600;
+            color: #1e293b;
+            font-size: 0.875rem;
+        }
+
+        .form-input,
+        .form-textarea,
+        .form-select {
+            width: 100%;
+            padding: 0.75rem 1rem;
+            border: 2px solid #e2e8f0;
+            border-radius: 8px;
+            font-size: 1rem;
+            color: #1e293b;
+            transition: border-color 0.2s;
+        }
+
+        .form-input:focus,
+        .form-textarea:focus,
+        .form-select:focus {
+            outline: none;
+            border-color: #667eea;
+        }
+
+        .form-textarea {
+            min-height: 100px;
+            resize: vertical;
+        }
+
+        .form-row {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 1rem;
+        }
+
+        /* Empty State */
+        .empty-state {
+            text-align: center;
+            padding: 4rem 2rem;
+            color: rgba(226, 232, 240, 0.6);
+        }
+
+        .empty-state i {
+            font-size: 4rem;
+            margin-bottom: 1rem;
+            opacity: 0.3;
+        }
+
+        /* Loading */
+        .loading {
+            text-align: center;
+            padding: 3rem;
+            color: rgba(226, 232, 240, 0.6);
+        }
+
+        .spinner {
+            border: 3px solid rgba(255, 255, 255, 0.1);
+            border-top: 3px solid #667eea;
+            border-radius: 50%;
+            width: 40px;
+            height: 40px;
+            animation: spin 1s linear infinite;
+            margin: 0 auto 1rem;
+        }
+
+        @keyframes spin {
+            0% { transform: rotate(0deg); }
+            100% { transform: rotate(360deg); }
+        }
+
+        /* Toast Notification */
+        .toast {
+            position: fixed;
+            bottom: 2rem;
+            right: 2rem;
+            background: white;
+            padding: 1rem 1.5rem;
+            border-radius: 8px;
+            box-shadow: 0 10px 25px rgba(0, 0, 0, 0.3);
+            display: none;
+            align-items: center;
+            gap: 0.75rem;
+            z-index: 10001;
+        }
+
+        .toast.active { display: flex; }
+
+        .toast-success { border-left: 4px solid #22c55e; }
+        .toast-error { border-left: 4px solid #ef4444; }
+
+        .topic-text-cell {
+            max-width: 400px;
+            white-space: nowrap;
+            overflow: hidden;
+            text-overflow: ellipsis;
+        }
+    </style>
+</head>
+<body>
+    <!-- Navigation (imported from unified-navigation.css) -->
+    <nav class="navbar"></nav>
+
+    <div class="container">
+        <!-- Page Header -->
+        <div class="page-header">
+            <div>
+                <h1 class="page-title"><i class="bi bi-journal-text"></i> Topics Queue Manager</h1>
+            </div>
+            <div class="header-actions">
+                <select id="channelSelect" class="filter-select" onchange="loadTopics()">
+                    <option value="">Select Channel...</option>
+                </select>
+                <button class="btn btn-primary" onclick="openAddTopicModal()">
+                    <i class="bi bi-plus-circle"></i> Add New Topic
+                </button>
+                <button class="btn btn-secondary" onclick="openBulkAddModal()" style="background: linear-gradient(135deg, #f59e0b 0%, #d97706 100%); color: white; border: none;">
+                    <i class="bi bi-list-task"></i> Bulk Add (Series/100 Topics)
+                </button>
+            </div>
+        </div>
+
+        <!-- Filters -->
+        <div class="filters-bar">
+            <div class="filter-group">
+                <label class="filter-label">Status Filter</label>
+                <select id="statusFilter" class="filter-select" onchange="loadTopics()">
+                    <option value="all">All Statuses</option>
+                    <option value="draft">Draft</option>
+                    <option value="approved">Approved</option>
+                    <option value="queued">Queued</option>
+                    <option value="in_progress">In Progress</option>
+                    <option value="published">Published</option>
+                    <option value="failed">Failed</option>
+                    <option value="archived">Archived</option>
+                </select>
+            </div>
+            <div class="filter-group">
+                <label class="filter-label">Sort By</label>
+                <select id="sortBy" class="filter-select" onchange="loadTopics()">
+                    <option value="priority">Priority (High to Low)</option>
+                    <option value="created">Recently Created</option>
+                    <option value="updated">Recently Updated</option>
+                </select>
+            </div>
+            <div class="filter-group" style="margin-left: auto;">
+                <label class="filter-label">&nbsp;</label>
+                <button class="btn btn-secondary" onclick="loadTopics()">
+                    <i class="bi bi-arrow-clockwise"></i> Refresh
+                </button>
+            </div>
+        </div>
+
+        <!-- Topics Table -->
+        <div class="topics-table-container">
+            <div id="loadingState" class="loading" style="display: none;">
+                <div class="spinner"></div>
+                <p>Loading topics...</p>
+            </div>
+
+            <div id="emptyState" class="empty-state" style="display: none;">
+                <i class="bi bi-inbox"></i>
+                <h3>No Topics Found</h3>
+                <p>Add your first topic to get started</p>
+            </div>
+
+            <table class="topics-table" id="topicsTable" style="display: none;">
+                <thead>
+                    <tr>
+                        <th style="width: 40%;">Topic</th>
+                        <th style="width: 12%;">Status</th>
+                        <th style="width: 10%;">Priority</th>
+                        <th style="width: 10%;">Source</th>
+                        <th style="width: 15%;">Created</th>
+                        <th style="width: 13%;">Actions</th>
+                    </tr>
+                </thead>
+                <tbody id="topicsTableBody">
+                    <!-- Filled by JS -->
+                </tbody>
+            </table>
+        </div>
+    </div>
+
+    <!-- Add/Edit Topic Modal -->
+    <div id="topicModal" class="modal">
+        <div class="modal-content">
+            <span class="close-modal" onclick="closeTopicModal()">&times;</span>
+            <div class="modal-header">
+                <h2 class="modal-title" id="modalTitle">Add New Topic</h2>
+            </div>
+
+            <form id="topicForm" onsubmit="saveTopic(event)">
+                <div class="form-group">
+                    <label class="form-label">Topic Text *</label>
+                    <input type="text" id="topicText" class="form-input" required placeholder="e.g., The Hidden Temples of Angkor Wat">
+                </div>
+
+                <div class="form-group">
+                    <label class="form-label">Context / Description</label>
+                    <textarea id="topicContext" class="form-textarea" placeholder="Brief context or description for this topic..."></textarea>
+                </div>
+
+                <div class="form-row">
+                    <div class="form-group">
+                        <label class="form-label">Tone Suggestion</label>
+                        <select id="toneSuggestion" class="form-select">
+                            <option value="dark">Dark</option>
+                            <option value="emotional">Emotional</option>
+                            <option value="epic">Epic</option>
+                            <option value="calm">Calm</option>
+                            <option value="light">Light</option>
+                            <option value="mysterious">Mysterious</option>
+                            <option value="uplifting">Uplifting</option>
+                        </select>
+                    </div>
+
+                    <div class="form-group">
+                        <label class="form-label">Priority</label>
+                        <input type="number" id="topicPriority" class="form-input" value="100" min="0" max="1000">
+                    </div>
+                </div>
+
+                <div class="form-group">
+                    <label class="form-label">Key Elements (comma-separated)</label>
+                    <input type="text" id="keyElements" class="form-input" placeholder="e.g., temples, mystery, discovery">
+                </div>
+
+                <div class="form-group" style="display: flex; gap: 1rem; justify-content: flex-end; margin-top: 2rem;">
+                    <button type="button" class="btn btn-secondary" onclick="closeTopicModal()">Cancel</button>
+                    <button type="submit" class="btn btn-primary">Save Topic</button>
+                </div>
+            </form>
+        </div>
+    </div>
+
+    <!-- Bulk Add Modal -->
+    <div id="bulkModal" class="modal">
+        <div class="modal-content" style="max-width: 900px;">
+            <span class="close-modal" onclick="closeBulkModal()">&times;</span>
+            <div class="modal-header">
+                <h2 class="modal-title">Bulk Add Topics (Series/Manual List)</h2>
+                <p style="color: #64748b; margin-top: 0.5rem; font-size: 0.875rem;">Paste up to 500 topics (one per line). Episode numbers will be auto-detected from patterns like "Episode 1", "Ep 1", "S01E01", "#1", "1."</p>
+            </div>
+
+            <form id="bulkForm" onsubmit="saveBulkTopics(event)">
+                <div class="form-group">
+                    <label class="form-label">Topic List * (one per line)</label>
+                    <textarea id="bulkTopicsList" class="form-textarea" required
+                        placeholder="Episode 1 - The Whispering Shore
+Episode 2 - Beneath the Black Tide
+Episode 3 - The Forgotten Depths
+...or...
+The Mystery of the Lost City
+Ancient Civilizations Uncovered
+Secrets of the Deep Ocean"
+                        style="min-height: 200px; font-family: 'Courier New', monospace; font-size: 0.875rem;"></textarea>
+                    <small style="color: #64748b;">Detected topics: <span id="topicCount" style="font-weight: 600;">0</span></small>
+                </div>
+
+                <div class="form-row">
+                    <div class="form-group">
+                        <label class="form-label">Series ID (optional)</label>
+                        <input type="text" id="bulkSeriesId" class="form-input" placeholder="e.g., deep_sea_mystery_s1">
+                        <small style="color: #64748b;">Leave empty for standalone topics</small>
+                    </div>
+
+                    <div class="form-group">
+                        <label class="form-label">Season Number</label>
+                        <input type="number" id="bulkSeason" class="form-input" value="1" min="1" max="100">
+                    </div>
+                </div>
+
+                <div class="form-row">
+                    <div class="form-group">
+                        <label class="form-label">Default Priority</label>
+                        <input type="number" id="bulkPriority" class="form-input" value="100" min="0" max="1000">
+                    </div>
+
+                    <div class="form-group">
+                        <label class="form-label">Default Status</label>
+                        <select id="bulkStatus" class="form-select">
+                            <option value="draft">Draft</option>
+                            <option value="approved">Approved</option>
+                            <option value="queued">Queued</option>
+                        </select>
+                    </div>
+                </div>
+
+                <div class="form-row">
+                    <div class="form-group">
+                        <label class="form-label">Default Tone</label>
+                        <select id="bulkTone" class="form-select">
+                            <option value="dark">Dark</option>
+                            <option value="emotional">Emotional</option>
+                            <option value="epic">Epic</option>
+                            <option value="calm">Calm</option>
+                            <option value="light">Light</option>
+                            <option value="mysterious">Mysterious</option>
+                            <option value="uplifting">Uplifting</option>
+                        </select>
+                    </div>
+
+                    <div class="form-group">
+                        <label class="form-label">Auto-Detect Episodes</label>
+                        <select id="bulkAutoDetect" class="form-select">
+                            <option value="true">Yes</option>
+                            <option value="false">No</option>
+                        </select>
+                    </div>
+                </div>
+
+                <div class="form-group">
+                    <label class="form-label">Default Key Elements (comma-separated)</label>
+                    <input type="text" id="bulkKeyElements" class="form-input" placeholder="e.g., mystery, series, deep sea">
+                </div>
+
+                <div class="form-group" style="display: flex; gap: 1rem; justify-content: flex-end; margin-top: 2rem;">
+                    <button type="button" class="btn btn-secondary" onclick="closeBulkModal()">Cancel</button>
+                    <button type="submit" class="btn btn-primary" style="background: linear-gradient(135deg, #f59e0b 0%, #d97706 100%);">
+                        <i class="bi bi-upload"></i> Add All Topics
+                    </button>
+                </div>
+            </form>
+        </div>
+    </div>
+
+    <!-- Toast Notification -->
+    <div id="toast" class="toast">
+        <i class="bi bi-check-circle" id="toastIcon"></i>
+        <span id="toastMessage"></span>
+    </div>
+
+    <!-- Scripts -->
+    <script src="js/navigation.js"></script>
+    <script src="js/topics-manager.js"></script>
+</body>
+</html>
