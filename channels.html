@@ -602,19 +602,6 @@
                     <div class="advanced-settings-body">
                         <div class="form-grid">
                             <div class="form-group full">
-                                <label>📖 Шаблон структури історії <span style="color:#667eea; font-weight:600;">(Story Blueprint)</span></label>
-                                <select id="story_template">
-                                    <option value="">— Авто (AI вирішує) —</option>
-                                    <option value="epic_legend">⚔️ Epic Legend — Fantasy, Mythology, Ancient History</option>
-                                    <option value="slow_burn_mystery">🔍 Slow Burn Mystery — True Crime, Conspiracy, Mystery</option>
-                                    <option value="shocking_revelation">💥 Shocking Revelation — Science, History, Secrets</option>
-                                    <option value="emotional_journey">❤️ Emotional Journey — Biography, Inspiration, Human Stories</option>
-                                    <option value="fast_escalation">⚡ Fast Escalation — Action, War, Sports, Survival</option>
-                                </select>
-                                <span class="field-hint">Визначає емоційну криву, retention-пристрої та стиль написання для кожної сцени</span>
-                            </div>
-
-                            <div class="form-group full">
                                 <label>Голос диктора <span style="color:#667eea; font-weight:600;">(TTS Speaker)</span></label>
                                 <select id="tts_voice_speaker">
                                     <!-- Populated dynamically from QWEN3_SPEAKERS config -->
@@ -694,50 +681,6 @@
                     <summary>⚙️ Розширені налаштування</summary>
                     <div class="advanced-settings-body">
 
-                        <!-- AI Templates -->
-                        <div class="form-section">
-                            <h3 class="section-title">🤖 AI Шаблони</h3>
-                            <p style="color:#718096; font-size:13px; margin-bottom:16px;">Шаблони визначають інструкції для AI. Зазвичай міняти не потрібно — дефолтні значення оптимальні.</p>
-                            <div class="form-grid">
-                                <div class="form-group">
-                                    <label>Theme Template</label>
-                                    <select id="selected_theme_template"><option value="">Loading...</option></select>
-                                </div>
-                                <div class="form-group">
-                                    <label>Narrative Template</label>
-                                    <select id="selected_narrative_template"><option value="">Loading...</option></select>
-                                </div>
-                                <div class="form-group">
-                                    <label>Image Template</label>
-                                    <select id="selected_image_template"><option value="">Loading...</option></select>
-                                </div>
-                                <div class="form-group">
-                                    <label>Video Template</label>
-                                    <select id="selected_video_template"><option value="">Loading...</option></select>
-                                </div>
-                                <div class="form-group">
-                                    <label>CTA Template</label>
-                                    <select id="selected_cta_template"><option value="">Loading...</option></select>
-                                </div>
-                                <div class="form-group">
-                                    <label>TTS Template</label>
-                                    <select id="selected_tts_template"><option value="">Loading...</option></select>
-                                </div>
-                                <div class="form-group">
-                                    <label>SFX Template</label>
-                                    <select id="selected_sfx_template"><option value="">Loading...</option></select>
-                                </div>
-                                <div class="form-group">
-                                    <label>Thumbnail Template</label>
-                                    <select id="selected_thumbnail_template"><option value="">Loading...</option></select>
-                                </div>
-                                <div class="form-group">
-                                    <label>Description Template</label>
-                                    <select id="selected_description_template"><option value="">Loading...</option></select>
-                                </div>
-                            </div>
-                        </div>
-
                         <!-- AI Parameters -->
                         <div class="form-section">
                             <h3 class="section-title">⚙️ Параметри AI генерації</h3>
@@ -787,77 +730,6 @@
                             </div>
                         </div>
 
-
-
-                        <!-- SEO & Monetization -->
-                        <div class="form-section">
-                            <h3 class="section-title">🔍 SEO та Монетизація</h3>
-                            <div class="form-grid">
-                                <div class="form-group full">
-                                    <label>SEO Keywords</label>
-                                    <input type="text" id="seo_keywords" placeholder="mythology, ancient history, legends">
-                                </div>
-                                <div class="form-group full">
-                                    <label>Опис каналу</label>
-                                    <textarea id="channel_description" rows="2"></textarea>
-                                </div>
-                                <div class="form-group">
-                                    <label>Banner URL</label>
-                                    <input type="url" id="banner_url" placeholder="https://...">
-                                </div>
-                                <div class="form-group">
-                                    <label>Watermark URL</label>
-                                    <input type="url" id="channel_watermark_url" placeholder="https://...">
-                                </div>
-                                <div class="form-group">
-                                    <label>Thumbnail URL</label>
-                                    <input type="url" id="thumbnail_url" placeholder="https://...">
-                                </div>
-                                <div class="form-group">
-                                    <label>Featured Video ID</label>
-                                    <input type="text" id="featured_video_id">
-                                </div>
-                                <div class="form-group">
-                                    <label>
-                                        <input type="checkbox" id="monetization_enabled" style="margin-right: 8px; width: auto;">
-                                        Монетизація увімкнена
-                                    </label>
-                                </div>
-                                <div class="form-group">
-                                    <label>
-                                        <input type="checkbox" id="adsense_enabled" style="margin-right: 8px; width: auto;">
-                                        AdSense
-                                    </label>
-                                </div>
-                                <div class="form-group">
-                                    <label>
-                                        <input type="checkbox" id="sponsor_segments_enabled" style="margin-right: 8px; width: auto;">
-                                        CTA вставки
-                                    </label>
-                                </div>
-                                <div class="form-group">
-                                    <label>AdSense Account ID</label>
-                                    <input type="text" id="adsense_account_id" placeholder="pub-1234567890123456">
-                                </div>
-                                <div class="form-group">
-                                    <label>License Type</label>
-                                    <select id="license_type">
-                                        <option value="standard">Standard YouTube License</option>
-                                        <option value="creative_commons">Creative Commons</option>
-                                    </select>
-                                </div>
-                                <div class="form-group">
-                                    <label>
-                                        <input type="checkbox" id="embedding_allowed" style="margin-right: 8px; width: auto;">
-                                        Дозволити вбудовування
-                                    </label>
-                                </div>
-                                <div class="form-group">
-                                    <label>Мова субтитрів</label>
-                                    <input type="text" id="subtitles_language" placeholder="uk" value="uk">
-                                </div>
-                            </div>
-                        </div>
 
                     </div>
                 </details>

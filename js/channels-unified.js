@@ -550,18 +550,10 @@ async function openConfigModal(channelId) {
         const config = await response.json();
 
         console.log(' Loaded config:', config);
-        console.log(' Theme template:', config.selected_theme_template);
-        console.log(' Narrative template:', config.selected_narrative_template);
 
         document.getElementById('modalTitle').textContent = config.channel_name || config.channel_title || 'Редагування';
 
-        // Load templates first and WAIT for completion
-        await initializeTemplateSelects();
-
-        // Small delay to ensure DOM is ready
-        await new Promise(resolve => setTimeout(resolve, 100));
-
-        // Then populate form values
+        // Populate form values
         populateForm(config);
 
         // Note: loadImageGenerationSettings() removed - deprecated feature
@@ -600,18 +592,6 @@ function populateForm(config) {
         'channel_name', 'language', 'tts_voice_speaker', 'timezone', 'genre',
         // Content Identity
         'factual_mode',
-        // Story Blueprint
-        'story_template',
-        // AI Templates
-        'selected_theme_template', 'selected_narrative_template', 'selected_image_template',
-        'selected_video_template', 'selected_cta_template', 'selected_tts_template',
-        'selected_sfx_template', 'selected_thumbnail_template', 'selected_description_template',
-        // Monetization & Settings
-        'monetization_enabled', 'adsense_enabled', 'sponsor_segments_enabled', 'adsense_account_id', 'license_type',
-        'embedding_allowed', 'subtitles_language',
-        // Channel Info
-        'channel_description', 'thumbnail_url', 'banner_url', 'channel_watermark_url',
-        'featured_video_id', 'seo_keywords',
         // Publishing Schedule
         'publish_times', 'publish_days', 'daily_upload_count',
         // Production Settings
@@ -673,80 +653,7 @@ function populateForm(config) {
     setGenerationMode(config.factual_mode || 'fictional');
 }
 
-/**
- * Load AI templates from prompts-api and populate dropdowns
- */
-async function initializeTemplateSelects() {
-    const PROMPTS_API = 'https://djpb4ue6wv2ohfjey32lfnhcre0zppqd.lambda-url.eu-central-1.on.aws';
-
-    const templateTypes = [
-        { type: 'theme', selectId: 'selected_theme_template' },
-        { type: 'narrative', selectId: 'selected_narrative_template' },
-        { type: 'image', selectId: 'selected_image_template' },
-        { type: 'video', selectId: 'selected_video_template' },
-        { type: 'cta', selectId: 'selected_cta_template' },
-        { type: 'tts', selectId: 'selected_tts_template' },
-        { type: 'sfx', selectId: 'selected_sfx_template' },
-        { type: 'thumbnail', selectId: 'selected_thumbnail_template' },
-        { type: 'description', selectId: 'selected_description_template' }
-    ];
-
-    try {
-        // Load all template types in parallel
-        const promises = templateTypes.map(async ({ type, selectId }) => {
-            try {
-                const response = await fetch(`${PROMPTS_API}?type=${type}`);
-                const result = await response.json();
-
-                if (!result.success) {
-                    throw new Error(result.error || 'Failed to load templates');
-                }
-
-                const templates = result.data?.templates || [];
-                const activeTemplates = templates.filter(t => t.is_active === true || t.is_active === 1);
-
-                const selectElement = document.getElementById(selectId);
-                if (!selectElement) {
-                    console.warn(` Element ${selectId} not found in DOM`);
-                    return;
-                }
-
-                // Populate dropdown
-                selectElement.innerHTML = '<option value="">-- Оберіть шаблон --</option>';
-
-                // Sort: default templates first
-                const sortedTemplates = activeTemplates.sort((a, b) => {
-                    if (a.is_default && !b.is_default) return -1;
-                    if (!a.is_default && b.is_default) return 1;
-                    return 0;
-                });
-
-                sortedTemplates.forEach(template => {
-                    const option = document.createElement('option');
-                    option.value = template.template_id;
-                    const defaultLabel = template.is_default ? '  [Default]' : '';
-                    option.textContent = `${template.template_name}${defaultLabel}`;
-
-                    // Store default template id as data attribute
-                    if (template.is_default) {
-                        selectElement.dataset.defaultTemplateId = template.template_id;
-                    }
-
-                    selectElement.appendChild(option);
-                });
-
-                console.log(` Loaded ${type} templates:`, activeTemplates.length);
-            } catch (error) {
-                console.error(` Failed to load ${type} templates:`, error);
-            }
-        });
-
-        await Promise.all(promises);
-        console.log(' All template selects initialized');
-    } catch (error) {
-        console.error(' Failed to initialize templates:', error);
-    }
-}
+// REMOVED: initializeTemplateSelects() - Templates system deleted
 
 /**
  * Load Image Generation Templates for channel config dropdown
@@ -839,11 +746,6 @@ async function saveModalConfig() {
             }
         }
     });
-
-    // Log all template values being saved
-    console.log(' Theme template:', document.getElementById('selected_theme_template')?.value);
-    console.log(' Narrative template:', document.getElementById('selected_narrative_template')?.value);
-
 
     try {
         const response = await fetch('/api/update-channel-config.php', {
