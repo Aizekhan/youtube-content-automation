@@ -330,6 +330,56 @@ def lambda_handler(event, context):
 
         print(f" Channel loaded: {channel_config.get('channel_name', 'Unknown')}")
 
+        # MANUAL NARRATIVE BYPASS: If channel has manual_narrative, skip OpenAI and use pre-written story
+        manual_narrative = channel_config.get('manual_narrative')
+        if manual_narrative:
+            print(" MANUAL NARRATIVE MODE: Using pre-written story from channel config")
+            if isinstance(manual_narrative, str):
+                import json as _json
+                manual_narrative = _json.loads(manual_narrative)
+            scenes = manual_narrative.get('scenes', [])
+            story_title = manual_narrative.get('story_title', selected_topic)
+            timestamp = datetime.utcnow().isoformat() + 'Z'
+            narrative_id = timestamp.replace(':', '').replace('-', '').replace('.', '')[:20]
+            narrative_text = '\n'.join([s.get('scene_narration', '') for s in scenes])
+            return {
+                'channel_id': channel_id,
+                'content_id': narrative_id,
+                'selected_topic': selected_topic,
+                'story_title': story_title,
+                'narrative_content': manual_narrative,
+                'narrative_id': narrative_id,
+                'scenes': scenes,
+                'image_data': {'scenes': scenes},
+                'thumbnail_data': manual_narrative.get('thumbnail_data', {
+                    'thumbnail_prompt': story_title + ' dark fantasy cinematic',
+                    'text_overlay': story_title,
+                    'style_notes': 'dark fantasy'
+                }),
+                'cta_data': manual_narrative.get('cta_data', {'cta_segments': []}),
+                'description_data': manual_narrative.get('description_data', {
+                    'title': story_title,
+                    'description': narrative_text[:500],
+                    'tags': [],
+                    'hashtags': []
+                }),
+                'sfx_data': manual_narrative.get('sfx_data', {
+                    'sfx_cues': [],
+                    'music_track': 'dark_ambient',
+                    'timing_estimates': {}
+                }),
+                'image_provider': manual_narrative.get('image_provider', channel_config.get('image_provider', 'ec2-sd35')),
+                'voice_config': {
+                    'language': channel_config.get('language', 'uk'),
+                    'speaker': channel_config.get('tts_voice_speaker') or 'serena',
+                },
+                'model': 'manual',
+                'genre': channel_config.get('genre'),
+                'character_count': len(narrative_text),
+                'scene_count': len(scenes),
+                'timestamp': timestamp
+            }
+
         # 2.5. Load Story Blueprint
         print(chr(10) + ' Loading story blueprint...')
         story_blueprint = load_story_blueprint(channel_config)
