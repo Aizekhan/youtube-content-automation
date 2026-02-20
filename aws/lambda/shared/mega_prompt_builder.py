@@ -66,6 +66,32 @@ You are a multi-specialist AI that combines the expertise of:
 **Genre**: {channel_ctx['genre']}
 **Content Type**: {channel_ctx['factual_mode']}
 
+## STORY ENGINE CONFIGURATION
+
+**Story Mode**: {channel_ctx.get('story_mode', 'fiction')} ({{'fiction': 'Full creative freedom - fictional stories', 'real_events': 'Only real facts from Wikipedia', 'hybrid': '80% facts + 20% dramatic storytelling'}.get(channel_ctx.get('story_mode', 'fiction'))})
+
+**World Type**: {channel_ctx.get('world_type', 'realistic')} — Setting for all stories
+**Tone**: {channel_ctx.get('tone', 'dark')} — Overall emotional atmosphere
+
+**Psychological Depth**: {channel_ctx.get('psychological_depth', 3)}/5 ({'Simple' if channel_ctx.get('psychological_depth', 3) <= 2 else 'Moderate' if channel_ctx.get('psychological_depth', 3) == 3 else 'Deep with internal conflicts and philosophical themes'})
+**Plot Intensity**: {channel_ctx.get('plot_intensity', 4)}/5 ({'Slow meditative pace' if channel_ctx.get('plot_intensity', 4) <= 2 else 'Balanced pace' if channel_ctx.get('plot_intensity', 4) == 3 else 'Fast-paced dynamic action'})
+
+**Character Mode**: {channel_ctx.get('character_mode', 'auto_generate')} ({{'auto_generate': 'New character each video', 'persistent': 'Same character in all videos (series)'}.get(channel_ctx.get('character_mode', 'auto_generate'))})
+**Character Archetype**: {channel_ctx.get('character_archetype', 'anti_hero')}
+**Internal Conflict**: {'Enabled - character has doubts and struggles' if channel_ctx.get('enable_internal_conflict') else 'Disabled'}
+**Character Secret**: {'Enabled - character has hidden secret' if channel_ctx.get('enable_secret') else 'Disabled'}
+**Moral Dilemma Level**: {channel_ctx.get('moral_dilemma_level', 3)}/5 ({'Simple good vs evil' if channel_ctx.get('moral_dilemma_level', 3) <= 2 else 'Complex moral dilemmas without clear right answer' if channel_ctx.get('moral_dilemma_level', 3) >= 4 else 'Moderate moral complexity'})
+
+**Story Structure**: {channel_ctx.get('story_structure_mode', 'one_shot')} ({{'one_shot': 'Complete story in 1 video', 'episodic': 'Series with cliffhanger endings', 'infinite': 'Infinite ongoing narrative'}.get(channel_ctx.get('story_structure_mode', 'one_shot'))})
+{build_story_structure_section(channel_ctx)}
+
+**AI Logic Features**:
+- Plan Before Writing: {'✓ Enabled' if channel_ctx.get('generate_plan_before_writing', True) else '✗ Disabled'}
+- Consistency Check: {'✓ Enabled' if channel_ctx.get('auto_consistency_check', True) else '✗ Disabled'}
+- Motivation Validation: {'✓ Enabled' if channel_ctx.get('character_motivation_validation', True) else '✗ Disabled'}
+- No Clichés Mode: {'✓ Enabled - avoid clichés' if channel_ctx.get('no_cliches_mode') else '✗ Disabled'}
+- Surprise Level: {channel_ctx.get('surprise_injection_level', 3)}/5 ({'Predictable classic plot' if channel_ctx.get('surprise_injection_level', 3) <= 2 else 'Maximum unexpected twists and surprises' if channel_ctx.get('surprise_injection_level', 3) >= 4 else 'Moderate surprises'})
+
 ---
 
 ## 1. NARRATIVE GENERATION
@@ -554,3 +580,32 @@ def format_story_blueprint(blueprint):
     ]
 
     return chr(10).join(lines_out)
+
+
+def build_story_structure_section(channel_ctx):
+    """
+    Build Story Structure section for prompt
+
+    Args:
+        channel_ctx (dict): Channel context with Story Engine parameters
+
+    Returns:
+        str: Story structure instructions for OpenAI
+    """
+    story_structure_template = channel_ctx.get('story_structure_template', '')
+
+    if not story_structure_template:
+        # Default structure template
+        story_structure_template = """1. Hook (emotional hook first 5 seconds)
+2. World introduction (show the world)
+3. Protagonist (introduce main character)
+4. Conflict (conflict or problem)
+5. Rising tension (build tension)
+6. Twist (unexpected turn)
+7. Cliffhanger (ending that makes you want more)"""
+
+    return f"""**Story Structure Template**:
+```
+{story_structure_template}
+```
+Follow this structure when planning your narrative."""

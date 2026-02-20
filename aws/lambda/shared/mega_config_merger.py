@@ -108,12 +108,43 @@ def merge_mega_configuration(
 
 
 def extract_channel_context(channel):
-    """Extract channel context from ChannelConfig."""
+    """
+    Extract channel context from ChannelConfig.
+
+    UPDATED 2026-02-20: Added Story Engine parameters
+    """
     return {
         'channel_name': channel.get('channel_name', ''),
         'language': channel.get('language', 'en'),
         'genre': channel.get('genre', 'General'),
         'factual_mode': channel.get('factual_mode', 'fictional'),
+
+        # Story Engine - Story Mode
+        'story_mode': channel.get('story_mode', 'fiction'),  # fiction / real_events / hybrid
+
+        # Story Engine - Story DNA
+        'world_type': channel.get('world_type', 'realistic'),
+        'tone': channel.get('tone', 'dark'),
+        'psychological_depth': int(channel.get('psychological_depth', 3)),
+        'plot_intensity': int(channel.get('plot_intensity', 4)),
+
+        # Story Engine - Character Engine
+        'character_mode': channel.get('character_mode', 'auto_generate'),
+        'character_archetype': channel.get('character_archetype', 'anti_hero'),
+        'enable_internal_conflict': channel.get('enable_internal_conflict') in ['true', True, '1', 1],
+        'enable_secret': channel.get('enable_secret') in ['true', True, '1', 1],
+        'moral_dilemma_level': int(channel.get('moral_dilemma_level', 3)),
+
+        # Story Engine - Story Structure
+        'story_structure_mode': channel.get('story_structure_mode', 'one_shot'),
+        'story_structure_template': channel.get('story_structure_template', ''),
+
+        # Story Engine - Logic & Consistency
+        'generate_plan_before_writing': channel.get('generate_plan_before_writing') in ['true', True, '1', 1, None],  # Default true
+        'auto_consistency_check': channel.get('auto_consistency_check') in ['true', True, '1', 1, None],  # Default true
+        'character_motivation_validation': channel.get('character_motivation_validation') in ['true', True, '1', 1, None],  # Default true
+        'no_cliches_mode': channel.get('no_cliches_mode') in ['true', True, '1', 1],
+        'surprise_injection_level': int(channel.get('surprise_injection_level', 3)),
     }
 
 

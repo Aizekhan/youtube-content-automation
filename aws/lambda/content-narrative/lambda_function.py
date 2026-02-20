@@ -263,9 +263,10 @@ def lambda_handler(event, context):
 
         print(f" Channel loaded: {channel_config.get('channel_name', 'Unknown')}")
 
-        # MANUAL NARRATIVE BYPASS: If channel has manual_narrative, skip OpenAI and use pre-written story
+        # MANUAL NARRATIVE BYPASS: If channel has manual_mode_enabled=true AND manual_narrative, skip OpenAI and use pre-written story
+        manual_mode_enabled = channel_config.get('manual_mode_enabled') in ['true', True, '1', 1]
         manual_narrative = channel_config.get('manual_narrative')
-        if manual_narrative:
+        if manual_mode_enabled and manual_narrative:
             print(" MANUAL NARRATIVE MODE: Using pre-written story from channel config")
             if isinstance(manual_narrative, str):
                 import json as _json
