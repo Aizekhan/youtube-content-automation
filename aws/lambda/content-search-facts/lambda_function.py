@@ -1,254 +1,143 @@
 """
-content-search-facts Lambda
-
-Searches Wikipedia for facts about a given topic.
-Used in factual_mode='factual' channels before narrative generation.
-
-Flow:
-  1. Search Wikipedia for the topic
-  2. Extract key facts (intro, events, people, dates)
-  3. Return structured facts for injection into content-narrative prompt
-
-Fallback: if Wikipedia returns nothing useful → returns empty facts
-  (content-narrative will then generate as fictional with a note)
+Content Wikipedia Facts Search Lambda
+Sprint 2 - Task 2.2
 """
 
 import json
 import urllib.request
 import urllib.parse
-import re
-
-WIKIPEDIA_API = "https://en.wikipedia.org/api/rest_v1"
-WIKIPEDIA_SEARCH_API = "https://en.wikipedia.org/w/api.php"
-
-MAX_FACTS_CHARS = 3000  # Max chars to inject into narrative prompt
+from datetime import datetime
 
 
-def lambda_handler(event, context):
-    print(f"search-facts v1.0 - Wikipedia mode")
-    print(f"Event keys: {list(event.keys())}")
-
-    # Extract topic info
-    selected_topic = event.get('selected_topic', {})
-    if isinstance(selected_topic, str):
-        topic_title = selected_topic
-    else:
-        topic_title = selected_topic.get('title', '')
-
-    genre = event.get('genre', '')
-    language = event.get('language', 'en')
-
-    print(f"Topic: '{topic_title}' | Genre: '{genre}' | Lang: {language}")
-
-    if not topic_title:
-        print("WARNING: No topic title provided, returning empty facts")
-        return build_result(event, facts=None, source=None)
-
-    # Search Wikipedia (always in English - largest database)
-    facts = search_wikipedia(topic_title, genre)
-
-    if facts:
-        print(f"Found Wikipedia facts: {len(facts.get('content', ''))} chars")
-        return build_result(event, facts=facts, source='wikipedia')
-    else:
-        print(f"Wikipedia: no useful article found for '{topic_title}'")
-        return build_result(event, facts=None, source=None)
-
-
-def search_wikipedia(topic, genre):
-    """
-    Search Wikipedia and extract structured facts.
-    Returns dict with facts or None if not found.
-    """
-    # Step 1: Search for the article
-    search_query = build_search_query(topic, genre)
-    print(f"Wikipedia search query: '{search_query}'")
-
-    article_title = wikipedia_search(search_query)
-    if not article_title:
-        print(f"No Wikipedia article found for query: '{search_query}'")
-        return None
-
-    print(f"Found article: '{article_title}'")
-
-    # Step 2: Get article summary (intro)
-    summary = wikipedia_summary(article_title)
-    if not summary:
-        return None
-
-    # Step 3: Get full article sections for more facts
-    sections = wikipedia_sections(article_title)
-
-    # Step 4: Structure the facts
-    return structure_facts(topic, article_title, summary, sections)
-
-
-def build_search_query(topic, genre):
-    """Build an optimized search query based on genre."""
-    genre_hints = {
-        'crime': f"{topic} murder criminal",
-        'mystery': f"{topic} mystery legend",
-        'mythology': f"{topic} mythology legend myth",
-        'history': f"{topic} history historical",
-        'biography': f"{topic} biography",
-        'horror': f"{topic} horror legend",
-        'legend': f"{topic} legend folklore",
-    }
-
-    genre_lower = genre.lower() if genre else ''
-    for key, query in genre_hints.items():
-        if key in genre_lower:
-            return query
-
-    return topic  # default: just the topic title
-
-
-def wikipedia_search(query):
-    """Search Wikipedia API and return the best matching article title."""
-    params = urllib.parse.urlencode({
+def search_wikipedia(query, limit=5):
+    base_url = "https://en.wikipedia.org/w/api.php"
+    params = {
         'action': 'query',
         'list': 'search',
         'srsearch': query,
-        'srlimit': 3,
+        'srlimit': limit,
         'format': 'json',
-        'srnamespace': 0,
-    })
-    url = f"{WIKIPEDIA_SEARCH_API}?{params}"
-
-    try:
-        req = urllib.request.Request(url, headers={'User-Agent': 'ContentBot/1.0'})
-        with urllib.request.urlopen(req, timeout=10) as response:
-            data = json.loads(response.read().decode('utf-8'))
-
-        results = data.get('query', {}).get('search', [])
-        if not results:
-            return None
-
-        # Return best match title
-        return results[0]['title']
-
-    except Exception as e:
-        print(f"Wikipedia search error: {e}")
-        return None
-
-
-def wikipedia_summary(article_title):
-    """Get article summary/intro from Wikipedia REST API."""
-    encoded_title = urllib.parse.quote(article_title.replace(' ', '_'))
-    url = f"{WIKIPEDIA_API}/page/summary/{encoded_title}"
-
-    try:
-        req = urllib.request.Request(url, headers={'User-Agent': 'ContentBot/1.0'})
-        with urllib.request.urlopen(req, timeout=10) as response:
-            data = json.loads(response.read().decode('utf-8'))
-
-        extract = data.get('extract', '')
-        if len(extract) < 100:
-            print(f"Summary too short ({len(extract)} chars), skipping")
-            return None
-
-        return {
-            'title': data.get('title', article_title),
-            'description': data.get('description', ''),
-            'extract': extract,
-            'url': data.get('content_urls', {}).get('desktop', {}).get('page', '')
-        }
-
-    except Exception as e:
-        print(f"Wikipedia summary error: {e}")
-        return None
-
-
-def wikipedia_sections(article_title):
-    """Get article sections from Wikipedia API for additional facts."""
-    params = urllib.parse.urlencode({
-        'action': 'query',
-        'titles': article_title,
-        'prop': 'extracts',
-        'exsectionformat': 'plain',
-        'exlimit': 1,
-        'explaintext': True,
-        'exsentences': 30,  # First 30 sentences
-        'format': 'json',
-    })
-    url = f"{WIKIPEDIA_SEARCH_API}?{params}"
-
-    try:
-        req = urllib.request.Request(url, headers={'User-Agent': 'ContentBot/1.0'})
-        with urllib.request.urlopen(req, timeout=10) as response:
-            data = json.loads(response.read().decode('utf-8'))
-
-        pages = data.get('query', {}).get('pages', {})
-        for page_id, page in pages.items():
-            if page_id == '-1':
-                return ''
-            return page.get('extract', '')
-
-    except Exception as e:
-        print(f"Wikipedia sections error: {e}")
-        return ''
-
-
-def structure_facts(topic, article_title, summary, full_text):
-    """Structure Wikipedia data into clean facts for prompt injection."""
-
-    # Combine summary extract + additional text
-    intro = summary.get('extract', '')
-    description = summary.get('description', '')
-    source_url = summary.get('url', '')
-
-    # Use full_text if available and longer
-    main_content = full_text if full_text and len(full_text) > len(intro) else intro
-
-    # Clean up the text
-    main_content = clean_wikipedia_text(main_content)
-
-    # Truncate to limit
-    if len(main_content) > MAX_FACTS_CHARS:
-        main_content = main_content[:MAX_FACTS_CHARS] + '...'
-
-    return {
-        'topic': topic,
-        'wikipedia_title': article_title,
-        'description': description,
-        'content': main_content,
-        'source_url': source_url,
-        'source': 'wikipedia',
-        'char_count': len(main_content)
+        'utf8': 1
     }
+    url = f"{base_url}?{urllib.parse.urlencode(params)}"
+    print(f"Searching Wikipedia: {query}")
+
+    # Wikipedia requires User-Agent header
+    req = urllib.request.Request(url)
+    req.add_header('User-Agent', 'YouTubeContentBot/1.0 (Sprint2; +https://github.com)')
+
+    try:
+        with urllib.request.urlopen(req, timeout=10) as response:
+            data = json.loads(response.read().decode())
+            if 'query' in data and 'search' in data['query']:
+                results = data['query']['search']
+                print(f"Found {len(results)} Wikipedia articles")
+                return results
+            return []
+    except Exception as e:
+        print(f"Wikipedia API error: {str(e)}")
+        return []
 
 
-def clean_wikipedia_text(text):
-    """Remove Wikipedia artifacts from plain text."""
+def get_page_content(page_id):
+    """Get Wikipedia page content by page ID"""
+    base_url = "https://en.wikipedia.org/w/api.php"
+    params = {
+        'action': 'query',
+        'pageids': page_id,
+        'prop': 'extracts|info',
+        'exintro': True,
+        'explaintext': True,
+        'inprop': 'url',
+        'format': 'json',
+        'utf8': 1
+    }
+    url = f"{base_url}?{urllib.parse.urlencode(params)}"
+
+    # Wikipedia requires User-Agent header
+    req = urllib.request.Request(url)
+    req.add_header('User-Agent', 'YouTubeContentBot/1.0 (Sprint2; +https://github.com)')
+
+    try:
+        with urllib.request.urlopen(req, timeout=10) as response:
+            data = json.loads(response.read().decode())
+            if 'query' in data and 'pages' in data['query']:
+                page = data['query']['pages'][str(page_id)]
+                return {
+                    'title': page.get('title', ''),
+                    'extract': page.get('extract', ''),
+                    'url': page.get('fullurl', '')
+                }
+            return None
+    except Exception as e:
+        print(f"Page content error: {str(e)}")
+        return None
+
+
+def extract_facts_from_text(text, max_facts=15):
+    """Extract key facts from Wikipedia text"""
+    import re
     if not text:
-        return ''
+        return []
+    facts = []
+    sentences = text.split('. ')
+    date_pattern = r'\b(January|February|March|April|May|June|July|August|September|October|November|December|\d{4})\b'
+    number_pattern = r'\b\d{1,3}(,\d{3})*(\.\d+)?\b'
 
-    # Remove section headers that look like "== Section =="
-    text = re.sub(r'={2,}[^=]+=+', '', text)
+    for i, sentence in enumerate(sentences[:30]):
+        sentence = sentence.strip()
+        if not sentence or len(sentence) < 20:
+            continue
+        confidence = 'medium'
+        category = 'general'
+        if re.search(date_pattern, sentence):
+            category = 'historical_date'
+            confidence = 'high'
+        elif re.search(number_pattern, sentence):
+            category = 'numerical_detail'
+            confidence = 'medium'
+        elif i < 3:
+            category = 'key_information'
+            confidence = 'high'
+        fact_text = sentence
+        if not fact_text.endswith('.'):
+            fact_text += '.'
+        facts.append({'fact': fact_text, 'confidence': confidence, 'category': category})
+        if len(facts) >= max_facts:
+            break
+    return facts
 
-    # Remove multiple blank lines
-    text = re.sub(r'\n{3,}', '\n\n', text)
 
-    # Remove citation markers like [1], [2]
-    text = re.sub(r'\[\d+\]', '', text)
+def lambda_handler(event, context):
+    """Main handler for Wikipedia facts search"""
+    print(f"Event: {json.dumps(event)}")
+    try:
+        topic_text = event.get('topic_text')
+        search_depth = event.get('search_depth', 'basic')
+        if not topic_text:
+            return {'statusCode': 400, 'headers': {'Content-Type': 'application/json', 'Access-Control-Allow-Origin': '*'}, 'body': json.dumps({'success': False, 'error': 'topic_text required'})}
 
-    return text.strip()
+        search_results = search_wikipedia(topic_text, limit=3 if search_depth == 'basic' else 5)
+        if not search_results:
+            return {'statusCode': 200, 'headers': {'Content-Type': 'application/json', 'Access-Control-Allow-Origin': '*'}, 'body': json.dumps({'success': True, 'facts_found': 0, 'key_facts': [], 'references': [], 'fact_check_status': 'no_data_found'})}
 
+        top_result = search_results[0]
+        page_content = get_page_content(top_result['pageid'])
+        if not page_content:
+            return {'statusCode': 200, 'headers': {'Content-Type': 'application/json', 'Access-Control-Allow-Origin': '*'}, 'body': json.dumps({'success': True, 'facts_found': 0, 'key_facts': [], 'references': [], 'fact_check_status': 'content_unavailable'})}
 
-def build_result(event, facts, source):
-    """Build the result dict, passing through all event data + adding facts."""
-    result = dict(event)
+        max_facts = 10 if search_depth == 'basic' else 20
+        raw_facts = extract_facts_from_text(page_content['extract'], max_facts=max_facts)
+        key_facts = [{'fact': f['fact'], 'source': f"Wikipedia: {page_content['title']}", 'confidence': f['confidence'], 'category': f['category']} for f in raw_facts]
+        references = [page_content['url']]
+        if search_depth == 'detailed':
+            for result in search_results[1:3]:
+                references.append(f"https://en.wikipedia.org/?curid={result['pageid']}")
 
-    if facts:
-        result['wikipedia_facts'] = facts
-        result['has_real_facts'] = True
-        result['facts_source'] = source
-        print(f"Returning facts: {facts['char_count']} chars from {source}")
-        print(f"Wikipedia title: {facts['wikipedia_title']}")
-    else:
-        result['wikipedia_facts'] = None
-        result['has_real_facts'] = False
-        result['facts_source'] = None
-        print("Returning: no facts found, narrative will use fictional mode")
-
-    return result
+        response_data = {'success': True, 'facts_found': len(key_facts), 'key_facts': key_facts, 'references': references, 'fact_check_status': 'verified', 'primary_source': page_content['title'], 'search_query': topic_text, 'timestamp': datetime.utcnow().isoformat() + 'Z'}
+        return {'statusCode': 200, 'headers': {'Content-Type': 'application/json', 'Access-Control-Allow-Origin': '*'}, 'body': json.dumps(response_data)}
+    except Exception as e:
+        print(f"Error: {str(e)}")
+        import traceback
+        traceback.print_exc()
+        return {'statusCode': 500, 'headers': {'Content-Type': 'application/json', 'Access-Control-Allow-Origin': '*'}, 'body': json.dumps({'success': False, 'error': f'Failed: {str(e)}'})}
