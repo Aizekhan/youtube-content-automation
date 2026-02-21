@@ -17,6 +17,7 @@ import boto3
 import random
 from decimal import Decimal
 from botocore.config import Config
+from boto3.dynamodb.conditions import Key
 
 # AWS clients with timeout configuration
 boto_config = Config(
@@ -210,14 +211,12 @@ def lambda_handler(event, context):
         # 1. Load Channel Config
         print(f"\n  Loading channel config...")
 
-        channel_response = channels_table.get_item(
-            Key={
-                'user_id': user_id,
-                'channel_id': channel_id
-            }
+        channel_response = channels_table.query(
+            IndexName='user_id-channel_id-index',
+            KeyConditionExpression=Key('user_id').eq(user_id) & Key('channel_id').eq(channel_id)
         )
 
-        if 'Item' not in channel_response:
+        if channel_response['Count'] == 0:
             print(f"  CHANNEL_NOT_FOUND")
             return {
                 'statusCode': 404,
@@ -228,7 +227,7 @@ def lambda_handler(event, context):
                 })
             }
 
-        channel_config = channel_response['Item']
+        channel_config = channel_response['Items'][0]
         print(f"  Channel loaded: {channel_config.get('channel_name', 'N/A')}")
 
         # 2. Extract Story Profile from channel
