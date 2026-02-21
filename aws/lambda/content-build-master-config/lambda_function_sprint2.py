@@ -2,12 +2,11 @@
 Content Build Master Config Lambda
 Sprint 1 - Task 1.9
 Sprint 2 Enhancement - Integrates enrichment Lambdas
-Sprint 2.1 Optimization - Uses mega-enrichment Lambda (3-in-1)
 
 Functionality:
 - Load channel config from DynamoDB
 - Optionally load topic from ContentTopicsQueue
-- Run Sprint 2.1 enrichment pipeline (mega-enrichment + facts)
+- Run Sprint 2 enrichment pipeline (topic analysis, context enrichment, story DNA, facts)
 - Merge channel + topic + story profile + enrichments into MasterConfig
 - Return comprehensive config for content generation
 """
@@ -242,59 +241,68 @@ def lambda_handler(event, context):
         else:
             print(f"\n  No topic_id provided, MasterConfig will not include topic")
 
-        # 4. Sprint 2.1 Enrichment Pipeline (OPTIMIZED)
+        # 4. Sprint 2 Enrichment Pipeline
         topic_analysis = None
         enriched_context = None
         story_dna = None
         wikipedia_facts = None
 
         if topic_data:
-            topic_text = topic_data['topic_text']
+            print(f"\n  Running Sprint 2 enrichment pipeline...")
+
+            topic_text = topic_data.get('topic_text', '')
             topic_description = topic_data.get('topic_description', {})
+            tone_suggestion = topic_description.get('tone_suggestion', story_profile['tone'])
 
-            # 1. Call MEGA ENRICHMENT Lambda (3-in-1: analyzer + context + DNA)
-            print(f"\n[3/4] Calling Mega Enrichment...")
-            mega_payload = {
-                'topic_text': topic_text,
-                'topic_description': topic_description,
-                'story_profile': story_profile
-            }
-
-            mega_response = invoke_lambda_sync('content-mega-enrichment', mega_payload)
-            if mega_response and mega_response.get('success'):
-                enrichment = mega_response.get('enrichment', {})
-                topic_analysis = enrichment.get('topic_analysis')
-                enriched_context = enrichment.get('enriched_context')
-                story_dna = enrichment.get('story_dna')
-
-                print(f"  Mega enrichment SUCCESS:")
-                if topic_analysis:
-                    print(f"    Genre: {topic_analysis.get('genre', 'N/A')}")
-                    print(f"    Complexity: {topic_analysis.get('complexity_level', 'N/A')}/5")
-                if enriched_context:
-                    print(f"    Atmosphere: {enriched_context.get('atmosphere', {}).get('primary_mood', 'N/A')}")
-                if story_dna:
-                    print(f"    Unique twist: {story_dna.get('unique_twist', 'N/A')[:60]}...")
-
-            # 2. Call Wikipedia Facts Search (if factual_mode enabled)
-            print(f"\n[4/4] Checking Wikipedia Facts...")
-            factual_mode = channel_config.get('factual_mode', False)
-
-            if factual_mode:
-                print(f"  Factual mode enabled, searching Wikipedia...")
-                facts_payload = {
+            # 4.1 Topic Analyzer
+            topic_analysis = invoke_lambda_sync(
+                'content-topic-analyzer',
+                {
                     'topic_text': topic_text,
-                    'max_results': 10
+                    'topic_description': topic_description,
+                    'story_profile': story_profile
                 }
+            )
 
-                facts_response = invoke_lambda_sync('content-search-facts', facts_payload)
-                if facts_response and facts_response.get('success'):
-                    wikipedia_facts = facts_response.get('facts', [])
-                    print(f"  Found {len(wikipedia_facts)} facts")
-            else:
-                print(f"  Factual mode disabled, skipping Wikipedia")
-        else:
-            print(f"\n[3-4/4] Skipping enrichment pipeline (no topic provided)")
+            # 4.2 Search Facts (only if factual_mode enabled)
+            if channel_config.get('factual_mode', False):
+                print(f"  Factual mode enabled, searching Wikipedia facts...")
+                wikipedia_facts = invoke_lambda_sync(
+                    'content-search-facts',
+                    {
+                        'topic_text': topic_text,
+                        'max_results': 10
+                    }
+                )
+
+            # 4.3 Context Enrichment
+            genre = None
+            if topic_analysis and 'genre' in topic_analysis:
+                genre = topic_analysis['genre']
+
+            enriched_context = invoke_lambda_sync(
+                'content-context-enrichment',
+                {
+                    'topic_text': topic_text,
+                    'tone_suggestion': tone_suggestion,
+                    'genre': genre,
+                    'world_type': story_profile['world_type']
+                }
+            )
+
+            # 4.4 Story DNA Generator
+            story_dna = invoke_lambda_sync(
+                'content-story-dna-generator',
+                {
+                    'topic_text': topic_text,
+                    'genre': genre,
+                    'story_type': 'narrative',
+                    'tone_suggestion': tone_suggestion,
+                    'complexity_level': story_profile.get('psychological_depth', 3)
+                }
+            )
+
+            print(f"  Sprint 2 enrichment pipeline completed")
 
         # 5. Build MasterConfig
         master_config = {
