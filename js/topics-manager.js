@@ -66,11 +66,14 @@ async function loadChannels() {
 
         const data = await response.json();
 
-        if (data.success && data.channels) {
+        // Lambda returns array directly, not {success, channels}
+        const channels = Array.isArray(data) ? data : (data.channels || []);
+
+        if (channels && channels.length > 0) {
             const channelSelect = document.getElementById('channelSelect');
             channelSelect.innerHTML = '<option value="">Select Channel...</option>';
 
-            data.channels.forEach(channel => {
+            channels.forEach(channel => {
                 const option = document.createElement('option');
                 option.value = channel.channel_id;
                 option.textContent = channel.channel_name || channel.channel_id;
@@ -78,11 +81,14 @@ async function loadChannels() {
             });
 
             // Auto-select first channel if only one
-            if (data.channels.length === 1) {
-                channelSelect.value = data.channels[0].channel_id;
-                currentChannelId = data.channels[0].channel_id;
+            if (channels.length === 1) {
+                channelSelect.value = channels[0].channel_id;
+                currentChannelId = channels[0].channel_id;
                 await loadTopics();
             }
+        } else {
+            console.warn('No channels found for user:', currentUserId);
+            showToast('No channels found', 'error');
         }
     } catch (error) {
         console.error('Error loading channels:', error);
