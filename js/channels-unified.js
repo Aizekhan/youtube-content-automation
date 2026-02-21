@@ -604,6 +604,8 @@ function populateForm(config) {
         'manual_mode_enabled', 'manual_theme', 'manual_narrative',
         // Story Engine - Story Mode
         'story_mode',
+        // Story Engine - A/B Testing (Sprint 3)
+        'enrichment_ab_enabled', 'enrichment_ab_group',
         // Story Engine - Story DNA
         'world_type', 'tone', 'psychological_depth', 'plot_intensity',
         // Story Engine - Character Engine
