@@ -57,8 +57,8 @@ document.addEventListener('DOMContentLoaded', async () => {
  */
 async function loadChannels() {
     try {
-        // Get channels from ChannelConfigs (using existing API endpoint)
-        const response = await fetch('https://7rggdjm5wl.execute-api.eu-central-1.amazonaws.com/default/content-get-channels', {
+        // Get channels from ChannelConfigs (using Function URL)
+        const response = await fetch('https://lr555ui3ycne6lj7opvpqjigce0cvkzu.lambda-url.eu-central-1.on.aws/', {
             method: 'POST',
             headers: { 'Content-Type': 'application/json' },
             body: JSON.stringify({ user_id: currentUserId })
