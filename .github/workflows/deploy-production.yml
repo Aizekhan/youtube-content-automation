@@ -237,14 +237,14 @@ jobs:
           # Deploy each changed file
           for file in $CHANGED_FILES; do
             if [[ "$file" == js/* ]]; then
-              echo "Deploying $file to /var/www/html/n8n-creator-space/js/"
-              scp -o StrictHostKeyChecking=no "$file" root@3.75.97.188:/var/www/html/n8n-creator-space/js/
+              echo "Deploying $file to /home/ubuntu/web-admin/html/js/"
+              scp -o StrictHostKeyChecking=no "$file" ubuntu@3.75.97.188:/home/ubuntu/web-admin/html/js/
             elif [[ "$file" == css/* ]]; then
-              echo "Deploying $file to /var/www/html/n8n-creator-space/css/"
-              scp -o StrictHostKeyChecking=no "$file" root@3.75.97.188:/var/www/html/n8n-creator-space/css/
+              echo "Deploying $file to /home/ubuntu/web-admin/html/css/"
+              scp -o StrictHostKeyChecking=no "$file" ubuntu@3.75.97.188:/home/ubuntu/web-admin/html/css/
             elif [[ "$file" == *.html ]]; then
-              echo "Deploying $file to /var/www/html/n8n-creator-space/"
-              scp -o StrictHostKeyChecking=no "$file" root@3.75.97.188:/var/www/html/n8n-creator-space/
+              echo "Deploying $file to /home/ubuntu/web-admin/html/"
+              scp -o StrictHostKeyChecking=no "$file" ubuntu@3.75.97.188:/home/ubuntu/web-admin/html/
             fi
           done
 
