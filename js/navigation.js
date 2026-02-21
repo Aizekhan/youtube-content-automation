@@ -19,6 +19,9 @@ const NAVIGATION_HTML = `
                 <a href="content.html" class="nav-link">
                     <i class="bi bi-file-earmark-text"></i> Content
                 </a>
+                <a href="topics-manager.html" class="nav-link">
+                    <i class="bi bi-list-check"></i> Topics Queue
+                </a>
                 <a href="costs.html" class="nav-link">
                     <i class="bi bi-currency-dollar"></i> Costs
                 </a>

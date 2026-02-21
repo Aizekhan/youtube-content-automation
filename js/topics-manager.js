@@ -24,10 +24,20 @@ let editingTopicId = null;
 document.addEventListener('DOMContentLoaded', async () => {
     console.log('Topics Manager initialized');
 
-    // Load user_id from localStorage
-    currentUserId = localStorage.getItem('user_id');
-    if (!currentUserId) {
+    // Check authentication using AuthManager
+    const authManager = new AuthManager();
+    const isAuthenticated = await authManager.initialize();
+
+    if (!isAuthenticated) {
         showToast('Please log in first', 'error');
+        setTimeout(() => window.location.href = 'login.html', 2000);
+        return;
+    }
+
+    // Get user_id from AuthManager
+    currentUserId = authManager.getUserId();
+    if (!currentUserId) {
+        showToast('Failed to get user ID', 'error');
         setTimeout(() => window.location.href = 'login.html', 2000);
         return;
     }
