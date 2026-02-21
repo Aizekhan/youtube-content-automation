@@ -199,43 +199,57 @@ Topic Text ("The Whispering Shore")
 
 ### 2. Step Functions Workflow
 
-#### ContentGeneratorSprint2
-- **ARN:** `arn:aws:states:eu-central-1:599297130956:stateMachine:ContentGeneratorSprint2`
+#### ContentGenerator (UPDATED with Sprint 2 Enrichment)
+- **ARN:** `arn:aws:states:eu-central-1:599297130956:stateMachine:ContentGenerator`
 - **Type:** STANDARD
-- **Purpose:** End-to-end pipeline from Topics Queue → AI Enrichment → Content Generation
+- **Status:** Existing workflow ENHANCED with Sprint 2 enrichment in Phase 1
 
-**Workflow Stages:**
-1. **GetNextTopic** - Get next pending topic from Topics Queue
-2. **CheckTopicAvailable** - Verify topic exists
-3. **BuildEnrichedMasterConfig** - Call all 4 enrichment Lambdas
-4. **UpdateTopicToInProgress** - Mark topic as 'in_progress'
-5. **GenerateNarrativeWithEnrichment** - Create narrative using enriched data
-6. **Phase2Parallel** - Generate Images + Audio simultaneously
-7. **SaveContent** - Save to DynamoDB with enrichment metadata
-8. **AssembleVideo** - Create final video
-9. **MarkTopicCompleted/Failed** - Update topic status
+**What Changed:**
+- **Phase 1 Iterator:** Added `BuildEnrichedMasterConfig` state BEFORE `MegaNarrativeGenerator`
+- **Phase 2 & 3:** NO CHANGES (all EC2, batch processing, parallel execution preserved)
+
+**Phase 1 Flow (UPDATED):**
+```
+GetActiveChannels
+  ↓
+For each channel:
+  CheckFactualMode
+    ↓
+  SearchWikipediaFacts / SetNoFacts
+    ↓
+  BuildEnrichedMasterConfig (NEW - Sprint 2)
+    ↓ (calls 4 enrichment Lambdas internally)
+  MegaNarrativeGenerator
+```
+
+**Phase 2 (UNCHANGED):**
+- Branch A: EC2 Z-Image-Turbo start → Batch image generation → EC2 stop
+- Branch B: EC2 Qwen3-TTS start → Batch audio generation → EC2 stop
+- Parallel execution for performance
+
+**Phase 3 (UNCHANGED):**
+- SaveContent → Video Assembly (Lambda or ECS Fargate)
+
+**BuildEnrichedMasterConfig State:**
+- Calls `content-build-master-config` Lambda
+- Lambda invokes 4 enrichment Lambdas internally:
+  * content-topic-analyzer (genre, complexity)
+  * content-search-facts (Wikipedia, if needed)
+  * content-context-enrichment (atmosphere, sensory)
+  * content-story-dna-generator (unique twist, anti-cliché)
+- Graceful degradation: enrichment failure → continues with basic config
+- Timeout: 120s
+- Retry: 2 attempts with exponential backoff
 
 **Input:**
 ```json
 {
-  "user_id": "xxx",
-  "channel_id": "UCxxx"
+  "user_id": "xxx"
 }
 ```
 
 **Output:**
-```json
-{
-  "success": true,
-  "content_id": "content_xxx",
-  "video_url": "s3://...",
-  "enrichment_metadata": {
-    "topic_analysis": {...},
-    "story_dna": {...},
-    "enriched_context": {...}
-  }
-}
-```
+Same as before + enrichment metadata in saved content
 
 ---
 
@@ -467,7 +481,7 @@ Total Commits: 7
 **Status:** ✅ PASS
 
 #### Step Functions
-**State Machine:** ContentGeneratorSprint2
+**State Machine:** ContentGenerator (UPDATED)
 **Status:** Created, ready for end-to-end test
 **Next:** Execute with real channel + topic
 
@@ -515,7 +529,7 @@ Total Commits: 7
 - ✅ content-build-master-config - UPDATED
 
 ### AWS Step Functions
-- ✅ ContentGeneratorSprint2 - CREATED
+- ✅ ContentGenerator (UPDATED) - UPDATED (Phase 1 enhanced)
 
 ### GitHub
 - ✅ All commits pushed to master
