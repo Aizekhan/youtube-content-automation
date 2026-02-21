@@ -1,0 +1,851 @@
+{
+    "Items": [
+        {
+            "service": {
+                "S": "AWS Polly"
+            },
+            "date": {
+                "S": "2025-11-25"
+            },
+            "operation": {
+                "S": "audio_generation"
+            },
+            "user_id": {
+                "S": "c334d862-4031-7097-4207-84856b59d3ed"
+            },
+            "channel_id": {
+                "S": "UCaxPNkUMQKqepAp0JbpVrrw"
+            },
+            "units": {
+                "N": "1278"
+            },
+            "timestamp": {
+                "S": "2025-11-25T00:21:49.352585Z"
+            },
+            "content_id": {
+                "S": "20251125T00173682212"
+            },
+            "details": {
+                "M": {
+                    "characters": {
+                        "N": "1278"
+                    },
+                    "engine": {
+                        "S": "standard"
+                    }
+                }
+            },
+            "cost_usd": {
+                "N": "0.005111999999999999"
+            }
+        },
+        {
+            "service": {
+                "S": "AWS Polly"
+            },
+            "date": {
+                "S": "2025-11-25"
+            },
+            "operation": {
+                "S": "audio_generation"
+            },
+            "user_id": {
+                "S": "c334d862-4031-7097-4207-84856b59d3ed"
+            },
+            "channel_id": {
+                "S": "UCaxPNkUMQKqepAp0JbpVrrw"
+            },
+            "units": {
+                "N": "1350"
+            },
+            "timestamp": {
+                "S": "2025-11-25T00:39:13.746846Z"
+            },
+            "content_id": {
+                "S": "20251125T00350213115"
+            },
+            "details": {
+                "M": {
+                    "characters": {
+                        "N": "1350"
+                    },
+                    "engine": {
+                        "S": "standard"
+                    }
+                }
+            },
+            "cost_usd": {
+                "N": "0.005399999999999999"
+            }
+        },
+        {
+            "service": {
+                "S": "AWS Polly"
+            },
+            "date": {
+                "S": "2025-11-25"
+            },
+            "operation": {
+                "S": "audio_generation"
+            },
+            "user_id": {
+                "S": "c334d862-4031-7097-4207-84856b59d3ed"
+            },
+            "channel_id": {
+                "S": "UCaxPNkUMQKqepAp0JbpVrrw"
+            },
+            "units": {
+                "N": "1018"
+            },
+            "timestamp": {
+                "S": "2025-11-25T01:13:23.865895Z"
+            },
+            "content_id": {
+                "S": "20251125T01090290930"
+            },
+            "details": {
+                "M": {
+                    "characters": {
+                        "N": "1018"
+                    },
+                    "engine": {
+                        "S": "standard"
+                    }
+                }
+            },
+            "cost_usd": {
+                "N": "0.004072"
+            }
+        },
+        {
+            "service": {
+                "S": "OpenAI"
+            },
+            "date": {
+                "S": "2025-11-23"
+            },
+            "operation": {
+                "S": "mega_narrative_generation"
+            },
+            "user_id": {
+                "S": "c334d862-4031-7097-4207-84856b59d3ed"
+            },
+            "channel_id": {
+                "S": "UCaxPNkUMQKqepAp0JbpVrrw"
+            },
+            "units": {
+                "N": "6554"
+            },
+            "timestamp": {
+                "S": "2025-11-23T00:25:02.585982Z"
+            },
+            "content_id": {
+                "S": "mega_20251123T00250258595"
+            },
+            "details": {
+                "M": {
+                    "model": {
+                        "S": "gpt-4o"
+                    },
+                    "output_tokens": {
+                        "N": "2405"
+                    },
+                    "input_cost_usd": {
+                        "N": "0.010373"
+                    },
+                    "output_cost_usd": {
+                        "N": "0.02405"
+                    },
+                    "input_tokens": {
+                        "N": "4149"
+                    }
+                }
+            },
+            "cost_usd": {
+                "N": "0.0344225"
+            }
+        },
+        {
+            "service": {
+                "S": "AWS Polly"
+            },
+            "date": {
+                "S": "2025-11-23"
+            },
+            "operation": {
+                "S": "audio_generation"
+            },
+            "user_id": {
+                "S": "c334d862-4031-7097-4207-84856b59d3ed"
+            },
+            "channel_id": {
+                "S": "UCaxPNkUMQKqepAp0JbpVrrw"
+            },
+            "units": {
+                "N": "2805"
+            },
+            "timestamp": {
+                "S": "2025-11-23T00:29:15.148407Z"
+            },
+            "content_id": {
+                "S": "mega_20251123T00250258595"
+            },
+            "details": {
+                "M": {
+                    "characters": {
+                        "N": "2805"
+                    },
+                    "engine": {
+                        "S": "standard"
+                    }
+                }
+            },
+            "cost_usd": {
+                "N": "0.011219999999999999"
+            }
+        },
+        {
+            "service": {
+                "S": "OpenAI"
+            },
+            "date": {
+                "S": "2025-11-23"
+            },
+            "operation": {
+                "S": "mega_narrative_generation"
+            },
+            "user_id": {
+                "S": "c334d862-4031-7097-4207-84856b59d3ed"
+            },
+            "channel_id": {
+                "S": "UCaxPNkUMQKqepAp0JbpVrrw"
+            },
+            "units": {
+                "N": "6246"
+            },
+            "timestamp": {
+                "S": "2025-11-23T01:38:21.330586Z"
+            },
+            "content_id": {
+                "S": "mega_20251123T01382133055"
+            },
+            "details": {
+                "M": {
+                    "model": {
+                        "S": "gpt-4o"
+                    },
+                    "output_tokens": {
+                        "N": "2097"
+                    },
+                    "input_cost_usd": {
+                        "N": "0.010373"
+                    },
+                    "output_cost_usd": {
+                        "N": "0.02097"
+                    },
+                    "input_tokens": {
+                        "N": "4149"
+                    }
+                }
+            },
+            "cost_usd": {
+                "N": "0.0313425"
+            }
+        },
+        {
+            "service": {
+                "S": "AWS Polly"
+            },
+            "date": {
+                "S": "2025-11-23"
+            },
+            "operation": {
+                "S": "audio_generation"
+            },
+            "user_id": {
+                "S": "c334d862-4031-7097-4207-84856b59d3ed"
+            },
+            "channel_id": {
+                "S": "UCaxPNkUMQKqepAp0JbpVrrw"
+            },
+            "units": {
+                "N": "973"
+            },
+            "timestamp": {
+                "S": "2025-11-23T01:42:31.549827Z"
+            },
+            "content_id": {
+                "S": "mega_20251123T01382133055"
+            },
+            "details": {
+                "M": {
+                    "characters": {
+                        "N": "973"
+                    },
+                    "engine": {
+                        "S": "standard"
+                    }
+                }
+            },
+            "cost_usd": {
+                "N": "0.0038919999999999996"
+            }
+        },
+        {
+            "service": {
+                "S": "OpenAI"
+            },
+            "date": {
+                "S": "2025-11-23"
+            },
+            "operation": {
+                "S": "mega_narrative_generation"
+            },
+            "user_id": {
+                "S": "c334d862-4031-7097-4207-84856b59d3ed"
+            },
+            "channel_id": {
+                "S": "UCaxPNkUMQKqepAp0JbpVrrw"
+            },
+            "units": {
+                "N": "6492"
+            },
+            "timestamp": {
+                "S": "2025-11-23T19:39:44.170648Z"
+            },
+            "content_id": {
+                "S": "mega_20251123T19394417061"
+            },
+            "details": {
+                "M": {
+                    "model": {
+                        "S": "gpt-4o"
+                    },
+                    "output_tokens": {
+                        "N": "2343"
+                    },
+                    "input_cost_usd": {
+                        "N": "0.010373"
+                    },
+                    "output_cost_usd": {
+                        "N": "0.02343"
+                    },
+                    "input_tokens": {
+                        "N": "4149"
+                    }
+                }
+            },
+            "cost_usd": {
+                "N": "0.033802500000000006"
+            }
+        },
+        {
+            "service": {
+                "S": "AWS Polly"
+            },
+            "date": {
+                "S": "2025-11-23"
+            },
+            "operation": {
+                "S": "audio_generation"
+            },
+            "user_id": {
+                "S": "c334d862-4031-7097-4207-84856b59d3ed"
+            },
+            "channel_id": {
+                "S": "UCaxPNkUMQKqepAp0JbpVrrw"
+            },
+            "units": {
+                "N": "1768"
+            },
+            "timestamp": {
+                "S": "2025-11-23T19:43:55.296600Z"
+            },
+            "content_id": {
+                "S": "mega_20251123T19394417061"
+            },
+            "details": {
+                "M": {
+                    "characters": {
+                        "N": "1768"
+                    },
+                    "engine": {
+                        "S": "standard"
+                    }
+                }
+            },
+            "cost_usd": {
+                "N": "0.007071999999999999"
+            }
+        },
+        {
+            "service": {
+                "S": "OpenAI"
+            },
+            "date": {
+                "S": "2025-11-23"
+            },
+            "operation": {
+                "S": "mega_narrative_generation"
+            },
+            "user_id": {
+                "S": "c334d862-4031-7097-4207-84856b59d3ed"
+            },
+            "channel_id": {
+                "S": "UCaxPNkUMQKqepAp0JbpVrrw"
+            },
+            "units": {
+                "N": "6465"
+            },
+            "timestamp": {
+                "S": "2025-11-23T20:10:51.389842Z"
+            },
+            "content_id": {
+                "S": "mega_20251123T20105138981"
+            },
+            "details": {
+                "M": {
+                    "model": {
+                        "S": "gpt-4o"
+                    },
+                    "output_tokens": {
+                        "N": "2316"
+                    },
+                    "input_cost_usd": {
+                        "N": "0.010373"
+                    },
+                    "output_cost_usd": {
+                        "N": "0.02316"
+                    },
+                    "input_tokens": {
+                        "N": "4149"
+                    }
+                }
+            },
+            "cost_usd": {
+                "N": "0.03353250000000001"
+            }
+        },
+        {
+            "service": {
+                "S": "AWS Polly"
+            },
+            "date": {
+                "S": "2025-11-23"
+            },
+            "operation": {
+                "S": "audio_generation"
+            },
+            "user_id": {
+                "S": "c334d862-4031-7097-4207-84856b59d3ed"
+            },
+            "channel_id": {
+                "S": "UCaxPNkUMQKqepAp0JbpVrrw"
+            },
+            "units": {
+                "N": "1739"
+            },
+            "timestamp": {
+                "S": "2025-11-23T20:15:02.217827Z"
+            },
+            "content_id": {
+                "S": "mega_20251123T20105138981"
+            },
+            "details": {
+                "M": {
+                    "characters": {
+                        "N": "1739"
+                    },
+                    "engine": {
+                        "S": "standard"
+                    }
+                }
+            },
+            "cost_usd": {
+                "N": "0.0069559999999999995"
+            }
+        },
+        {
+            "service": {
+                "S": "OpenAI"
+            },
+            "date": {
+                "S": "2025-11-23"
+            },
+            "operation": {
+                "S": "mega_narrative_generation"
+            },
+            "user_id": {
+                "S": "c334d862-4031-7097-4207-84856b59d3ed"
+            },
+            "channel_id": {
+                "S": "UCaxPNkUMQKqepAp0JbpVrrw"
+            },
+            "units": {
+                "N": "6370"
+            },
+            "timestamp": {
+                "S": "2025-11-23T21:03:46.500440Z"
+            },
+            "content_id": {
+                "S": "mega_20251123T21034650040"
+            },
+            "details": {
+                "M": {
+                    "model": {
+                        "S": "gpt-4o"
+                    },
+                    "output_tokens": {
+                        "N": "2221"
+                    },
+                    "input_cost_usd": {
+                        "N": "0.010373"
+                    },
+                    "output_cost_usd": {
+                        "N": "0.02221"
+                    },
+                    "input_tokens": {
+                        "N": "4149"
+                    }
+                }
+            },
+            "cost_usd": {
+                "N": "0.0325825"
+            }
+        },
+        {
+            "service": {
+                "S": "AWS Polly"
+            },
+            "date": {
+                "S": "2025-11-23"
+            },
+            "operation": {
+                "S": "audio_generation"
+            },
+            "user_id": {
+                "S": "c334d862-4031-7097-4207-84856b59d3ed"
+            },
+            "channel_id": {
+                "S": "UCaxPNkUMQKqepAp0JbpVrrw"
+            },
+            "units": {
+                "N": "1601"
+            },
+            "timestamp": {
+                "S": "2025-11-23T21:07:57.704677Z"
+            },
+            "content_id": {
+                "S": "mega_20251123T21034650040"
+            },
+            "details": {
+                "M": {
+                    "characters": {
+                        "N": "1601"
+                    },
+                    "engine": {
+                        "S": "standard"
+                    }
+                }
+            },
+            "cost_usd": {
+                "N": "0.006404"
+            }
+        },
+        {
+            "service": {
+                "S": "AWS Polly"
+            },
+            "date": {
+                "S": "2025-11-23"
+            },
+            "operation": {
+                "S": "audio_generation"
+            },
+            "user_id": {
+                "S": "c334d862-4031-7097-4207-84856b59d3ed"
+            },
+            "channel_id": {
+                "S": "UCaxPNkUMQKqepAp0JbpVrrw"
+            },
+            "units": {
+                "N": "0"
+            },
+            "timestamp": {
+                "S": "2025-11-23T22:35:18.696788Z"
+            },
+            "content_id": {
+                "S": "20251123T22351697796"
+            },
+            "details": {
+                "M": {
+                    "characters": {
+                        "N": "0"
+                    },
+                    "engine": {
+                        "S": "neural"
+                    }
+                }
+            },
+            "cost_usd": {
+                "N": "0"
+            }
+        },
+        {
+            "service": {
+                "S": "AWS Polly"
+            },
+            "date": {
+                "S": "2025-11-23"
+            },
+            "operation": {
+                "S": "audio_generation"
+            },
+            "user_id": {
+                "S": "c334d862-4031-7097-4207-84856b59d3ed"
+            },
+            "channel_id": {
+                "S": "UCaxPNkUMQKqepAp0JbpVrrw"
+            },
+            "units": {
+                "N": "0"
+            },
+            "timestamp": {
+                "S": "2025-11-23T22:44:34.338176Z"
+            },
+            "content_id": {
+                "S": "20251123T22443259597"
+            },
+            "details": {
+                "M": {
+                    "characters": {
+                        "N": "0"
+                    },
+                    "engine": {
+                        "S": "neural"
+                    }
+                }
+            },
+            "cost_usd": {
+                "N": "0"
+            }
+        },
+        {
+            "service": {
+                "S": "AWS Polly"
+            },
+            "date": {
+                "S": "2025-11-23"
+            },
+            "operation": {
+                "S": "audio_generation"
+            },
+            "user_id": {
+                "S": "c334d862-4031-7097-4207-84856b59d3ed"
+            },
+            "channel_id": {
+                "S": "UCaxPNkUMQKqepAp0JbpVrrw"
+            },
+            "units": {
+                "N": "0"
+            },
+            "timestamp": {
+                "S": "2025-11-23T22:53:32.542091Z"
+            },
+            "content_id": {
+                "S": "20251123T22533079491"
+            },
+            "details": {
+                "M": {
+                    "characters": {
+                        "N": "0"
+                    },
+                    "engine": {
+                        "S": "neural"
+                    }
+                }
+            },
+            "cost_usd": {
+                "N": "0"
+            }
+        },
+        {
+            "service": {
+                "S": "AWS Polly"
+            },
+            "date": {
+                "S": "2025-11-23"
+            },
+            "operation": {
+                "S": "audio_generation"
+            },
+            "user_id": {
+                "S": "c334d862-4031-7097-4207-84856b59d3ed"
+            },
+            "channel_id": {
+                "S": "UCaxPNkUMQKqepAp0JbpVrrw"
+            },
+            "units": {
+                "N": "0"
+            },
+            "timestamp": {
+                "S": "2025-11-23T23:45:16.666499Z"
+            },
+            "content_id": {
+                "S": "20251123T23451490008"
+            },
+            "details": {
+                "M": {
+                    "characters": {
+                        "N": "0"
+                    },
+                    "engine": {
+                        "S": "neural"
+                    }
+                }
+            },
+            "cost_usd": {
+                "N": "0"
+            }
+        },
+        {
+            "service": {
+                "S": "OpenAI"
+            },
+            "date": {
+                "S": "2025-11-21"
+            },
+            "operation": {
+                "S": "mega_narrative_generation"
+            },
+            "user_id": {
+                "S": "c334d862-4031-7097-4207-84856b59d3ed"
+            },
+            "channel_id": {
+                "S": "UCOr62NcT3ZxC9EDNUfi2slw"
+            },
+            "units": {
+                "N": "6387"
+            },
+            "timestamp": {
+                "S": "2025-11-21T01:22:55.509673Z"
+            },
+            "content_id": {
+                "S": "mega_20251121T01225550964"
+            },
+            "details": {
+                "M": {
+                    "model": {
+                        "S": "gpt-4o"
+                    },
+                    "output_tokens": {
+                        "N": "2152"
+                    },
+                    "input_cost_usd": {
+                        "N": "0.010588"
+                    },
+                    "output_cost_usd": {
+                        "N": "0.02152"
+                    },
+                    "input_tokens": {
+                        "N": "4235"
+                    }
+                }
+            },
+            "cost_usd": {
+                "N": "0.032107500000000004"
+            }
+        },
+        {
+            "service": {
+                "S": "AWS Polly"
+            },
+            "date": {
+                "S": "2025-11-21"
+            },
+            "operation": {
+                "S": "audio_generation"
+            },
+            "user_id": {
+                "S": "c334d862-4031-7097-4207-84856b59d3ed"
+            },
+            "channel_id": {
+                "S": "UCOr62NcT3ZxC9EDNUfi2slw"
+            },
+            "units": {
+                "N": "1543"
+            },
+            "timestamp": {
+                "S": "2025-11-21T01:27:06.158926Z"
+            },
+            "content_id": {
+                "S": "mega_20251121T01225550964"
+            },
+            "details": {
+                "M": {
+                    "characters": {
+                        "N": "1543"
+                    },
+                    "engine": {
+                        "S": "standard"
+                    }
+                }
+            },
+            "cost_usd": {
+                "N": "0.0061719999999999995"
+            }
+        },
+        {
+            "service": {
+                "S": "OpenAI"
+            },
+            "date": {
+                "S": "2025-11-21"
+            },
+            "operation": {
+                "S": "mega_narrative_generation"
+            },
+            "user_id": {
+                "S": "c334d862-4031-7097-4207-84856b59d3ed"
+            },
+            "channel_id": {
+                "S": "UCOr62NcT3ZxC9EDNUfi2slw"
+            },
+            "units": {
+                "N": "6569"
+            },
+            "timestamp": {
+                "S": "2025-11-21T01:34:23.330715Z"
+            },
+            "content_id": {
+                "S": "mega_20251121T01342333068"
+            },
+            "details": {
+                "M": {
+                    "model": {
+                        "S": "gpt-4o"
+                    },
+                    "output_tokens": {
+                        "N": "2370"
+                    },
+                    "input_cost_usd": {
+                        "N": "0.010498"
+                    },
+                    "output_cost_usd": {
+                        "N": "0.0237"
+                    },
+                    "input_tokens": {
+                        "N": "4199"
+                    }
+                }
+            },
+            "cost_usd": {
+                "N": "0.034197500000000006"
+            }
+        }
+    ],
+    "Count": 264,
+    "ScannedCount": 264,
+    "ConsumedCapacity": null,
+    "NextToken": "eyJFeGNsdXNpdmVTdGFydEtleSI6IG51bGwsICJib3RvX3RydW5jYXRlX2Ftb3VudCI6IDIwfQ=="
+}

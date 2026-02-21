@@ -1,0 +1,6 @@
+{
+  "AllowOrigins": ["https://n8n-creator.space"],
+  "AllowMethods": ["*"],
+  "AllowHeaders": ["*"],
+  "MaxAge": 300
+}

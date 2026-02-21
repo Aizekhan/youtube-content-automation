@@ -1,0 +1,927 @@
+{
+    "Items": [
+        {
+            "cta_data": {
+                "M": {
+                    "cta_segments": {
+                        "L": [
+                            {
+                                "M": {
+                                    "cta_text": {
+                                        "S": "If these whispers have captured your curiosity, delve deeper by subscribing to our channel."
+                                    },
+                                    "position": {
+                                        "S": "35%"
+                                    },
+                                    "audio_error": {
+                                        "S": "seek"
+                                    },
+                                    "type": {
+                                        "S": "subscribe"
+                                    },
+                                    "style_note": {
+                                        "S": "Mysterious and compelling, inviting further exploration."
+                                    }
+                                }
+                            }
+                        ]
+                    }
+                }
+            },
+            "total_word_count": {
+                "N": "0"
+            },
+            "user_id": {
+                "S": "c334d862-4031-7097-4207-84856b59d3ed"
+            },
+            "created_at": {
+                "S": "2025-11-29T16:35:17.444276Z"
+            },
+            "has_images": {
+                "BOOL": true
+            },
+            "validation_errors": {
+                "L": []
+            },
+            "total_cost_usd": {
+                "N": "0"
+            },
+            "audio_files": {
+                "L": [
+                    {
+                        "M": {
+                            "duration_ms": {
+                                "N": "31600"
+                            },
+                            "ssml_used": {
+                                "S": "The old schoolhouse stood at the edge of the village, its windows like empty eyes watching us approach. I felt an unsettling chill as I stepped inside, my footsteps echoing through the forgotten hallways. Dust hung in the air, illuminated by the thin shafts of moonlight that pierced the broken roof. Every creak of the floorboards seemed to whisper secrets of those who once walked these halls."
+                            },
+                            "voice_id": {
+                                "S": "Matthew"
+                            },
+                            "engine": {
+                                "S": "neural"
+                            },
+                            "scene_id": {
+                                "N": "1"
+                            },
+                            "s3_url": {
+                                "S": "s3://youtube-automation-audio-files/narratives/UCaxPNkUMQKqepAp0JbpVrrw/20251129T16305006791/scene_1.mp3"
+                            },
+                            "s3_key": {
+                                "S": "narratives/UCaxPNkUMQKqepAp0JbpVrrw/20251129T16305006791/scene_1.mp3"
+                            }
+                        }
+                    },
+                    {
+                        "M": {
+                            "duration_ms": {
+                                "N": "29680"
+                            },
+                            "ssml_used": {
+                                "S": "Moving deeper into the school, I paused near an old classroom door. The sound of faint whispering drifted from within, a chorus of ghostly voices trapped in a timeless loop. I hesitated, feeling an inexplicable pull to enter. The room was dimly lit, with broken chairs and desks scattered about. On the blackboard, faded drawings told stories only children could imagine."
+                            },
+                            "voice_id": {
+                                "S": "Matthew"
+                            },
+                            "engine": {
+                                "S": "neural"
+                            },
+                            "scene_id": {
+                                "N": "2"
+                            },
+                            "s3_url": {
+                                "S": "s3://youtube-automation-audio-files/narratives/UCaxPNkUMQKqepAp0JbpVrrw/20251129T16305006791/scene_2.mp3"
+                            },
+                            "s3_key": {
+                                "S": "narratives/UCaxPNkUMQKqepAp0JbpVrrw/20251129T16305006791/scene_2.mp3"
+                            }
+                        }
+                    },
+                    {
+                        "M": {
+                            "duration_ms": {
+                                "N": "27120"
+                            },
+                            "ssml_used": {
+                                "S": "A narrow wooden staircase led me up to the attic, where the whispers grew louder, more insistent. The attic was filled with forgotten relics—dust-covered books, a cracked mirror reflecting fractured realities, and an old, worn-out doll. Each object seemed to have a story to tell, part of a narrative woven by the unseen spirits around me."
+                            },
+                            "voice_id": {
+                                "S": "Matthew"
+                            },
+                            "engine": {
+                                "S": "neural"
+                            },
+                            "scene_id": {
+                                "N": "3"
+                            },
+                            "s3_url": {
+                                "S": "s3://youtube-automation-audio-files/narratives/UCaxPNkUMQKqepAp0JbpVrrw/20251129T16305006791/scene_3.mp3"
+                            },
+                            "s3_key": {
+                                "S": "narratives/UCaxPNkUMQKqepAp0JbpVrrw/20251129T16305006791/scene_3.mp3"
+                            }
+                        }
+                    },
+                    {
+                        "M": {
+                            "duration_ms": {
+                                "N": "26160"
+                            },
+                            "ssml_used": {
+                                "S": "Just as I thought I had seen it all, I noticed a small, hidden door behind a stack of boxes. The whispers were louder here, pleading almost. I opened the door slowly, revealing a narrow passage leading further into darkness. I could feel the temperature drop as I stepped through, as if crossing a threshold into another world."
+                            },
+                            "voice_id": {
+                                "S": "Matthew"
+                            },
+                            "engine": {
+                                "S": "neural"
+                            },
+                            "scene_id": {
+                                "N": "4"
+                            },
+                            "s3_url": {
+                                "S": "s3://youtube-automation-audio-files/narratives/UCaxPNkUMQKqepAp0JbpVrrw/20251129T16305006791/scene_4.mp3"
+                            },
+                            "s3_key": {
+                                "S": "narratives/UCaxPNkUMQKqepAp0JbpVrrw/20251129T16305006791/scene_4.mp3"
+                            }
+                        }
+                    },
+                    {
+                        "M": {
+                            "duration_ms": {
+                                "N": "31920"
+                            },
+                            "ssml_used": {
+                                "S": "The passage led to a small, hidden chamber. In the center stood an ancient desk, with papers scattered across its surface. As I approached, the whispers became coherent, telling a story of betrayal and sorrow, of lives intertwined with the building's fate. But just as quickly as they had come, the voices faded, leaving me with the chilling realization that some secrets are meant to remain buried."
+                            },
+                            "voice_id": {
+                                "S": "Matthew"
+                            },
+                            "engine": {
+                                "S": "neural"
+                            },
+                            "scene_id": {
+                                "N": "5"
+                            },
+                            "s3_url": {
+                                "S": "s3://youtube-automation-audio-files/narratives/UCaxPNkUMQKqepAp0JbpVrrw/20251129T16305006791/scene_5.mp3"
+                            },
+                            "s3_key": {
+                                "S": "narratives/UCaxPNkUMQKqepAp0JbpVrrw/20251129T16305006791/scene_5.mp3"
+                            }
+                        }
+                    }
+                ]
+            },
+            "api_version": {
+                "S": "mega_mode_v4"
+            },
+            "has_audio": {
+                "BOOL": true
+            },
+            "metadata": {
+                "M": {
+                    "genre": {
+                        "S": "Horror"
+                    },
+                    "total_word_count": {
+                        "N": "0"
+                    },
+                    "total_scenes": {
+                        "N": "5"
+                    }
+                }
+            },
+            "image_count": {
+                "N": "6"
+            },
+            "image_data": {
+                "M": {
+                    "scenes": {
+                        "L": [
+                            {
+                                "M": {
+                                    "image_prompt": {
+                                        "S": "A long, abandoned school hallway with broken windows and dust in the air. Moonlight streams through holes in the ceiling, casting eerie shadows. The scene conveys a sense of isolation and forgotten memories. The perspective is slightly tilted, enhancing the feeling of unease."
+                                    },
+                                    "negative_prompt": {
+                                        "S": "natural settings, bright happy, supernatural monsters"
+                                    },
+                                    "scene_number": {
+                                        "N": "1"
+                                    }
+                                }
+                            },
+                            {
+                                "M": {
+                                    "image_prompt": {
+                                        "S": "A shadowy classroom with broken desks and chairs strewn about. The blackboard is covered in faded chalk drawings of children playing. The atmosphere is tense, with a sense of being watched. The lighting is dim and focused, with shadows falling in distorted patterns."
+                                    },
+                                    "negative_prompt": {
+                                        "S": "natural settings, bright happy, supernatural monsters"
+                                    },
+                                    "scene_number": {
+                                        "N": "2"
+                                    }
+                                }
+                            },
+                            {
+                                "M": {
+                                    "image_prompt": {
+                                        "S": "An attic filled with dusty, forgotten items: old books, a cracked mirror, an eerie doll. The lighting is harsh and overhead, casting sharp shadows. The setting feels claustrophobic and tense, with a sense of secrets waiting to be uncovered."
+                                    },
+                                    "negative_prompt": {
+                                        "S": "natural settings, bright happy, supernatural monsters"
+                                    },
+                                    "scene_number": {
+                                        "N": "3"
+                                    }
+                                }
+                            },
+                            {
+                                "M": {
+                                    "image_prompt": {
+                                        "S": "A hidden door slightly ajar, revealing a dark, narrow passage beyond. The atmosphere is foreboding, with the sense of stepping into the unknown. The lighting is minimal, with shadows playing tricks on the eyes."
+                                    },
+                                    "negative_prompt": {
+                                        "S": "natural settings, bright happy, supernatural monsters"
+                                    },
+                                    "scene_number": {
+                                        "N": "4"
+                                    }
+                                }
+                            },
+                            {
+                                "M": {
+                                    "image_prompt": {
+                                        "S": "A small, hidden chamber with an ancient desk covered in tattered papers. The lighting is dim with a single overhead light casting long shadows. The atmosphere is heavy with untold stories, evoking a sense of mystery and historical weight."
+                                    },
+                                    "negative_prompt": {
+                                        "S": "natural settings, bright happy, supernatural monsters"
+                                    },
+                                    "scene_number": {
+                                        "N": "5"
+                                    }
+                                }
+                            }
+                        ]
+                    },
+                    "total_images": {
+                        "N": "5"
+                    }
+                }
+            },
+            "channel_id": {
+                "S": "UCaxPNkUMQKqepAp0JbpVrrw"
+            },
+            "estimated_duration_seconds": {
+                "N": "0"
+            },
+            "generation_count_at_creation": {
+                "N": "0"
+            },
+            "variation_set_index": {
+                "N": "3"
+            },
+            "selected_topic": {
+                "M": {
+                    "title": {
+                        "S": "Whispers Beneath the Abandoned Schoolhouse"
+                    }
+                }
+            },
+            "status": {
+                "S": "completed"
+            },
+            "scene_count": {
+                "N": "5"
+            },
+            "audio_duration_sec": {
+                "N": "0"
+            },
+            "pipeline_status": {
+                "M": {
+                    "progress_percentage": {
+                        "N": "100"
+                    },
+                    "overall_status": {
+                        "S": "completed"
+                    },
+                    "stages": {
+                        "M": {
+                            "voice": {
+                                "M": {
+                                    "status": {
+                                        "S": "completed"
+                                    },
+                                    "timestamp": {
+                                        "S": "2025-11-29T16:35:17.444276Z"
+                                    }
+                                }
+                            },
+                            "visuals": {
+                                "M": {
+                                    "status": {
+                                        "S": "completed"
+                                    },
+                                    "timestamp": {
+                                        "S": "2025-11-29T16:35:17.444276Z"
+                                    }
+                                }
+                            },
+                            "story": {
+                                "M": {
+                                    "status": {
+                                        "S": "completed"
+                                    },
+                                    "timestamp": {
+                                        "S": "2025-11-29T16:35:17.444276Z"
+                                    }
+                                }
+                            }
+                        }
+                    }
+                }
+            },
+            "audio_scene_count": {
+                "N": "5"
+            },
+            "total_scenes": {
+                "N": "5"
+            },
+            "narrative_data": {
+                "M": {
+                    "scenes": {
+                        "L": [
+                            {
+                                "M": {
+                                    "image_prompt": {
+                                        "S": "A long, abandoned school hallway with broken windows and dust in the air. Moonlight streams through holes in the ceiling, casting eerie shadows. The scene conveys a sense of isolation and forgotten memories. The perspective is slightly tilted, enhancing the feeling of unease."
+                                    },
+                                    "scene_narration": {
+                                        "S": "The old schoolhouse stood at the edge of the village, its windows like empty eyes watching us approach. I felt an unsettling chill as I stepped inside, my footsteps echoing through the forgotten hallways. Dust hung in the air, illuminated by the thin shafts of moonlight that pierced the broken roof. Every creak of the floorboards seemed to whisper secrets of those who once walked these halls."
+                                    },
+                                    "scene_number": {
+                                        "N": "1"
+                                    },
+                                    "timing_estimates": {
+                                        "L": [
+                                            {
+                                                "N": "0"
+                                            },
+                                            {
+                                                "N": "3.5"
+                                            },
+                                            {
+                                                "N": "7.2"
+                                            }
+                                        ]
+                                    },
+                                    "negative_prompt": {
+                                        "S": "natural settings, bright happy, supernatural monsters"
+                                    },
+                                    "music_track": {
+                                        "S": "battle-of-the-dragons-8037.mp3"
+                                    },
+                                    "sfx_cues": {
+                                        "L": []
+                                    },
+                                    "variation_used": {
+                                        "S": "whisper"
+                                    },
+                                    "scene_title": {
+                                        "S": "The Forgotten Hallway"
+                                    }
+                                }
+                            },
+                            {
+                                "M": {
+                                    "image_prompt": {
+                                        "S": "A shadowy classroom with broken desks and chairs strewn about. The blackboard is covered in faded chalk drawings of children playing. The atmosphere is tense, with a sense of being watched. The lighting is dim and focused, with shadows falling in distorted patterns."
+                                    },
+                                    "scene_narration": {
+                                        "S": "Moving deeper into the school, I paused near an old classroom door. The sound of faint whispering drifted from within, a chorus of ghostly voices trapped in a timeless loop. I hesitated, feeling an inexplicable pull to enter. The room was dimly lit, with broken chairs and desks scattered about. On the blackboard, faded drawings told stories only children could imagine."
+                                    },
+                                    "scene_number": {
+                                        "N": "2"
+                                    },
+                                    "timing_estimates": {
+                                        "L": [
+                                            {
+                                                "N": "0"
+                                            },
+                                            {
+                                                "N": "3.5"
+                                            },
+                                            {
+                                                "N": "7.2"
+                                            }
+                                        ]
+                                    },
+                                    "negative_prompt": {
+                                        "S": "natural settings, bright happy, supernatural monsters"
+                                    },
+                                    "music_track": {
+                                        "S": "battle-of-the-dragons-8037.mp3"
+                                    },
+                                    "sfx_cues": {
+                                        "L": [
+                                            {
+                                                "S": "ghost_bell.mp3"
+                                            }
+                                        ]
+                                    },
+                                    "variation_used": {
+                                        "S": "whisper"
+                                    },
+                                    "scene_title": {
+                                        "S": "Echoes of the Past"
+                                    }
+                                }
+                            },
+                            {
+                                "M": {
+                                    "image_prompt": {
+                                        "S": "An attic filled with dusty, forgotten items: old books, a cracked mirror, an eerie doll. The lighting is harsh and overhead, casting sharp shadows. The setting feels claustrophobic and tense, with a sense of secrets waiting to be uncovered."
+                                    },
+                                    "scene_narration": {
+                                        "S": "A narrow wooden staircase led me up to the attic, where the whispers grew louder, more insistent. The attic was filled with forgotten relics—dust-covered books, a cracked mirror reflecting fractured realities, and an old, worn-out doll. Each object seemed to have a story to tell, part of a narrative woven by the unseen spirits around me."
+                                    },
+                                    "scene_number": {
+                                        "N": "3"
+                                    },
+                                    "timing_estimates": {
+                                        "L": [
+                                            {
+                                                "N": "0"
+                                            },
+                                            {
+                                                "N": "3.5"
+                                            },
+                                            {
+                                                "N": "7.2"
+                                            }
+                                        ]
+                                    },
+                                    "negative_prompt": {
+                                        "S": "natural settings, bright happy, supernatural monsters"
+                                    },
+                                    "music_track": {
+                                        "S": "battle-of-the-dragons-8037.mp3"
+                                    },
+                                    "sfx_cues": {
+                                        "L": []
+                                    },
+                                    "variation_used": {
+                                        "S": "dramatic"
+                                    },
+                                    "scene_title": {
+                                        "S": "The Attic Mystery"
+                                    }
+                                }
+                            },
+                            {
+                                "M": {
+                                    "image_prompt": {
+                                        "S": "A hidden door slightly ajar, revealing a dark, narrow passage beyond. The atmosphere is foreboding, with the sense of stepping into the unknown. The lighting is minimal, with shadows playing tricks on the eyes."
+                                    },
+                                    "scene_narration": {
+                                        "S": "Just as I thought I had seen it all, I noticed a small, hidden door behind a stack of boxes. The whispers were louder here, pleading almost. I opened the door slowly, revealing a narrow passage leading further into darkness. I could feel the temperature drop as I stepped through, as if crossing a threshold into another world."
+                                    },
+                                    "scene_number": {
+                                        "N": "4"
+                                    },
+                                    "timing_estimates": {
+                                        "L": [
+                                            {
+                                                "N": "0"
+                                            },
+                                            {
+                                                "N": "3.5"
+                                            },
+                                            {
+                                                "N": "7.2"
+                                            }
+                                        ]
+                                    },
+                                    "negative_prompt": {
+                                        "S": "natural settings, bright happy, supernatural monsters"
+                                    },
+                                    "music_track": {
+                                        "S": "battle-of-the-dragons-8037.mp3"
+                                    },
+                                    "sfx_cues": {
+                                        "L": [
+                                            {
+                                                "S": "ghost_bell.mp3"
+                                            }
+                                        ]
+                                    },
+                                    "variation_used": {
+                                        "S": "action"
+                                    },
+                                    "scene_title": {
+                                        "S": "The Hidden Door"
+                                    }
+                                }
+                            },
+                            {
+                                "M": {
+                                    "image_prompt": {
+                                        "S": "A small, hidden chamber with an ancient desk covered in tattered papers. The lighting is dim with a single overhead light casting long shadows. The atmosphere is heavy with untold stories, evoking a sense of mystery and historical weight."
+                                    },
+                                    "scene_narration": {
+                                        "S": "The passage led to a small, hidden chamber. In the center stood an ancient desk, with papers scattered across its surface. As I approached, the whispers became coherent, telling a story of betrayal and sorrow, of lives intertwined with the building's fate. But just as quickly as they had come, the voices faded, leaving me with the chilling realization that some secrets are meant to remain buried."
+                                    },
+                                    "scene_number": {
+                                        "N": "5"
+                                    },
+                                    "timing_estimates": {
+                                        "L": [
+                                            {
+                                                "N": "0"
+                                            },
+                                            {
+                                                "N": "3.5"
+                                            },
+                                            {
+                                                "N": "7.2"
+                                            }
+                                        ]
+                                    },
+                                    "negative_prompt": {
+                                        "S": "natural settings, bright happy, supernatural monsters"
+                                    },
+                                    "music_track": {
+                                        "S": "battle-of-the-dragons-8037.mp3"
+                                    },
+                                    "sfx_cues": {
+                                        "L": []
+                                    },
+                                    "variation_used": {
+                                        "S": "dramatic"
+                                    },
+                                    "scene_title": {
+                                        "S": "Eternal Secrets"
+                                    }
+                                }
+                            }
+                        ]
+                    },
+                    "scene_count": {
+                        "N": "5"
+                    },
+                    "model": {
+                        "S": "gpt-4o"
+                    },
+                    "story_title": {
+                        "S": "Whispers Beneath the Abandoned Schoolhouse"
+                    },
+                    "character_count": {
+                        "N": "1905"
+                    }
+                }
+            },
+            "content_id": {
+                "S": "20251129T16305006791"
+            },
+            "scene_images": {
+                "L": [
+                    {
+                        "M": {
+                            "cost_usd": {
+                                "N": "0.0117"
+                            },
+                            "scene_number": {
+                                "N": "1"
+                            },
+                            "content_id": {
+                                "S": "20251129T16305006791"
+                            },
+                            "image_url": {
+                                "S": "s3://youtube-automation-audio-files/images/UCaxPNkUMQKqepAp0JbpVrrw/20251129T16305006791/scene_1_20251129_163358.png"
+                            },
+                            "scene_index": {
+                                "N": "0"
+                            },
+                            "https_url": {
+                                "S": "https://youtube-automation-audio-files.s3.eu-central-1.amazonaws.com/images/UCaxPNkUMQKqepAp0JbpVrrw/20251129T16305006791/scene_1_20251129_163358.png"
+                            },
+                            "negative_prompt": {
+                                "S": "natural settings, bright happy, supernatural monsters"
+                            },
+                            "provider": {
+                                "S": "ec2-flux-schnell"
+                            },
+                            "generated_at": {
+                                "S": "2025-11-29T16:33:58.812707Z"
+                            },
+                            "width": {
+                                "N": "1024"
+                            },
+                            "channel_id": {
+                                "S": "UCaxPNkUMQKqepAp0JbpVrrw"
+                            },
+                            "prompt": {
+                                "S": "A long, abandoned school hallway with broken windows and dust in the air. Moonlight streams through holes in the ceiling, casting eerie shadows. The scene conveys a sense of isolation and forgotten memories. The perspective is slightly tilted, enhancing the feeling of unease."
+                            },
+                            "height": {
+                                "N": "1024"
+                            },
+                            "status": {
+                                "S": "completed"
+                            }
+                        }
+                    },
+                    {
+                        "M": {
+                            "cost_usd": {
+                                "N": "0.0117"
+                            },
+                            "scene_number": {
+                                "N": "2"
+                            },
+                            "content_id": {
+                                "S": "20251129T16305006791"
+                            },
+                            "image_url": {
+                                "S": "s3://youtube-automation-audio-files/images/UCaxPNkUMQKqepAp0JbpVrrw/20251129T16305006791/scene_2_20251129_163414.png"
+                            },
+                            "scene_index": {
+                                "N": "1"
+                            },
+                            "https_url": {
+                                "S": "https://youtube-automation-audio-files.s3.eu-central-1.amazonaws.com/images/UCaxPNkUMQKqepAp0JbpVrrw/20251129T16305006791/scene_2_20251129_163414.png"
+                            },
+                            "negative_prompt": {
+                                "S": "natural settings, bright happy, supernatural monsters"
+                            },
+                            "provider": {
+                                "S": "ec2-flux-schnell"
+                            },
+                            "generated_at": {
+                                "S": "2025-11-29T16:34:14.396045Z"
+                            },
+                            "width": {
+                                "N": "1024"
+                            },
+                            "channel_id": {
+                                "S": "UCaxPNkUMQKqepAp0JbpVrrw"
+                            },
+                            "prompt": {
+                                "S": "A shadowy classroom with broken desks and chairs strewn about. The blackboard is covered in faded chalk drawings of children playing. The atmosphere is tense, with a sense of being watched. The lighting is dim and focused, with shadows falling in distorted patterns."
+                            },
+                            "height": {
+                                "N": "1024"
+                            },
+                            "status": {
+                                "S": "completed"
+                            }
+                        }
+                    },
+                    {
+                        "M": {
+                            "cost_usd": {
+                                "N": "0.0117"
+                            },
+                            "scene_number": {
+                                "N": "3"
+                            },
+                            "content_id": {
+                                "S": "20251129T16305006791"
+                            },
+                            "image_url": {
+                                "S": "s3://youtube-automation-audio-files/images/UCaxPNkUMQKqepAp0JbpVrrw/20251129T16305006791/scene_3_20251129_163429.png"
+                            },
+                            "scene_index": {
+                                "N": "2"
+                            },
+                            "https_url": {
+                                "S": "https://youtube-automation-audio-files.s3.eu-central-1.amazonaws.com/images/UCaxPNkUMQKqepAp0JbpVrrw/20251129T16305006791/scene_3_20251129_163429.png"
+                            },
+                            "negative_prompt": {
+                                "S": "natural settings, bright happy, supernatural monsters"
+                            },
+                            "provider": {
+                                "S": "ec2-flux-schnell"
+                            },
+                            "generated_at": {
+                                "S": "2025-11-29T16:34:30.050557Z"
+                            },
+                            "width": {
+                                "N": "1024"
+                            },
+                            "channel_id": {
+                                "S": "UCaxPNkUMQKqepAp0JbpVrrw"
+                            },
+                            "prompt": {
+                                "S": "An attic filled with dusty, forgotten items: old books, a cracked mirror, an eerie doll. The lighting is harsh and overhead, casting sharp shadows. The setting feels claustrophobic and tense, with a sense of secrets waiting to be uncovered."
+                            },
+                            "height": {
+                                "N": "1024"
+                            },
+                            "status": {
+                                "S": "completed"
+                            }
+                        }
+                    },
+                    {
+                        "M": {
+                            "cost_usd": {
+                                "N": "0.0117"
+                            },
+                            "scene_number": {
+                                "N": "4"
+                            },
+                            "content_id": {
+                                "S": "20251129T16305006791"
+                            },
+                            "image_url": {
+                                "S": "s3://youtube-automation-audio-files/images/UCaxPNkUMQKqepAp0JbpVrrw/20251129T16305006791/scene_4_20251129_163445.png"
+                            },
+                            "scene_index": {
+                                "N": "3"
+                            },
+                            "https_url": {
+                                "S": "https://youtube-automation-audio-files.s3.eu-central-1.amazonaws.com/images/UCaxPNkUMQKqepAp0JbpVrrw/20251129T16305006791/scene_4_20251129_163445.png"
+                            },
+                            "negative_prompt": {
+                                "S": "natural settings, bright happy, supernatural monsters"
+                            },
+                            "provider": {
+                                "S": "ec2-flux-schnell"
+                            },
+                            "generated_at": {
+                                "S": "2025-11-29T16:34:45.713298Z"
+                            },
+                            "width": {
+                                "N": "1024"
+                            },
+                            "channel_id": {
+                                "S": "UCaxPNkUMQKqepAp0JbpVrrw"
+                            },
+                            "prompt": {
+                                "S": "A hidden door slightly ajar, revealing a dark, narrow passage beyond. The atmosphere is foreboding, with the sense of stepping into the unknown. The lighting is minimal, with shadows playing tricks on the eyes."
+                            },
+                            "height": {
+                                "N": "1024"
+                            },
+                            "status": {
+                                "S": "completed"
+                            }
+                        }
+                    },
+                    {
+                        "M": {
+                            "cost_usd": {
+                                "N": "0.0117"
+                            },
+                            "scene_number": {
+                                "N": "5"
+                            },
+                            "content_id": {
+                                "S": "20251129T16305006791"
+                            },
+                            "image_url": {
+                                "S": "s3://youtube-automation-audio-files/images/UCaxPNkUMQKqepAp0JbpVrrw/20251129T16305006791/scene_5_20251129_163501.png"
+                            },
+                            "scene_index": {
+                                "N": "4"
+                            },
+                            "https_url": {
+                                "S": "https://youtube-automation-audio-files.s3.eu-central-1.amazonaws.com/images/UCaxPNkUMQKqepAp0JbpVrrw/20251129T16305006791/scene_5_20251129_163501.png"
+                            },
+                            "negative_prompt": {
+                                "S": "natural settings, bright happy, supernatural monsters"
+                            },
+                            "provider": {
+                                "S": "ec2-flux-schnell"
+                            },
+                            "generated_at": {
+                                "S": "2025-11-29T16:35:01.402760Z"
+                            },
+                            "width": {
+                                "N": "1024"
+                            },
+                            "channel_id": {
+                                "S": "UCaxPNkUMQKqepAp0JbpVrrw"
+                            },
+                            "prompt": {
+                                "S": "A small, hidden chamber with an ancient desk covered in tattered papers. The lighting is dim with a single overhead light casting long shadows. The atmosphere is heavy with untold stories, evoking a sense of mystery and historical weight."
+                            },
+                            "height": {
+                                "N": "1024"
+                            },
+                            "status": {
+                                "S": "completed"
+                            }
+                        }
+                    },
+                    {
+                        "M": {
+                            "cost_usd": {
+                                "N": "0.0117"
+                            },
+                            "scene_number": {
+                                "N": "0"
+                            },
+                            "content_id": {
+                                "S": "20251129T16305006791"
+                            },
+                            "image_url": {
+                                "S": "s3://youtube-automation-audio-files/images/UCaxPNkUMQKqepAp0JbpVrrw/20251129T16305006791/scene_0_20251129_163509.png"
+                            },
+                            "scene_index": {
+                                "N": "999"
+                            },
+                            "https_url": {
+                                "S": "https://youtube-automation-audio-files.s3.eu-central-1.amazonaws.com/images/UCaxPNkUMQKqepAp0JbpVrrw/20251129T16305006791/scene_0_20251129_163509.png"
+                            },
+                            "negative_prompt": {
+                                "S": ""
+                            },
+                            "provider": {
+                                "S": "ec2-flux-schnell"
+                            },
+                            "generated_at": {
+                                "S": "2025-11-29T16:35:09.501232Z"
+                            },
+                            "width": {
+                                "N": "1280"
+                            },
+                            "channel_id": {
+                                "S": "UCaxPNkUMQKqepAp0JbpVrrw"
+                            },
+                            "prompt": {
+                                "S": "An eerie, abandoned schoolhouse with moonlight casting long shadows, a cracked window reflecting a ghostly face."
+                            },
+                            "height": {
+                                "N": "720"
+                            },
+                            "status": {
+                                "S": "completed"
+                            }
+                        }
+                    }
+                ]
+            },
+            "variation_set_name": {
+                "S": "Psychological Thriller"
+            },
+            "description_data": {
+                "M": {
+                    "title": {
+                        "S": "Whispers Beneath the Abandoned Schoolhouse"
+                    },
+                    "description": {
+                        "S": "Generated story: Whispers Beneath the Abandoned Schoolhouse"
+                    },
+                    "tags": {
+                        "L": []
+                    }
+                }
+            },
+            "voice_profile": {
+                "S": "deep_male"
+            },
+            "tts_service": {
+                "S": "aws_polly_neural"
+            },
+            "model": {
+                "S": "gpt-4o"
+            },
+            "story_title": {
+                "S": "Whispers Beneath the Abandoned Schoolhouse"
+            },
+            "character_count": {
+                "N": "0"
+            },
+            "channel_name": {
+                "S": "HorrorWhisper Studio"
+            },
+            "sfx_data": {
+                "M": {}
+            },
+            "genre": {
+                "S": "Horror"
+            },
+            "type": {
+                "S": "mega_generation"
+            },
+            "voice": {
+                "S": "deep_male"
+            },
+            "voice_id": {
+                "S": "Matthew"
+            },
+            "thumbnail_data": {
+                "M": {}
+            }
+        }
+    ],
+    "Count": 1,
+    "ScannedCount": 1,
+    "ConsumedCapacity": null
+}

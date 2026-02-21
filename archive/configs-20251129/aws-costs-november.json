@@ -1,0 +1,19 @@
+{
+    "ResultsByTime": [
+        {
+            "TimePeriod": {
+                "Start": "2025-11-01",
+                "End": "2025-11-30"
+            },
+            "Total": {
+                "UnblendedCost": {
+                    "Amount": "0.0000000608",
+                    "Unit": "USD"
+                }
+            },
+            "Groups": [],
+            "Estimated": true
+        }
+    ],
+    "DimensionValueAttributes": []
+}

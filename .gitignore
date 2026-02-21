@@ -315,3 +315,37 @@ aws/migrate_phase1.py
 
 # S3 config
 s3-encryption-config.json
+
+# ===== CLEANUP 2026-02-21 =====
+
+# Deployment package (manual deploy workaround)
+deployment-package/
+
+# Step Functions definitions (regenerated)
+stepfunctions_definition.json
+current_sfn_definition.json
+sfn_def.json
+sfn_definition.json
+sfn_input.json
+
+# DynamoDB dumps
+dynamo_params.json
+dynamo-policy-updated.json
+
+# Sprint testing files
+sprint1-*.json
+sprint2-*.json
+bulk-*.json
+masterconfig-response.json
+
+# ZImage logs
+zimage_status.json
+zimage-*.log
+
+# Cleanup/migration Python scripts
+cleanup_generated_content.py
+dump_templates.py
+update_step_functions.py
+
+# Old function packages
+function.zip

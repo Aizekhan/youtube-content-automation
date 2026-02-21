@@ -1,0 +1,2464 @@
+{
+    "Items": [
+        {
+            "model": {
+                "S": "gpt-4o"
+            },
+            "channel_name": {
+                "S": "HorrorWhisper Studio"
+            },
+            "api_version": {
+                "S": "responses_api"
+            },
+            "input_titles": {
+                "L": [
+                    {
+                        "S": "≤стор≥€ про Horror #1"
+                    },
+                    {
+                        "S": "“аЇмниц€ Horror #2"
+                    },
+                    {
+                        "S": "«агадка Horror #3"
+                    }
+                ]
+            },
+            "generated_titles": {
+                "L": [
+                    {
+                        "S": "The Forgotten House with Echoes of Regret"
+                    },
+                    {
+                        "S": "A Ghostly Melody from the Darkened Woods"
+                    },
+                    {
+                        "S": "Whispers from the Shadows of Cursed Streets"
+                    },
+                    {
+                        "S": "Memories Trapped in the Night's Embrace"
+                    }
+                ]
+            },
+            "prompt_version": {
+                "S": "1.0"
+            },
+            "full_response": {
+                "M": {
+                    "channel_name": {
+                        "S": "HorrorWhisper Studio"
+                    },
+                    "new_topics": {
+                        "L": [
+                            {
+                                "S": "The Forgotten House with Echoes of Regret"
+                            },
+                            {
+                                "S": "A Ghostly Melody from the Darkened Woods"
+                            },
+                            {
+                                "S": "Whispers from the Shadows of Cursed Streets"
+                            },
+                            {
+                                "S": "Memories Trapped in the Night's Embrace"
+                            }
+                        ]
+                    },
+                    "status": {
+                        "S": "success"
+                    }
+                }
+            },
+            "channel_id": {
+                "S": "UCaxPNkUMQKqepAp0JbpVrrw"
+            },
+            "status": {
+                "S": "completed"
+            },
+            "genre": {
+                "S": "Horror"
+            },
+            "type": {
+                "S": "theme_generation"
+            },
+            "created_at": {
+                "S": "2025-11-25T01:08:33.147506Z"
+            }
+        },
+        {
+            "model": {
+                "S": "gpt-4o"
+            },
+            "character_count": {
+                "N": "1604"
+            },
+            "api_version": {
+                "S": "mega_v3"
+            },
+            "story_title": {
+                "S": "The Forgotten House with Echoes of Regret"
+            },
+            "topic": {
+                "S": "The Forgotten House with Echoes of Regret"
+            },
+            "full_response": {
+                "M": {
+                    "thumbnail": {
+                        "M": {
+                            "style_notes": {
+                                "S": "Emphasize mystery and suspense with dark colors and shadowy elements."
+                            },
+                            "thumbnail_prompt": {
+                                "S": "A dark, foreboding mansion with shadowy figures at the windows. The image is tinged with blue-gray hues, creating an eerie atmosphere. The mansion is surrounded by twisted trees, silhouetted against a stormy sky."
+                            },
+                            "text_overlay": {
+                                "S": "Echoes of Regret"
+                            }
+                        }
+                    },
+                    "metadata": {
+                        "M": {
+                            "total_word_count": {
+                                "N": "1497"
+                            },
+                            "estimated_duration_seconds": {
+                                "N": "600"
+                            },
+                            "total_scenes": {
+                                "N": "5"
+                            }
+                        }
+                    },
+                    "hook": {
+                        "S": "<speak><prosody rate=\"slow\">In the silence of despair, old walls whisper secrets best left forgotten...</prosody></speak>"
+                    },
+                    "cta_segments": {
+                        "L": [
+                            {
+                                "M": {
+                                    "cta_text": {
+                                        "S": "<speak><prosody rate=\"slow\">Before the whispers fade, make sure to uncover more tales. Join our journey...</prosody></speak>"
+                                    },
+                                    "position": {
+                                        "S": "35%"
+                                    },
+                                    "type": {
+                                        "S": "subscribe"
+                                    },
+                                    "style_note": {
+                                        "S": "Mysterious and inviting tone"
+                                    }
+                                }
+                            }
+                        ]
+                    },
+                    "story_title": {
+                        "S": "The Forgotten House with Echoes of Regret"
+                    },
+                    "scenes": {
+                        "L": [
+                            {
+                                "M": {
+                                    "image_prompt": {
+                                        "S": "A desolate mansion with broken windows and overgrown ivy, set against a dim, gray sky. Harsh overhead lighting casts eerie shadows, emphasizing the ominous atmosphere. The perspective is slightly distorted, enhancing the feeling of unease."
+                                    },
+                                    "scene_narration": {
+                                        "S": "<speak><prosody rate=\"slow\">I found myself drawn to the abandoned house on the edge of the village. Its windows, like hollow eyes, stared back at me, daring me to uncover the secrets buried within.</prosody><break time=\"500ms\"/> As I crossed the threshold, a chill ran down my spine. The air was thick with a sense of loss, echoing the regrets of those who once dwelled here.</speak>"
+                                    },
+                                    "scene_number": {
+                                        "N": "1"
+                                    },
+                                    "timing_estimates": {
+                                        "L": [
+                                            {
+                                                "N": "0"
+                                            },
+                                            {
+                                                "N": "4.5"
+                                            },
+                                            {
+                                                "N": "9"
+                                            }
+                                        ]
+                                    },
+                                    "negative_prompt": {
+                                        "S": "bright daylight, lively figures, colorful flowers"
+                                    },
+                                    "music_track": {
+                                        "S": "battle-of-the-dragons-8037.mp3"
+                                    },
+                                    "sfx_cues": {
+                                        "L": [
+                                            {
+                                                "S": "ghost_bell.mp3"
+                                            }
+                                        ]
+                                    },
+                                    "variation_used": {
+                                        "S": "dramatic"
+                                    },
+                                    "scene_title": {
+                                        "S": "The Forgotten Entry"
+                                    }
+                                }
+                            },
+                            {
+                                "M": {
+                                    "image_prompt": {
+                                        "S": "A dimly lit attic filled with cobwebs and dust. Old trunks and forgotten relics are scattered around. Shadows create an unnerving atmosphere, with hints of whispered voices blended into the scene."
+                                    },
+                                    "scene_narration": {
+                                        "S": "<speak><prosody rate=\"slow\"><break time=\"300ms\"/>The stairs creaked under my weight as I ascended to the attic. <break time=\"500ms\"/> There, in the dim light, I heard them Ч whispers that seemed to emanate from the very walls. <prosody rate=\"whisper\">'Help us,' they said, 'find our peace.'</prosody></prosody></speak>"
+                                    },
+                                    "scene_number": {
+                                        "N": "2"
+                                    },
+                                    "timing_estimates": {
+                                        "L": [
+                                            {
+                                                "N": "0"
+                                            },
+                                            {
+                                                "N": "3.2"
+                                            },
+                                            {
+                                                "N": "5.4"
+                                            }
+                                        ]
+                                    },
+                                    "negative_prompt": {
+                                        "S": "clean, bright, modern furniture"
+                                    },
+                                    "music_track": {
+                                        "S": "battle-of-the-dragons-8037.mp3"
+                                    },
+                                    "sfx_cues": {
+                                        "L": [
+                                            {
+                                                "S": "Daytime Forrest Bonfire.mp3"
+                                            }
+                                        ]
+                                    },
+                                    "variation_used": {
+                                        "S": "whisper"
+                                    },
+                                    "scene_title": {
+                                        "S": "Whispers in the Attic"
+                                    }
+                                }
+                            },
+                            {
+                                "M": {
+                                    "image_prompt": {
+                                        "S": "A dusty, cracked mirror in an old room. Reflections show faint, ghostly images of people from different eras. Harsh lighting casts deep shadows, giving a sense of haunting memories trapped inside."
+                                    },
+                                    "scene_narration": {
+                                        "S": "<speak><prosody rate=\"slow\"><break time=\"300ms\"/>In a forgotten room, <break time=\"500ms\"/>I found a mirror covered in dust. <prosody rate=\"whisper\">Reflections of the past flickered across its surface, </prosody> each image a story of regret and longing.</prosody></speak>"
+                                    },
+                                    "scene_number": {
+                                        "N": "3"
+                                    },
+                                    "timing_estimates": {
+                                        "L": [
+                                            {
+                                                "N": "0"
+                                            },
+                                            {
+                                                "N": "4"
+                                            },
+                                            {
+                                                "N": "6.8"
+                                            }
+                                        ]
+                                    },
+                                    "negative_prompt": {
+                                        "S": "clear mirrors, modern decor, lively scenes"
+                                    },
+                                    "music_track": {
+                                        "S": "battle-of-the-dragons-8037.mp3"
+                                    },
+                                    "sfx_cues": {
+                                        "L": []
+                                    },
+                                    "variation_used": {
+                                        "S": "dramatic"
+                                    },
+                                    "scene_title": {
+                                        "S": "Echoes of Lost Souls"
+                                    }
+                                }
+                            },
+                            {
+                                "M": {
+                                    "image_prompt": {
+                                        "S": "A dark, dense forest enveloped in mist. Shadows twist and turn among the trees, creating a sense of foreboding. The scene is lit by dim, scattered light, revealing just enough to unsettle."
+                                    },
+                                    "scene_narration": {
+                                        "S": "<speak><prosody rate=\"slow\">Venturing outside, I stumbled upon an overgrown path leading into an ancient forest. Shadows danced between the trees, whispering secrets older than the house itself.</prosody></speak>"
+                                    },
+                                    "scene_number": {
+                                        "N": "4"
+                                    },
+                                    "timing_estimates": {
+                                        "L": [
+                                            {
+                                                "N": "0"
+                                            },
+                                            {
+                                                "N": "3.5"
+                                            },
+                                            {
+                                                "N": "7"
+                                            }
+                                        ]
+                                    },
+                                    "negative_prompt": {
+                                        "S": "sunny days, clear paths, vibrant colors"
+                                    },
+                                    "music_track": {
+                                        "S": "battle-of-the-dragons-8037.mp3"
+                                    },
+                                    "sfx_cues": {
+                                        "L": [
+                                            {
+                                                "S": "fire-crackling-sounds.mp3"
+                                            }
+                                        ]
+                                    },
+                                    "variation_used": {
+                                        "S": "dramatic"
+                                    },
+                                    "scene_title": {
+                                        "S": "The Forest of Shadows"
+                                    }
+                                }
+                            },
+                            {
+                                "M": {
+                                    "image_prompt": {
+                                        "S": "The silhouette of a haunted mansion against a darkening sky. The forest surrounds it, cloaked in shadow. The scene is bathed in a pale, eerie light, evoking a sense of mystery and unfinished stories."
+                                    },
+                                    "scene_narration": {
+                                        "S": "<speak><prosody rate=\"slow\">As dusk fell, <break time=\"300ms\"/>I stood at the forest's edge, the house looming behind me. Its whispers lingered in my mind, <prosody rate=\"whisper\">an unsolved mystery.</prosody> I turned away, knowing some secrets are meant to remain hidden.</prosody></speak>"
+                                    },
+                                    "scene_number": {
+                                        "N": "5"
+                                    },
+                                    "timing_estimates": {
+                                        "L": [
+                                            {
+                                                "N": "0"
+                                            },
+                                            {
+                                                "N": "4.1"
+                                            },
+                                            {
+                                                "N": "8.2"
+                                            }
+                                        ]
+                                    },
+                                    "negative_prompt": {
+                                        "S": "daylight, happy endings, clear skies"
+                                    },
+                                    "music_track": {
+                                        "S": "battle-of-the-dragons-8037.mp3"
+                                    },
+                                    "sfx_cues": {
+                                        "L": [
+                                            {
+                                                "S": "ghost_bell.mp3"
+                                            }
+                                        ]
+                                    },
+                                    "variation_used": {
+                                        "S": "dramatic"
+                                    },
+                                    "scene_title": {
+                                        "S": "The Unending Mystery"
+                                    }
+                                }
+                            }
+                        ]
+                    },
+                    "description": {
+                        "M": {
+                            "hashtags": {
+                                "L": [
+                                    {
+                                        "S": "#ghoststory"
+                                    },
+                                    {
+                                        "S": "#hauntedhouse"
+                                    },
+                                    {
+                                        "S": "#scary"
+                                    },
+                                    {
+                                        "S": "#night"
+                                    },
+                                    {
+                                        "S": "#AINarration"
+                                    }
+                                ]
+                            },
+                            "description": {
+                                "S": "Uncover the chilling secrets of a forgotten house echoing with regret. What stories do these walls hold? Join us as we explore the haunted mansion, its mysterious attic, and the shadows that speak in whispers. #ghoststory #hauntedhouse #scary\n\n0:00 - Intro\n1:30 - The Forgotten Entry\n3:00 - Whispers in the Attic\n5:00 - Echoes of Lost Souls\n7:00 - The Forest of Shadows\n9:00 - The Unending Mystery"
+                            },
+                            "timestamps": {
+                                "L": [
+                                    {
+                                        "M": {
+                                            "time": {
+                                                "S": "0:00"
+                                            },
+                                            "label": {
+                                                "S": "Intro"
+                                            }
+                                        }
+                                    },
+                                    {
+                                        "M": {
+                                            "time": {
+                                                "S": "1:30"
+                                            },
+                                            "label": {
+                                                "S": "The Forgotten Entry"
+                                            }
+                                        }
+                                    },
+                                    {
+                                        "M": {
+                                            "time": {
+                                                "S": "3:00"
+                                            },
+                                            "label": {
+                                                "S": "Whispers in the Attic"
+                                            }
+                                        }
+                                    },
+                                    {
+                                        "M": {
+                                            "time": {
+                                                "S": "5:00"
+                                            },
+                                            "label": {
+                                                "S": "Echoes of Lost Souls"
+                                            }
+                                        }
+                                    },
+                                    {
+                                        "M": {
+                                            "time": {
+                                                "S": "7:00"
+                                            },
+                                            "label": {
+                                                "S": "The Forest of Shadows"
+                                            }
+                                        }
+                                    },
+                                    {
+                                        "M": {
+                                            "time": {
+                                                "S": "9:00"
+                                            },
+                                            "label": {
+                                                "S": "The Unending Mystery"
+                                            }
+                                        }
+                                    }
+                                ]
+                            }
+                        }
+                    }
+                }
+            },
+            "narrative_text": {
+                "S": "<speak><prosody rate=\"slow\">In the silence of despair, old walls whisper secrets best left forgotten...</prosody></speak>\n<speak><prosody rate=\"slow\">I found myself drawn to the abandoned house on the edge of the village. Its windows, like hollow eyes, stared back at me, daring me to uncover the secrets buried within.</prosody><break time=\"500ms\"/> As I crossed the threshold, a chill ran down my spine. The air was thick with a sense of loss, echoing the regrets of those who once dwelled here.</speak>\n<speak><prosody rate=\"slow\"><break time=\"300ms\"/>The stairs creaked under my weight as I ascended to the attic. <break time=\"500ms\"/> There, in the dim light, I heard them Ч whispers that seemed to emanate from the very walls. <prosody rate=\"whisper\">'Help us,' they said, 'find our peace.'</prosody></prosody></speak>\n<speak><prosody rate=\"slow\"><break time=\"300ms\"/>In a forgotten room, <break time=\"500ms\"/>I found a mirror covered in dust. <prosody rate=\"whisper\">Reflections of the past flickered across its surface, </prosody> each image a story of regret and longing.</prosody></speak>\n<speak><prosody rate=\"slow\">Venturing outside, I stumbled upon an overgrown path leading into an ancient forest. Shadows danced between the trees, whispering secrets older than the house itself.</prosody></speak>\n<speak><prosody rate=\"slow\">As dusk fell, <break time=\"300ms\"/>I stood at the forest's edge, the house looming behind me. Its whispers lingered in my mind, <prosody rate=\"whisper\">an unsolved mystery.</prosody> I turned away, knowing some secrets are meant to remain hidden.</prosody></speak>"
+            },
+            "status": {
+                "S": "completed"
+            },
+            "cost_usd": {
+                "N": "0"
+            },
+            "scenes": {
+                "L": [
+                    {
+                        "M": {
+                            "image_prompt": {
+                                "S": "A desolate mansion with broken windows and overgrown ivy, set against a dim, gray sky. Harsh overhead lighting casts eerie shadows, emphasizing the ominous atmosphere. The perspective is slightly distorted, enhancing the feeling of unease."
+                            },
+                            "scene_narration": {
+                                "S": "<speak><prosody rate=\"slow\">I found myself drawn to the abandoned house on the edge of the village. Its windows, like hollow eyes, stared back at me, daring me to uncover the secrets buried within.</prosody><break time=\"500ms\"/> As I crossed the threshold, a chill ran down my spine. The air was thick with a sense of loss, echoing the regrets of those who once dwelled here.</speak>"
+                            },
+                            "scene_number": {
+                                "N": "1"
+                            },
+                            "timing_estimates": {
+                                "L": [
+                                    {
+                                        "N": "0"
+                                    },
+                                    {
+                                        "N": "4.5"
+                                    },
+                                    {
+                                        "N": "9"
+                                    }
+                                ]
+                            },
+                            "negative_prompt": {
+                                "S": "bright daylight, lively figures, colorful flowers"
+                            },
+                            "music_track": {
+                                "S": "battle-of-the-dragons-8037.mp3"
+                            },
+                            "sfx_cues": {
+                                "L": [
+                                    {
+                                        "S": "ghost_bell.mp3"
+                                    }
+                                ]
+                            },
+                            "variation_used": {
+                                "S": "dramatic"
+                            },
+                            "scene_title": {
+                                "S": "The Forgotten Entry"
+                            }
+                        }
+                    },
+                    {
+                        "M": {
+                            "image_prompt": {
+                                "S": "A dimly lit attic filled with cobwebs and dust. Old trunks and forgotten relics are scattered around. Shadows create an unnerving atmosphere, with hints of whispered voices blended into the scene."
+                            },
+                            "scene_narration": {
+                                "S": "<speak><prosody rate=\"slow\"><break time=\"300ms\"/>The stairs creaked under my weight as I ascended to the attic. <break time=\"500ms\"/> There, in the dim light, I heard them Ч whispers that seemed to emanate from the very walls. <prosody rate=\"whisper\">'Help us,' they said, 'find our peace.'</prosody></prosody></speak>"
+                            },
+                            "scene_number": {
+                                "N": "2"
+                            },
+                            "timing_estimates": {
+                                "L": [
+                                    {
+                                        "N": "0"
+                                    },
+                                    {
+                                        "N": "3.2"
+                                    },
+                                    {
+                                        "N": "5.4"
+                                    }
+                                ]
+                            },
+                            "negative_prompt": {
+                                "S": "clean, bright, modern furniture"
+                            },
+                            "music_track": {
+                                "S": "battle-of-the-dragons-8037.mp3"
+                            },
+                            "sfx_cues": {
+                                "L": [
+                                    {
+                                        "S": "Daytime Forrest Bonfire.mp3"
+                                    }
+                                ]
+                            },
+                            "variation_used": {
+                                "S": "whisper"
+                            },
+                            "scene_title": {
+                                "S": "Whispers in the Attic"
+                            }
+                        }
+                    },
+                    {
+                        "M": {
+                            "image_prompt": {
+                                "S": "A dusty, cracked mirror in an old room. Reflections show faint, ghostly images of people from different eras. Harsh lighting casts deep shadows, giving a sense of haunting memories trapped inside."
+                            },
+                            "scene_narration": {
+                                "S": "<speak><prosody rate=\"slow\"><break time=\"300ms\"/>In a forgotten room, <break time=\"500ms\"/>I found a mirror covered in dust. <prosody rate=\"whisper\">Reflections of the past flickered across its surface, </prosody> each image a story of regret and longing.</prosody></speak>"
+                            },
+                            "scene_number": {
+                                "N": "3"
+                            },
+                            "timing_estimates": {
+                                "L": [
+                                    {
+                                        "N": "0"
+                                    },
+                                    {
+                                        "N": "4"
+                                    },
+                                    {
+                                        "N": "6.8"
+                                    }
+                                ]
+                            },
+                            "negative_prompt": {
+                                "S": "clear mirrors, modern decor, lively scenes"
+                            },
+                            "music_track": {
+                                "S": "battle-of-the-dragons-8037.mp3"
+                            },
+                            "sfx_cues": {
+                                "L": []
+                            },
+                            "variation_used": {
+                                "S": "dramatic"
+                            },
+                            "scene_title": {
+                                "S": "Echoes of Lost Souls"
+                            }
+                        }
+                    },
+                    {
+                        "M": {
+                            "image_prompt": {
+                                "S": "A dark, dense forest enveloped in mist. Shadows twist and turn among the trees, creating a sense of foreboding. The scene is lit by dim, scattered light, revealing just enough to unsettle."
+                            },
+                            "scene_narration": {
+                                "S": "<speak><prosody rate=\"slow\">Venturing outside, I stumbled upon an overgrown path leading into an ancient forest. Shadows danced between the trees, whispering secrets older than the house itself.</prosody></speak>"
+                            },
+                            "scene_number": {
+                                "N": "4"
+                            },
+                            "timing_estimates": {
+                                "L": [
+                                    {
+                                        "N": "0"
+                                    },
+                                    {
+                                        "N": "3.5"
+                                    },
+                                    {
+                                        "N": "7"
+                                    }
+                                ]
+                            },
+                            "negative_prompt": {
+                                "S": "sunny days, clear paths, vibrant colors"
+                            },
+                            "music_track": {
+                                "S": "battle-of-the-dragons-8037.mp3"
+                            },
+                            "sfx_cues": {
+                                "L": [
+                                    {
+                                        "S": "fire-crackling-sounds.mp3"
+                                    }
+                                ]
+                            },
+                            "variation_used": {
+                                "S": "dramatic"
+                            },
+                            "scene_title": {
+                                "S": "The Forest of Shadows"
+                            }
+                        }
+                    },
+                    {
+                        "M": {
+                            "image_prompt": {
+                                "S": "The silhouette of a haunted mansion against a darkening sky. The forest surrounds it, cloaked in shadow. The scene is bathed in a pale, eerie light, evoking a sense of mystery and unfinished stories."
+                            },
+                            "scene_narration": {
+                                "S": "<speak><prosody rate=\"slow\">As dusk fell, <break time=\"300ms\"/>I stood at the forest's edge, the house looming behind me. Its whispers lingered in my mind, <prosody rate=\"whisper\">an unsolved mystery.</prosody> I turned away, knowing some secrets are meant to remain hidden.</prosody></speak>"
+                            },
+                            "scene_number": {
+                                "N": "5"
+                            },
+                            "timing_estimates": {
+                                "L": [
+                                    {
+                                        "N": "0"
+                                    },
+                                    {
+                                        "N": "4.1"
+                                    },
+                                    {
+                                        "N": "8.2"
+                                    }
+                                ]
+                            },
+                            "negative_prompt": {
+                                "S": "daylight, happy endings, clear skies"
+                            },
+                            "music_track": {
+                                "S": "battle-of-the-dragons-8037.mp3"
+                            },
+                            "sfx_cues": {
+                                "L": [
+                                    {
+                                        "S": "ghost_bell.mp3"
+                                    }
+                                ]
+                            },
+                            "variation_used": {
+                                "S": "dramatic"
+                            },
+                            "scene_title": {
+                                "S": "The Unending Mystery"
+                            }
+                        }
+                    }
+                ]
+            },
+            "scene_count": {
+                "N": "5"
+            },
+            "channel_id": {
+                "S": "UCaxPNkUMQKqepAp0JbpVrrw"
+            },
+            "tokens_used": {
+                "N": "3720"
+            },
+            "type": {
+                "S": "mega_generation"
+            },
+            "created_at": {
+                "S": "2025-11-25T01:09:02.909300Z"
+            }
+        },
+        {
+            "api_version": {
+                "S": "mega_mode_v4"
+            },
+            "audio_duration_sec": {
+                "N": "0"
+            },
+            "audio_files": {
+                "L": [
+                    {
+                        "M": {
+                            "scene_id": {
+                                "N": "1"
+                            },
+                            "s3_url": {
+                                "S": "s3://youtube-automation-audio-files/narratives/UCaxPNkUMQKqepAp0JbpVrrw/20251125T01090290930/scene_1.mp3"
+                            },
+                            "s3_key": {
+                                "S": "narratives/UCaxPNkUMQKqepAp0JbpVrrw/20251125T01090290930/scene_1.mp3"
+                            },
+                            "duration_ms": {
+                                "N": "25280"
+                            },
+                            "ssml_used": {
+                                "S": "<speak><prosody rate=\"fast\" pitch=\"+5%\" volume=\"loud\">I found myself drawn to the abandoned house on the edge of the village. <break time=\"300ms\"/>Its windows, <break time=\"200ms\"/>like hollow eyes, <break time=\"200ms\"/>stared back at me, <break time=\"200ms\"/>daring me to uncover the secrets buried within. <break time=\"300ms\"/>As I crossed the threshold, <break time=\"200ms\"/>a chill ran down my spine. <break time=\"300ms\"/>The air was thick with a sense of loss, <break time=\"200ms\"/>echoing the regrets of those who once dwelled here.</prosody><break time=\"300ms\"/></speak>"
+                            }
+                        }
+                    },
+                    {
+                        "M": {
+                            "scene_id": {
+                                "N": "2"
+                            },
+                            "s3_url": {
+                                "S": "s3://youtube-automation-audio-files/narratives/UCaxPNkUMQKqepAp0JbpVrrw/20251125T01090290930/scene_2.mp3"
+                            },
+                            "s3_key": {
+                                "S": "narratives/UCaxPNkUMQKqepAp0JbpVrrw/20251125T01090290930/scene_2.mp3"
+                            },
+                            "duration_ms": {
+                                "N": "15600"
+                            },
+                            "ssml_used": {
+                                "S": "<speak><prosody rate=\"slow\" pitch=\"-5%\" volume=\"x-soft\">The stairs creaked under my weight as I ascended to the attic. <break time=\"300ms\"/> There, <break time=\"200ms\"/>in the dim light, <break time=\"200ms\"/>I heard them Ч whispers that seemed to emanate from the very walls. <break time=\"300ms\"/>\"Help us,\" they said, <break time=\"200ms\"/>\"find our peace.\"</prosody></speak>"
+                            }
+                        }
+                    },
+                    {
+                        "M": {
+                            "scene_id": {
+                                "N": "3"
+                            },
+                            "s3_url": {
+                                "S": "s3://youtube-automation-audio-files/narratives/UCaxPNkUMQKqepAp0JbpVrrw/20251125T01090290930/scene_3.mp3"
+                            },
+                            "s3_key": {
+                                "S": "narratives/UCaxPNkUMQKqepAp0JbpVrrw/20251125T01090290930/scene_3.mp3"
+                            },
+                            "duration_ms": {
+                                "N": "12000"
+                            },
+                            "ssml_used": {
+                                "S": "<speak>In a forgotten room, <break time=\"200ms\"/>I found a mirror covered in dust. <break time=\"300ms\"/>Reflections of the past flickered across its surface, <break time=\"200ms\"/> each image a story of regret and longing.</speak>"
+                            }
+                        }
+                    },
+                    {
+                        "M": {
+                            "scene_id": {
+                                "N": "4"
+                            },
+                            "s3_url": {
+                                "S": "s3://youtube-automation-audio-files/narratives/UCaxPNkUMQKqepAp0JbpVrrw/20251125T01090290930/scene_4.mp3"
+                            },
+                            "s3_key": {
+                                "S": "narratives/UCaxPNkUMQKqepAp0JbpVrrw/20251125T01090290930/scene_4.mp3"
+                            },
+                            "duration_ms": {
+                                "N": "13280"
+                            },
+                            "ssml_used": {
+                                "S": "<speak><prosody rate=\"slow\" pitch=\"-5%\" volume=\"x-soft\">Venturing outside, <break time=\"200ms\"/>I stumbled upon an overgrown path leading into an ancient forest. <break time=\"300ms\"/>Shadows danced between the trees, <break time=\"200ms\"/>whispering secrets older than the house itself.</prosody></speak>"
+                            }
+                        }
+                    },
+                    {
+                        "M": {
+                            "scene_id": {
+                                "N": "5"
+                            },
+                            "s3_url": {
+                                "S": "s3://youtube-automation-audio-files/narratives/UCaxPNkUMQKqepAp0JbpVrrw/20251125T01090290930/scene_5.mp3"
+                            },
+                            "s3_key": {
+                                "S": "narratives/UCaxPNkUMQKqepAp0JbpVrrw/20251125T01090290930/scene_5.mp3"
+                            },
+                            "duration_ms": {
+                                "N": "15280"
+                            },
+                            "ssml_used": {
+                                "S": "<speak><prosody rate=\"slow\" pitch=\"-5%\" volume=\"x-soft\">As dusk fell, <break time=\"200ms\"/>I stood at the forest\"s edge, <break time=\"200ms\"/>the house looming behind me. <break time=\"300ms\"/>Its whispers lingered in my mind, <break time=\"200ms\"/>an unsolved mystery. <break time=\"300ms\"/>I turned away, <break time=\"200ms\"/>knowing some secrets are meant to remain hidden.</prosody></speak>"
+                            }
+                        }
+                    }
+                ]
+            },
+            "audio_scene_count": {
+                "N": "5"
+            },
+            "channel_id": {
+                "S": "UCaxPNkUMQKqepAp0JbpVrrw"
+            },
+            "channel_name": {
+                "S": "HorrorWhisper Studio"
+            },
+            "character_count": {
+                "N": "0"
+            },
+            "content_id": {
+                "S": "20251125T01090290930"
+            },
+            "cta_data": {
+                "M": {
+                    "cta_segments": {
+                        "L": []
+                    }
+                }
+            },
+            "description_data": {
+                "M": {
+                    "title": {
+                        "S": "The Forgotten House with Echoes of Regret"
+                    },
+                    "description": {
+                        "S": "Generated story: The Forgotten House with Echoes of Regret"
+                    },
+                    "tags": {
+                        "L": []
+                    }
+                }
+            },
+            "estimated_duration_seconds": {
+                "N": "0"
+            },
+            "final_video": {
+                "M": {
+                    "template_id": {
+                        "S": "video_template_universal_v2"
+                    },
+                    "video_url": {
+                        "S": "s3://youtube-automation-final-videos/videos/UCaxPNkUMQKqepAp0JbpVrrw/20251125T01090290930/final_video.mp4"
+                    },
+                    "rendering_mode": {
+                        "S": "lambda"
+                    },
+                    "status": {
+                        "S": "completed"
+                    },
+                    "rendered_at": {
+                        "S": "2025-11-25T01:16:06.398600Z"
+                    }
+                }
+            },
+            "generation_count_at_creation": {
+                "N": "0"
+            },
+            "genre": {
+                "S": "Horror"
+            },
+            "has_audio": {
+                "BOOL": true
+            },
+            "has_images": {
+                "BOOL": true
+            },
+            "image_count": {
+                "N": "6"
+            },
+            "image_data": {
+                "M": {
+                    "scenes": {
+                        "L": [
+                            {
+                                "M": {
+                                    "image_prompt": {
+                                        "S": "A desolate mansion with broken windows and overgrown ivy, set against a dim, gray sky. Harsh overhead lighting casts eerie shadows, emphasizing the ominous atmosphere. The perspective is slightly distorted, enhancing the feeling of unease."
+                                    },
+                                    "negative_prompt": {
+                                        "S": "bright daylight, lively figures, colorful flowers"
+                                    },
+                                    "scene_number": {
+                                        "N": "1"
+                                    }
+                                }
+                            },
+                            {
+                                "M": {
+                                    "image_prompt": {
+                                        "S": "A dimly lit attic filled with cobwebs and dust. Old trunks and forgotten relics are scattered around. Shadows create an unnerving atmosphere, with hints of whispered voices blended into the scene."
+                                    },
+                                    "negative_prompt": {
+                                        "S": "clean, bright, modern furniture"
+                                    },
+                                    "scene_number": {
+                                        "N": "2"
+                                    }
+                                }
+                            },
+                            {
+                                "M": {
+                                    "image_prompt": {
+                                        "S": "A dusty, cracked mirror in an old room. Reflections show faint, ghostly images of people from different eras. Harsh lighting casts deep shadows, giving a sense of haunting memories trapped inside."
+                                    },
+                                    "negative_prompt": {
+                                        "S": "clear mirrors, modern decor, lively scenes"
+                                    },
+                                    "scene_number": {
+                                        "N": "3"
+                                    }
+                                }
+                            },
+                            {
+                                "M": {
+                                    "image_prompt": {
+                                        "S": "A dark, dense forest enveloped in mist. Shadows twist and turn among the trees, creating a sense of foreboding. The scene is lit by dim, scattered light, revealing just enough to unsettle."
+                                    },
+                                    "negative_prompt": {
+                                        "S": "sunny days, clear paths, vibrant colors"
+                                    },
+                                    "scene_number": {
+                                        "N": "4"
+                                    }
+                                }
+                            },
+                            {
+                                "M": {
+                                    "image_prompt": {
+                                        "S": "The silhouette of a haunted mansion against a darkening sky. The forest surrounds it, cloaked in shadow. The scene is bathed in a pale, eerie light, evoking a sense of mystery and unfinished stories."
+                                    },
+                                    "negative_prompt": {
+                                        "S": "daylight, happy endings, clear skies"
+                                    },
+                                    "scene_number": {
+                                        "N": "5"
+                                    }
+                                }
+                            }
+                        ]
+                    },
+                    "total_images": {
+                        "N": "5"
+                    }
+                }
+            },
+            "metadata": {
+                "M": {
+                    "genre": {
+                        "S": "Horror"
+                    },
+                    "total_word_count": {
+                        "N": "0"
+                    },
+                    "total_scenes": {
+                        "N": "5"
+                    }
+                }
+            },
+            "model": {
+                "S": "Unknown"
+            },
+            "narrative_data": {
+                "M": {
+                    "scenes": {
+                        "L": [
+                            {
+                                "M": {
+                                    "image_prompt": {
+                                        "S": "A desolate mansion with broken windows and overgrown ivy, set against a dim, gray sky. Harsh overhead lighting casts eerie shadows, emphasizing the ominous atmosphere. The perspective is slightly distorted, enhancing the feeling of unease."
+                                    },
+                                    "scene_narration": {
+                                        "S": "<speak><prosody rate=\"slow\">I found myself drawn to the abandoned house on the edge of the village. Its windows, like hollow eyes, stared back at me, daring me to uncover the secrets buried within.</prosody><break time=\"500ms\"/> As I crossed the threshold, a chill ran down my spine. The air was thick with a sense of loss, echoing the regrets of those who once dwelled here.</speak>"
+                                    },
+                                    "scene_number": {
+                                        "N": "1"
+                                    },
+                                    "timing_estimates": {
+                                        "L": [
+                                            {
+                                                "N": "0"
+                                            },
+                                            {
+                                                "N": "4.5"
+                                            },
+                                            {
+                                                "N": "9"
+                                            }
+                                        ]
+                                    },
+                                    "negative_prompt": {
+                                        "S": "bright daylight, lively figures, colorful flowers"
+                                    },
+                                    "music_track": {
+                                        "S": "battle-of-the-dragons-8037.mp3"
+                                    },
+                                    "sfx_cues": {
+                                        "L": [
+                                            {
+                                                "S": "ghost_bell.mp3"
+                                            }
+                                        ]
+                                    },
+                                    "variation_used": {
+                                        "S": "dramatic"
+                                    },
+                                    "scene_title": {
+                                        "S": "The Forgotten Entry"
+                                    }
+                                }
+                            },
+                            {
+                                "M": {
+                                    "image_prompt": {
+                                        "S": "A dimly lit attic filled with cobwebs and dust. Old trunks and forgotten relics are scattered around. Shadows create an unnerving atmosphere, with hints of whispered voices blended into the scene."
+                                    },
+                                    "scene_narration": {
+                                        "S": "<speak><prosody rate=\"slow\"><break time=\"300ms\"/>The stairs creaked under my weight as I ascended to the attic. <break time=\"500ms\"/> There, in the dim light, I heard them Ч whispers that seemed to emanate from the very walls. <prosody rate=\"whisper\">'Help us,' they said, 'find our peace.'</prosody></prosody></speak>"
+                                    },
+                                    "scene_number": {
+                                        "N": "2"
+                                    },
+                                    "timing_estimates": {
+                                        "L": [
+                                            {
+                                                "N": "0"
+                                            },
+                                            {
+                                                "N": "3.2"
+                                            },
+                                            {
+                                                "N": "5.4"
+                                            }
+                                        ]
+                                    },
+                                    "negative_prompt": {
+                                        "S": "clean, bright, modern furniture"
+                                    },
+                                    "music_track": {
+                                        "S": "battle-of-the-dragons-8037.mp3"
+                                    },
+                                    "sfx_cues": {
+                                        "L": [
+                                            {
+                                                "S": "Daytime Forrest Bonfire.mp3"
+                                            }
+                                        ]
+                                    },
+                                    "variation_used": {
+                                        "S": "whisper"
+                                    },
+                                    "scene_title": {
+                                        "S": "Whispers in the Attic"
+                                    }
+                                }
+                            },
+                            {
+                                "M": {
+                                    "image_prompt": {
+                                        "S": "A dusty, cracked mirror in an old room. Reflections show faint, ghostly images of people from different eras. Harsh lighting casts deep shadows, giving a sense of haunting memories trapped inside."
+                                    },
+                                    "scene_narration": {
+                                        "S": "<speak><prosody rate=\"slow\"><break time=\"300ms\"/>In a forgotten room, <break time=\"500ms\"/>I found a mirror covered in dust. <prosody rate=\"whisper\">Reflections of the past flickered across its surface, </prosody> each image a story of regret and longing.</prosody></speak>"
+                                    },
+                                    "scene_number": {
+                                        "N": "3"
+                                    },
+                                    "timing_estimates": {
+                                        "L": [
+                                            {
+                                                "N": "0"
+                                            },
+                                            {
+                                                "N": "4"
+                                            },
+                                            {
+                                                "N": "6.8"
+                                            }
+                                        ]
+                                    },
+                                    "negative_prompt": {
+                                        "S": "clear mirrors, modern decor, lively scenes"
+                                    },
+                                    "music_track": {
+                                        "S": "battle-of-the-dragons-8037.mp3"
+                                    },
+                                    "sfx_cues": {
+                                        "L": []
+                                    },
+                                    "variation_used": {
+                                        "S": "dramatic"
+                                    },
+                                    "scene_title": {
+                                        "S": "Echoes of Lost Souls"
+                                    }
+                                }
+                            },
+                            {
+                                "M": {
+                                    "image_prompt": {
+                                        "S": "A dark, dense forest enveloped in mist. Shadows twist and turn among the trees, creating a sense of foreboding. The scene is lit by dim, scattered light, revealing just enough to unsettle."
+                                    },
+                                    "scene_narration": {
+                                        "S": "<speak><prosody rate=\"slow\">Venturing outside, I stumbled upon an overgrown path leading into an ancient forest. Shadows danced between the trees, whispering secrets older than the house itself.</prosody></speak>"
+                                    },
+                                    "scene_number": {
+                                        "N": "4"
+                                    },
+                                    "timing_estimates": {
+                                        "L": [
+                                            {
+                                                "N": "0"
+                                            },
+                                            {
+                                                "N": "3.5"
+                                            },
+                                            {
+                                                "N": "7"
+                                            }
+                                        ]
+                                    },
+                                    "negative_prompt": {
+                                        "S": "sunny days, clear paths, vibrant colors"
+                                    },
+                                    "music_track": {
+                                        "S": "battle-of-the-dragons-8037.mp3"
+                                    },
+                                    "sfx_cues": {
+                                        "L": [
+                                            {
+                                                "S": "fire-crackling-sounds.mp3"
+                                            }
+                                        ]
+                                    },
+                                    "variation_used": {
+                                        "S": "dramatic"
+                                    },
+                                    "scene_title": {
+                                        "S": "The Forest of Shadows"
+                                    }
+                                }
+                            },
+                            {
+                                "M": {
+                                    "image_prompt": {
+                                        "S": "The silhouette of a haunted mansion against a darkening sky. The forest surrounds it, cloaked in shadow. The scene is bathed in a pale, eerie light, evoking a sense of mystery and unfinished stories."
+                                    },
+                                    "scene_narration": {
+                                        "S": "<speak><prosody rate=\"slow\">As dusk fell, <break time=\"300ms\"/>I stood at the forest's edge, the house looming behind me. Its whispers lingered in my mind, <prosody rate=\"whisper\">an unsolved mystery.</prosody> I turned away, knowing some secrets are meant to remain hidden.</prosody></speak>"
+                                    },
+                                    "scene_number": {
+                                        "N": "5"
+                                    },
+                                    "timing_estimates": {
+                                        "L": [
+                                            {
+                                                "N": "0"
+                                            },
+                                            {
+                                                "N": "4.1"
+                                            },
+                                            {
+                                                "N": "8.2"
+                                            }
+                                        ]
+                                    },
+                                    "negative_prompt": {
+                                        "S": "daylight, happy endings, clear skies"
+                                    },
+                                    "music_track": {
+                                        "S": "battle-of-the-dragons-8037.mp3"
+                                    },
+                                    "sfx_cues": {
+                                        "L": [
+                                            {
+                                                "S": "ghost_bell.mp3"
+                                            }
+                                        ]
+                                    },
+                                    "variation_used": {
+                                        "S": "dramatic"
+                                    },
+                                    "scene_title": {
+                                        "S": "The Unending Mystery"
+                                    }
+                                }
+                            }
+                        ]
+                    },
+                    "scene_count": {
+                        "N": "5"
+                    },
+                    "description": {
+                        "M": {
+                            "hashtags": {
+                                "L": [
+                                    {
+                                        "S": "#ghoststory"
+                                    },
+                                    {
+                                        "S": "#hauntedhouse"
+                                    },
+                                    {
+                                        "S": "#scary"
+                                    },
+                                    {
+                                        "S": "#night"
+                                    },
+                                    {
+                                        "S": "#AINarration"
+                                    }
+                                ]
+                            },
+                            "description": {
+                                "S": "Uncover the chilling secrets of a forgotten house echoing with regret. What stories do these walls hold? Join us as we explore the haunted mansion, its mysterious attic, and the shadows that speak in whispers. #ghoststory #hauntedhouse #scary\n\n0:00 - Intro\n1:30 - The Forgotten Entry\n3:00 - Whispers in the Attic\n5:00 - Echoes of Lost Souls\n7:00 - The Forest of Shadows\n9:00 - The Unending Mystery"
+                            },
+                            "timestamps": {
+                                "L": [
+                                    {
+                                        "M": {
+                                            "time": {
+                                                "S": "0:00"
+                                            },
+                                            "label": {
+                                                "S": "Intro"
+                                            }
+                                        }
+                                    },
+                                    {
+                                        "M": {
+                                            "time": {
+                                                "S": "1:30"
+                                            },
+                                            "label": {
+                                                "S": "The Forgotten Entry"
+                                            }
+                                        }
+                                    },
+                                    {
+                                        "M": {
+                                            "time": {
+                                                "S": "3:00"
+                                            },
+                                            "label": {
+                                                "S": "Whispers in the Attic"
+                                            }
+                                        }
+                                    },
+                                    {
+                                        "M": {
+                                            "time": {
+                                                "S": "5:00"
+                                            },
+                                            "label": {
+                                                "S": "Echoes of Lost Souls"
+                                            }
+                                        }
+                                    },
+                                    {
+                                        "M": {
+                                            "time": {
+                                                "S": "7:00"
+                                            },
+                                            "label": {
+                                                "S": "The Forest of Shadows"
+                                            }
+                                        }
+                                    },
+                                    {
+                                        "M": {
+                                            "time": {
+                                                "S": "9:00"
+                                            },
+                                            "label": {
+                                                "S": "The Unending Mystery"
+                                            }
+                                        }
+                                    }
+                                ]
+                            }
+                        }
+                    },
+                    "cta_segments": {
+                        "L": [
+                            {
+                                "M": {
+                                    "cta_text": {
+                                        "S": "<speak><prosody rate=\"slow\">Before the whispers fade, make sure to uncover more tales. Join our journey...</prosody></speak>"
+                                    },
+                                    "position": {
+                                        "S": "35%"
+                                    },
+                                    "type": {
+                                        "S": "subscribe"
+                                    },
+                                    "style_note": {
+                                        "S": "Mysterious and inviting tone"
+                                    }
+                                }
+                            }
+                        ]
+                    },
+                    "story_title": {
+                        "S": "The Forgotten House with Echoes of Regret"
+                    },
+                    "character_count": {
+                        "N": "1604"
+                    }
+                }
+            },
+            "pipeline_status": {
+                "M": {
+                    "progress_percentage": {
+                        "N": "100"
+                    },
+                    "overall_status": {
+                        "S": "completed"
+                    },
+                    "stages": {
+                        "M": {
+                            "voice": {
+                                "M": {
+                                    "status": {
+                                        "S": "completed"
+                                    },
+                                    "timestamp": {
+                                        "S": "2025-11-25T01:13:24.674315Z"
+                                    }
+                                }
+                            },
+                            "visuals": {
+                                "M": {
+                                    "status": {
+                                        "S": "completed"
+                                    },
+                                    "timestamp": {
+                                        "S": "2025-11-25T01:13:24.674315Z"
+                                    }
+                                }
+                            },
+                            "story": {
+                                "M": {
+                                    "status": {
+                                        "S": "completed"
+                                    },
+                                    "timestamp": {
+                                        "S": "2025-11-25T01:13:24.674315Z"
+                                    }
+                                }
+                            }
+                        }
+                    }
+                }
+            },
+            "rendering_mode": {
+                "S": "lambda"
+            },
+            "scene_count": {
+                "N": "5"
+            },
+            "scene_images": {
+                "L": [
+                    {
+                        "M": {
+                            "cost_usd": {
+                                "N": "0.0117"
+                            },
+                            "scene_number": {
+                                "N": "1"
+                            },
+                            "content_id": {
+                                "S": "20251125T01090290930"
+                            },
+                            "image_url": {
+                                "S": "s3://youtube-automation-audio-files/images/UCaxPNkUMQKqepAp0JbpVrrw/20251125T01090290930/scene_1_20251125_011209.png"
+                            },
+                            "scene_index": {
+                                "N": "0"
+                            },
+                            "https_url": {
+                                "S": "https://youtube-automation-audio-files.s3.eu-central-1.amazonaws.com/images/UCaxPNkUMQKqepAp0JbpVrrw/20251125T01090290930/scene_1_20251125_011209.png"
+                            },
+                            "negative_prompt": {
+                                "S": "bright daylight, lively figures, colorful flowers"
+                            },
+                            "provider": {
+                                "S": "ec2-flux-schnell"
+                            },
+                            "generated_at": {
+                                "S": "2025-11-25T01:12:09.260545Z"
+                            },
+                            "width": {
+                                "N": "1024"
+                            },
+                            "channel_id": {
+                                "S": "UCaxPNkUMQKqepAp0JbpVrrw"
+                            },
+                            "prompt": {
+                                "S": "A desolate mansion with broken windows and overgrown ivy, set against a dim, gray sky. Harsh overhead lighting casts eerie shadows, emphasizing the ominous atmosphere. The perspective is slightly distorted, enhancing the feeling of unease."
+                            },
+                            "height": {
+                                "N": "1024"
+                            },
+                            "status": {
+                                "S": "completed"
+                            }
+                        }
+                    },
+                    {
+                        "M": {
+                            "cost_usd": {
+                                "N": "0.0117"
+                            },
+                            "scene_number": {
+                                "N": "2"
+                            },
+                            "content_id": {
+                                "S": "20251125T01090290930"
+                            },
+                            "image_url": {
+                                "S": "s3://youtube-automation-audio-files/images/UCaxPNkUMQKqepAp0JbpVrrw/20251125T01090290930/scene_2_20251125_011224.png"
+                            },
+                            "scene_index": {
+                                "N": "1"
+                            },
+                            "https_url": {
+                                "S": "https://youtube-automation-audio-files.s3.eu-central-1.amazonaws.com/images/UCaxPNkUMQKqepAp0JbpVrrw/20251125T01090290930/scene_2_20251125_011224.png"
+                            },
+                            "negative_prompt": {
+                                "S": "clean, bright, modern furniture"
+                            },
+                            "provider": {
+                                "S": "ec2-flux-schnell"
+                            },
+                            "generated_at": {
+                                "S": "2025-11-25T01:12:24.994857Z"
+                            },
+                            "width": {
+                                "N": "1024"
+                            },
+                            "channel_id": {
+                                "S": "UCaxPNkUMQKqepAp0JbpVrrw"
+                            },
+                            "prompt": {
+                                "S": "A dimly lit attic filled with cobwebs and dust. Old trunks and forgotten relics are scattered around. Shadows create an unnerving atmosphere, with hints of whispered voices blended into the scene."
+                            },
+                            "height": {
+                                "N": "1024"
+                            },
+                            "status": {
+                                "S": "completed"
+                            }
+                        }
+                    },
+                    {
+                        "M": {
+                            "cost_usd": {
+                                "N": "0.0117"
+                            },
+                            "scene_number": {
+                                "N": "3"
+                            },
+                            "content_id": {
+                                "S": "20251125T01090290930"
+                            },
+                            "image_url": {
+                                "S": "s3://youtube-automation-audio-files/images/UCaxPNkUMQKqepAp0JbpVrrw/20251125T01090290930/scene_3_20251125_011240.png"
+                            },
+                            "scene_index": {
+                                "N": "2"
+                            },
+                            "https_url": {
+                                "S": "https://youtube-automation-audio-files.s3.eu-central-1.amazonaws.com/images/UCaxPNkUMQKqepAp0JbpVrrw/20251125T01090290930/scene_3_20251125_011240.png"
+                            },
+                            "negative_prompt": {
+                                "S": "clear mirrors, modern decor, lively scenes"
+                            },
+                            "provider": {
+                                "S": "ec2-flux-schnell"
+                            },
+                            "generated_at": {
+                                "S": "2025-11-25T01:12:40.748631Z"
+                            },
+                            "width": {
+                                "N": "1024"
+                            },
+                            "channel_id": {
+                                "S": "UCaxPNkUMQKqepAp0JbpVrrw"
+                            },
+                            "prompt": {
+                                "S": "A dusty, cracked mirror in an old room. Reflections show faint, ghostly images of people from different eras. Harsh lighting casts deep shadows, giving a sense of haunting memories trapped inside."
+                            },
+                            "height": {
+                                "N": "1024"
+                            },
+                            "status": {
+                                "S": "completed"
+                            }
+                        }
+                    },
+                    {
+                        "M": {
+                            "cost_usd": {
+                                "N": "0.0117"
+                            },
+                            "scene_number": {
+                                "N": "4"
+                            },
+                            "content_id": {
+                                "S": "20251125T01090290930"
+                            },
+                            "image_url": {
+                                "S": "s3://youtube-automation-audio-files/images/UCaxPNkUMQKqepAp0JbpVrrw/20251125T01090290930/scene_4_20251125_011256.png"
+                            },
+                            "scene_index": {
+                                "N": "3"
+                            },
+                            "https_url": {
+                                "S": "https://youtube-automation-audio-files.s3.eu-central-1.amazonaws.com/images/UCaxPNkUMQKqepAp0JbpVrrw/20251125T01090290930/scene_4_20251125_011256.png"
+                            },
+                            "negative_prompt": {
+                                "S": "sunny days, clear paths, vibrant colors"
+                            },
+                            "provider": {
+                                "S": "ec2-flux-schnell"
+                            },
+                            "generated_at": {
+                                "S": "2025-11-25T01:12:56.408105Z"
+                            },
+                            "width": {
+                                "N": "1024"
+                            },
+                            "channel_id": {
+                                "S": "UCaxPNkUMQKqepAp0JbpVrrw"
+                            },
+                            "prompt": {
+                                "S": "A dark, dense forest enveloped in mist. Shadows twist and turn among the trees, creating a sense of foreboding. The scene is lit by dim, scattered light, revealing just enough to unsettle."
+                            },
+                            "height": {
+                                "N": "1024"
+                            },
+                            "status": {
+                                "S": "completed"
+                            }
+                        }
+                    },
+                    {
+                        "M": {
+                            "cost_usd": {
+                                "N": "0.0117"
+                            },
+                            "scene_number": {
+                                "N": "5"
+                            },
+                            "content_id": {
+                                "S": "20251125T01090290930"
+                            },
+                            "image_url": {
+                                "S": "s3://youtube-automation-audio-files/images/UCaxPNkUMQKqepAp0JbpVrrw/20251125T01090290930/scene_5_20251125_011311.png"
+                            },
+                            "scene_index": {
+                                "N": "4"
+                            },
+                            "https_url": {
+                                "S": "https://youtube-automation-audio-files.s3.eu-central-1.amazonaws.com/images/UCaxPNkUMQKqepAp0JbpVrrw/20251125T01090290930/scene_5_20251125_011311.png"
+                            },
+                            "negative_prompt": {
+                                "S": "daylight, happy endings, clear skies"
+                            },
+                            "provider": {
+                                "S": "ec2-flux-schnell"
+                            },
+                            "generated_at": {
+                                "S": "2025-11-25T01:13:11.974137Z"
+                            },
+                            "width": {
+                                "N": "1024"
+                            },
+                            "channel_id": {
+                                "S": "UCaxPNkUMQKqepAp0JbpVrrw"
+                            },
+                            "prompt": {
+                                "S": "The silhouette of a haunted mansion against a darkening sky. The forest surrounds it, cloaked in shadow. The scene is bathed in a pale, eerie light, evoking a sense of mystery and unfinished stories."
+                            },
+                            "height": {
+                                "N": "1024"
+                            },
+                            "status": {
+                                "S": "completed"
+                            }
+                        }
+                    },
+                    {
+                        "M": {
+                            "cost_usd": {
+                                "N": "0.0117"
+                            },
+                            "scene_number": {
+                                "N": "0"
+                            },
+                            "content_id": {
+                                "S": "20251125T01090290930"
+                            },
+                            "image_url": {
+                                "S": "s3://youtube-automation-audio-files/images/UCaxPNkUMQKqepAp0JbpVrrw/20251125T01090290930/scene_0_20251125_011319.png"
+                            },
+                            "scene_index": {
+                                "N": "999"
+                            },
+                            "https_url": {
+                                "S": "https://youtube-automation-audio-files.s3.eu-central-1.amazonaws.com/images/UCaxPNkUMQKqepAp0JbpVrrw/20251125T01090290930/scene_0_20251125_011319.png"
+                            },
+                            "negative_prompt": {
+                                "S": ""
+                            },
+                            "provider": {
+                                "S": "ec2-flux-schnell"
+                            },
+                            "generated_at": {
+                                "S": "2025-11-25T01:13:20.116802Z"
+                            },
+                            "width": {
+                                "N": "1280"
+                            },
+                            "channel_id": {
+                                "S": "UCaxPNkUMQKqepAp0JbpVrrw"
+                            },
+                            "prompt": {
+                                "S": "A dark, foreboding mansion with shadowy figures at the windows. The image is tinged with blue-gray hues, creating an eerie atmosphere. The mansion is surrounded by twisted trees, silhouetted against a stormy sky."
+                            },
+                            "height": {
+                                "N": "720"
+                            },
+                            "status": {
+                                "S": "completed"
+                            }
+                        }
+                    }
+                ]
+            },
+            "selected_topic": {
+                "M": {
+                    "title": {
+                        "S": "The Forgotten House with Echoes of Regret"
+                    }
+                }
+            },
+            "sfx_data": {
+                "M": {}
+            },
+            "status": {
+                "S": "completed"
+            },
+            "story_title": {
+                "S": "The Forgotten House with Echoes of Regret"
+            },
+            "thumbnail_data": {
+                "M": {}
+            },
+            "total_cost_usd": {
+                "N": "0"
+            },
+            "total_scenes": {
+                "N": "5"
+            },
+            "total_word_count": {
+                "N": "0"
+            },
+            "tts_service": {
+                "S": "aws_polly_neural"
+            },
+            "type": {
+                "S": "mega_generation"
+            },
+            "validation_errors": {
+                "L": []
+            },
+            "variation_set_index": {
+                "N": "3"
+            },
+            "variation_set_name": {
+                "S": "Psychological Thriller"
+            },
+            "video_rendered_at": {
+                "S": "2025-11-25T01:16:06.398613Z"
+            },
+            "video_status": {
+                "S": "completed"
+            },
+            "video_template_id": {
+                "S": "video_template_universal_v2"
+            },
+            "video_url": {
+                "S": "s3://youtube-automation-final-videos/videos/UCaxPNkUMQKqepAp0JbpVrrw/20251125T01090290930/final_video.mp4"
+            },
+            "voice": {
+                "S": "salli_female"
+            },
+            "voice_id": {
+                "S": "Salli"
+            },
+            "voice_profile": {
+                "S": "salli_female"
+            },
+            "created_at": {
+                "S": "2025-11-25T01:13:24.674315Z"
+            }
+        },
+        {
+            "model": {
+                "S": "gpt-4o"
+            },
+            "channel_name": {
+                "S": "HorrorWhisper Studio"
+            },
+            "api_version": {
+                "S": "responses_api"
+            },
+            "input_titles": {
+                "L": [
+                    {
+                        "S": "≤стор≥€ про Horror #1"
+                    },
+                    {
+                        "S": "“аЇмниц€ Horror #2"
+                    },
+                    {
+                        "S": "«агадка Horror #3"
+                    }
+                ]
+            },
+            "generated_titles": {
+                "L": [
+                    {
+                        "S": "The Echoes in the House of Shadows"
+                    },
+                    {
+                        "S": "Forgotten Ghosts of the Moonlit Manor"
+                    },
+                    {
+                        "S": "The Daylight Curse That Grew Stronger at Night"
+                    },
+                    {
+                        "S": "Memories Entwined with the Whispering Walls"
+                    }
+                ]
+            },
+            "prompt_version": {
+                "S": "1.0"
+            },
+            "full_response": {
+                "M": {
+                    "channel_name": {
+                        "S": "HorrorWhisper Studio"
+                    },
+                    "new_topics": {
+                        "L": [
+                            {
+                                "S": "The Echoes in the House of Shadows"
+                            },
+                            {
+                                "S": "Forgotten Ghosts of the Moonlit Manor"
+                            },
+                            {
+                                "S": "The Daylight Curse That Grew Stronger at Night"
+                            },
+                            {
+                                "S": "Memories Entwined with the Whispering Walls"
+                            }
+                        ]
+                    },
+                    "status": {
+                        "S": "success"
+                    }
+                }
+            },
+            "channel_id": {
+                "S": "UCaxPNkUMQKqepAp0JbpVrrw"
+            },
+            "status": {
+                "S": "completed"
+            },
+            "genre": {
+                "S": "Horror"
+            },
+            "type": {
+                "S": "theme_generation"
+            },
+            "created_at": {
+                "S": "2025-11-25T18:09:37.592498Z"
+            }
+        },
+        {
+            "model": {
+                "S": "gpt-4o"
+            },
+            "character_count": {
+                "N": "2034"
+            },
+            "api_version": {
+                "S": "mega_v3"
+            },
+            "story_title": {
+                "S": "The Echoes in the House of Shadows"
+            },
+            "topic": {
+                "S": "The Echoes in the House of Shadows"
+            },
+            "full_response": {
+                "M": {
+                    "thumbnail": {
+                        "M": {
+                            "style_notes": {
+                                "S": "Dark, atmospheric with psychological thriller elements"
+                            },
+                            "thumbnail_prompt": {
+                                "S": "A mysterious, shadow-filled mansion entrance at night, with a faint silhouette of a person hesitantly stepping inside. Harsh overhead lighting casting dramatic shadows."
+                            },
+                            "text_overlay": {
+                                "S": "Enter If You Dare"
+                            }
+                        }
+                    },
+                    "metadata": {
+                        "M": {
+                            "total_word_count": {
+                                "N": "1498"
+                            },
+                            "estimated_duration_seconds": {
+                                "N": "600"
+                            },
+                            "total_scenes": {
+                                "N": "5"
+                            }
+                        }
+                    },
+                    "hook": {
+                        "S": "<speak><prosody pitch='low'>Do you dare enter the house where shadows speak?</prosody></speak>"
+                    },
+                    "cta_segments": {
+                        "L": [
+                            {
+                                "M": {
+                                    "cta_text": {
+                                        "S": "<speak>Before the shadows claim us, let us unravel more mysteries together. Join our whispered tales by subscribing.</speak>"
+                                    },
+                                    "position": {
+                                        "S": "35%"
+                                    },
+                                    "type": {
+                                        "S": "subscribe"
+                                    },
+                                    "style_note": {
+                                        "S": "Mysterious and inviting, capturing the essence of a shared secret"
+                                    }
+                                }
+                            }
+                        ]
+                    },
+                    "story_title": {
+                        "S": "The Echoes in the House of Shadows"
+                    },
+                    "scenes": {
+                        "L": [
+                            {
+                                "M": {
+                                    "image_prompt": {
+                                        "S": "Subject: An eerie mansion at night, with a grand entrance; Action: A shadowy figure stands hesitantly at the threshold; Environment: Moonlit night with fog rolling in; Lighting: Soft moonlight casting long shadows; Composition: Central focus on the figure and doorway; Style: Psychological thriller cinematic"
+                                    },
+                                    "scene_narration": {
+                                        "S": "<speak><prosody pitch='low' rate='slow'>I approached the mansion, its silhouette a foreboding presence against the moonlit sky. A cold breeze whispered secrets across the threshold, urging me to turn back. But curiosity, that relentless companion, pushed me forward. <break time='300ms'/> As I stepped inside, the air seemed to thicken, pressing against my skin. Every creak of the floorboards beneath my feet sounded like a warning, echoing in the silence.</prosody></speak>"
+                                    },
+                                    "scene_number": {
+                                        "N": "1"
+                                    },
+                                    "timing_estimates": {
+                                        "L": [
+                                            {
+                                                "N": "0"
+                                            },
+                                            {
+                                                "N": "5.5"
+                                            },
+                                            {
+                                                "N": "10.8"
+                                            }
+                                        ]
+                                    },
+                                    "negative_prompt": {
+                                        "S": "natural settings, bright happy, supernatural monsters"
+                                    },
+                                    "music_track": {
+                                        "S": "battle-of-the-dragons-8037.mp3"
+                                    },
+                                    "sfx_cues": {
+                                        "L": [
+                                            {
+                                                "S": "ghost_bell.mp3"
+                                            }
+                                        ]
+                                    },
+                                    "variation_used": {
+                                        "S": "whisper"
+                                    },
+                                    "scene_title": {
+                                        "S": "The Whispering Threshold"
+                                    }
+                                }
+                            },
+                            {
+                                "M": {
+                                    "image_prompt": {
+                                        "S": "Subject: A room filled with ornate, dusty mirrors; Action: Reflections show slightly different scenes; Environment: Dimly lit, shadows in corners; Lighting: Harsh overhead, creating stark contrasts; Composition: Mirrors arranged in a confusing pattern; Style: Psychological thriller cinematic"
+                                    },
+                                    "scene_narration": {
+                                        "S": "<speak><prosody pitch='low' rate='slow'>The hallway led me to a room filled with mirrors, each one reflecting not just my image, but something more. <break time='300ms'/> Fractured realities danced within their surfaces, whispers of lives gone by. <break time='400ms'/> I felt a chill as a reflection moved independently, a ghostly echo of my own actions.</prosody></speak>"
+                                    },
+                                    "scene_number": {
+                                        "N": "2"
+                                    },
+                                    "timing_estimates": {
+                                        "L": [
+                                            {
+                                                "N": "12"
+                                            },
+                                            {
+                                                "N": "17.5"
+                                            },
+                                            {
+                                                "N": "21"
+                                            }
+                                        ]
+                                    },
+                                    "negative_prompt": {
+                                        "S": "natural settings, bright happy, supernatural monsters"
+                                    },
+                                    "music_track": {
+                                        "S": "battle-of-the-dragons-8037.mp3"
+                                    },
+                                    "sfx_cues": {
+                                        "L": []
+                                    },
+                                    "variation_used": {
+                                        "S": "whisper"
+                                    },
+                                    "scene_title": {
+                                        "S": "The Room of Mirrors"
+                                    }
+                                }
+                            },
+                            {
+                                "M": {
+                                    "image_prompt": {
+                                        "S": "Subject: Narrow, dusty attic staircase leading up; Action: Shadows appear to move with a life of their own; Environment: Dusty and claustrophobic; Lighting: Dim, with a single light source casting long shadows; Composition: Focus on stairs leading upward into darkness; Style: Psychological thriller cinematic"
+                                    },
+                                    "scene_narration": {
+                                        "S": "<speak><prosody pitch='low' rate='slow'>I climbed the narrow staircase to the attic, each step protesting with age. <break time='300ms'/> The air was thick with dust and memories. <break time='300ms'/> Shadows clung to the walls, and as I moved, they seemed to breathe, expanding and contracting as if alive.</prosody></speak>"
+                                    },
+                                    "scene_number": {
+                                        "N": "3"
+                                    },
+                                    "timing_estimates": {
+                                        "L": [
+                                            {
+                                                "N": "22"
+                                            },
+                                            {
+                                                "N": "25.5"
+                                            },
+                                            {
+                                                "N": "30"
+                                            }
+                                        ]
+                                    },
+                                    "negative_prompt": {
+                                        "S": "natural settings, bright happy, supernatural monsters"
+                                    },
+                                    "music_track": {
+                                        "S": "battle-of-the-dragons-8037.mp3"
+                                    },
+                                    "sfx_cues": {
+                                        "L": [
+                                            {
+                                                "S": "fire-crackling-sounds.mp3"
+                                            }
+                                        ]
+                                    },
+                                    "variation_used": {
+                                        "S": "dramatic"
+                                    },
+                                    "scene_title": {
+                                        "S": "The Attic's Breath"
+                                    }
+                                }
+                            },
+                            {
+                                "M": {
+                                    "image_prompt": {
+                                        "S": "Subject: Dark, foreboding forest seen through an attic window; Action: Trees sway as if speaking; Environment: Nighttime, mist enveloping the base of trees; Lighting: Moonlight filtering through the canopy; Composition: Window frame creating a sense of distance; Style: Psychological thriller cinematic"
+                                    },
+                                    "scene_narration": {
+                                        "S": "<speak><prosody pitch='low' rate='slow'>Beyond the attic window, I saw the forest, its trees swaying as if whispering to one another. <break time='300ms'/> These echoes carried tales of old, tales of those who wandered too far and never returned. <break time='400ms'/> The forest beckoned, a siren's call I could not ignore.</prosody></speak>"
+                                    },
+                                    "scene_number": {
+                                        "N": "4"
+                                    },
+                                    "timing_estimates": {
+                                        "L": [
+                                            {
+                                                "N": "32"
+                                            },
+                                            {
+                                                "N": "36"
+                                            },
+                                            {
+                                                "N": "39.5"
+                                            }
+                                        ]
+                                    },
+                                    "negative_prompt": {
+                                        "S": "natural settings, bright happy, supernatural monsters"
+                                    },
+                                    "music_track": {
+                                        "S": "battle-of-the-dragons-8037.mp3"
+                                    },
+                                    "sfx_cues": {
+                                        "L": [
+                                            {
+                                                "S": "Daytime Forrest Bonfire.mp3"
+                                            }
+                                        ]
+                                    },
+                                    "variation_used": {
+                                        "S": "whisper"
+                                    },
+                                    "scene_title": {
+                                        "S": "The Forest of Echoes"
+                                    }
+                                }
+                            },
+                            {
+                                "M": {
+                                    "image_prompt": {
+                                        "S": "Subject: Interior of a grand, but decaying mansion; Action: Subtle movement in shadows suggests life; Environment: Vast, with dimly lit corridors; Lighting: Soft, eerie glow emanating from unknown sources; Composition: Focus on architectural details and play of light and shadow; Style: Psychological thriller cinematic"
+                                    },
+                                    "scene_narration": {
+                                        "S": "<speak><prosody pitch='low' rate='slow'>Returning to the mansion, I felt its pulse, a rhythmic drumming that seemed to echo my own heartbeat. <break time='300ms'/> The walls whispered secrets of forgotten times, and I understood that the house was alive, watching, waiting. <break time='400ms'/> I realized then, it wasn't just shadows that lingered here, but echoes of every soul that dared to enter.</prosody></speak>"
+                                    },
+                                    "scene_number": {
+                                        "N": "5"
+                                    },
+                                    "timing_estimates": {
+                                        "L": [
+                                            {
+                                                "N": "41"
+                                            },
+                                            {
+                                                "N": "45.5"
+                                            },
+                                            {
+                                                "N": "50"
+                                            }
+                                        ]
+                                    },
+                                    "negative_prompt": {
+                                        "S": "natural settings, bright happy, supernatural monsters"
+                                    },
+                                    "music_track": {
+                                        "S": "battle-of-the-dragons-8037.mp3"
+                                    },
+                                    "sfx_cues": {
+                                        "L": []
+                                    },
+                                    "variation_used": {
+                                        "S": "dramatic"
+                                    },
+                                    "scene_title": {
+                                        "S": "The Mansion's Heartbeat"
+                                    }
+                                }
+                            }
+                        ]
+                    },
+                    "description": {
+                        "M": {
+                            "hashtags": {
+                                "L": [
+                                    {
+                                        "S": "#ghoststory"
+                                    },
+                                    {
+                                        "S": "#hauntedhouse"
+                                    },
+                                    {
+                                        "S": "#scary"
+                                    },
+                                    {
+                                        "S": "#night"
+                                    },
+                                    {
+                                        "S": "#narration"
+                                    }
+                                ]
+                            },
+                            "description": {
+                                "S": "Dare to explore the shadows of the haunted mansion and uncover its whispered secrets. This ghost story will chill you to the bone! Dive into the eerie atmosphere as we unravel the chilling tales echoing through the house of shadows. \n\nTimestamps:\n0:00 Intro\n1:00 The Whispering Threshold\n2:45 The Room of Mirrors\n4:30 The Attic's Breath\n6:15 The Forest of Echoes\n8:00 The Mansion's Heartbeat\n\nJoin us for more chilling ghost stories, haunted house mysteries, and horror tales that will haunt your nights.\n#ghoststory #hauntedhouse #scary #night #narration"
+                            },
+                            "timestamps": {
+                                "L": [
+                                    {
+                                        "M": {
+                                            "time": {
+                                                "S": "0:00"
+                                            },
+                                            "label": {
+                                                "S": "Intro"
+                                            }
+                                        }
+                                    },
+                                    {
+                                        "M": {
+                                            "time": {
+                                                "S": "1:00"
+                                            },
+                                            "label": {
+                                                "S": "The Whispering Threshold"
+                                            }
+                                        }
+                                    },
+                                    {
+                                        "M": {
+                                            "time": {
+                                                "S": "2:45"
+                                            },
+                                            "label": {
+                                                "S": "The Room of Mirrors"
+                                            }
+                                        }
+                                    },
+                                    {
+                                        "M": {
+                                            "time": {
+                                                "S": "4:30"
+                                            },
+                                            "label": {
+                                                "S": "The Attic's Breath"
+                                            }
+                                        }
+                                    },
+                                    {
+                                        "M": {
+                                            "time": {
+                                                "S": "6:15"
+                                            },
+                                            "label": {
+                                                "S": "The Forest of Echoes"
+                                            }
+                                        }
+                                    },
+                                    {
+                                        "M": {
+                                            "time": {
+                                                "S": "8:00"
+                                            },
+                                            "label": {
+                                                "S": "The Mansion's Heartbeat"
+                                            }
+                                        }
+                                    }
+                                ]
+                            }
+                        }
+                    }
+                }
+            },
+            "narrative_text": {
+                "S": "<speak><prosody pitch='low'>Do you dare enter the house where shadows speak?</prosody></speak>\n<speak><prosody pitch='low' rate='slow'>I approached the mansion, its silhouette a foreboding presence against the moonlit sky. A cold breeze whispered secrets across the threshold, urging me to turn back. But curiosity, that relentless companion, pushed me forward. <break time='300ms'/> As I stepped inside, the air seemed to thicken, pressing against my skin. Every creak of the floorboards beneath my feet sounded like a warning, echoing in the silence.</prosody></speak>\n<speak><prosody pitch='low' rate='slow'>The hallway led me to a room filled with mirrors, each one reflecting not just my image, but something more. <break time='300ms'/> Fractured realities danced within their surfaces, whispers of lives gone by. <break time='400ms'/> I felt a chill as a reflection moved independently, a ghostly echo of my own actions.</prosody></speak>\n<speak><prosody pitch='low' rate='slow'>I climbed the narrow staircase to the attic, each step protesting with age. <break time='300ms'/> The air was thick with dust and memories. <break time='300ms'/> Shadows clung to the walls, and as I moved, they seemed to breathe, expanding and contracting as if alive.</prosody></speak>\n<speak><prosody pitch='low' rate='slow'>Beyond the attic window, I saw the forest, its trees swaying as if whispering to one another. <break time='300ms'/> These echoes carried tales of old, tales of those who wandered too far and never returned. <break time='400ms'/> The forest beckoned, a siren's call I could not ignore.</prosody></speak>\n<speak><prosody pitch='low' rate='slow'>Returning to the mansion, I felt its pulse, a rhythmic drumming that seemed to echo my own heartbeat. <break time='300ms'/> The walls whispered secrets of forgotten times, and I understood that the house was alive, watching, waiting. <break time='400ms'/> I realized then, it wasn't just shadows that lingered here, but echoes of every soul that dared to enter.</prosody></speak>"
+            },
+            "status": {
+                "S": "completed"
+            },
+            "cost_usd": {
+                "N": "0"
+            },
+            "scenes": {
+                "L": [
+                    {
+                        "M": {
+                            "image_prompt": {
+                                "S": "Subject: An eerie mansion at night, with a grand entrance; Action: A shadowy figure stands hesitantly at the threshold; Environment: Moonlit night with fog rolling in; Lighting: Soft moonlight casting long shadows; Composition: Central focus on the figure and doorway; Style: Psychological thriller cinematic"
+                            },
+                            "scene_narration": {
+                                "S": "<speak><prosody pitch='low' rate='slow'>I approached the mansion, its silhouette a foreboding presence against the moonlit sky. A cold breeze whispered secrets across the threshold, urging me to turn back. But curiosity, that relentless companion, pushed me forward. <break time='300ms'/> As I stepped inside, the air seemed to thicken, pressing against my skin. Every creak of the floorboards beneath my feet sounded like a warning, echoing in the silence.</prosody></speak>"
+                            },
+                            "scene_number": {
+                                "N": "1"
+                            },
+                            "timing_estimates": {
+                                "L": [
+                                    {
+                                        "N": "0"
+                                    },
+                                    {
+                                        "N": "5.5"
+                                    },
+                                    {
+                                        "N": "10.8"
+                                    }
+                                ]
+                            },
+                            "negative_prompt": {
+                                "S": "natural settings, bright happy, supernatural monsters"
+                            },
+                            "music_track": {
+                                "S": "battle-of-the-dragons-8037.mp3"
+                            },
+                            "sfx_cues": {
+                                "L": [
+                                    {
+                                        "S": "ghost_bell.mp3"
+                                    }
+                                ]
+                            },
+                            "variation_used": {
+                                "S": "whisper"
+                            },
+                            "scene_title": {
+                                "S": "The Whispering Threshold"
+                            }
+                        }
+                    },
+                    {
+                        "M": {
+                            "image_prompt": {
+                                "S": "Subject: A room filled with ornate, dusty mirrors; Action: Reflections show slightly different scenes; Environment: Dimly lit, shadows in corners; Lighting: Harsh overhead, creating stark contrasts; Composition: Mirrors arranged in a confusing pattern; Style: Psychological thriller cinematic"
+                            },
+                            "scene_narration": {
+                                "S": "<speak><prosody pitch='low' rate='slow'>The hallway led me to a room filled with mirrors, each one reflecting not just my image, but something more. <break time='300ms'/> Fractured realities danced within their surfaces, whispers of lives gone by. <break time='400ms'/> I felt a chill as a reflection moved independently, a ghostly echo of my own actions.</prosody></speak>"
+                            },
+                            "scene_number": {
+                                "N": "2"
+                            },
+                            "timing_estimates": {
+                                "L": [
+                                    {
+                                        "N": "12"
+                                    },
+                                    {
+                                        "N": "17.5"
+                                    },
+                                    {
+                                        "N": "21"
+                                    }
+                                ]
+                            },
+                            "negative_prompt": {
+                                "S": "natural settings, bright happy, supernatural monsters"
+                            },
+                            "music_track": {
+                                "S": "battle-of-the-dragons-8037.mp3"
+                            },
+                            "sfx_cues": {
+                                "L": []
+                            },
+                            "variation_used": {
+                                "S": "whisper"
+                            },
+                            "scene_title": {
+                                "S": "The Room of Mirrors"
+                            }
+                        }
+                    },
+                    {
+                        "M": {
+                            "image_prompt": {
+                                "S": "Subject: Narrow, dusty attic staircase leading up; Action: Shadows appear to move with a life of their own; Environment: Dusty and claustrophobic; Lighting: Dim, with a single light source casting long shadows; Composition: Focus on stairs leading upward into darkness; Style: Psychological thriller cinematic"
+                            },
+                            "scene_narration": {
+                                "S": "<speak><prosody pitch='low' rate='slow'>I climbed the narrow staircase to the attic, each step protesting with age. <break time='300ms'/> The air was thick with dust and memories. <break time='300ms'/> Shadows clung to the walls, and as I moved, they seemed to breathe, expanding and contracting as if alive.</prosody></speak>"
+                            },
+                            "scene_number": {
+                                "N": "3"
+                            },
+                            "timing_estimates": {
+                                "L": [
+                                    {
+                                        "N": "22"
+                                    },
+                                    {
+                                        "N": "25.5"
+                                    },
+                                    {
+                                        "N": "30"
+                                    }
+                                ]
+                            },
+                            "negative_prompt": {
+                                "S": "natural settings, bright happy, supernatural monsters"
+                            },
+                            "music_track": {
+                                "S": "battle-of-the-dragons-8037.mp3"
+                            },
+                            "sfx_cues": {
+                                "L": [
+                                    {
+                                        "S": "fire-crackling-sounds.mp3"
+                                    }
+                                ]
+                            },
+                            "variation_used": {
+                                "S": "dramatic"
+                            },
+                            "scene_title": {
+                                "S": "The Attic's Breath"
+                            }
+                        }
+                    },
+                    {
+                        "M": {
+                            "image_prompt": {
+                                "S": "Subject: Dark, foreboding forest seen through an attic window; Action: Trees sway as if speaking; Environment: Nighttime, mist enveloping the base of trees; Lighting: Moonlight filtering through the canopy; Composition: Window frame creating a sense of distance; Style: Psychological thriller cinematic"
+                            },
+                            "scene_narration": {
+                                "S": "<speak><prosody pitch='low' rate='slow'>Beyond the attic window, I saw the forest, its trees swaying as if whispering to one another. <break time='300ms'/> These echoes carried tales of old, tales of those who wandered too far and never returned. <break time='400ms'/> The forest beckoned, a siren's call I could not ignore.</prosody></speak>"
+                            },
+                            "scene_number": {
+                                "N": "4"
+                            },
+                            "timing_estimates": {
+                                "L": [
+                                    {
+                                        "N": "32"
+                                    },
+                                    {
+                                        "N": "36"
+                                    },
+                                    {
+                                        "N": "39.5"
+                                    }
+                                ]
+                            },
+                            "negative_prompt": {
+                                "S": "natural settings, bright happy, supernatural monsters"
+                            },
+                            "music_track": {
+                                "S": "battle-of-the-dragons-8037.mp3"
+                            },
+                            "sfx_cues": {
+                                "L": [
+                                    {
+                                        "S": "Daytime Forrest Bonfire.mp3"
+                                    }
+                                ]
+                            },
+                            "variation_used": {
+                                "S": "whisper"
+                            },
+                            "scene_title": {
+                                "S": "The Forest of Echoes"
+                            }
+                        }
+                    },
+                    {
+                        "M": {
+                            "image_prompt": {
+                                "S": "Subject: Interior of a grand, but decaying mansion; Action: Subtle movement in shadows suggests life; Environment: Vast, with dimly lit corridors; Lighting: Soft, eerie glow emanating from unknown sources; Composition: Focus on architectural details and play of light and shadow; Style: Psychological thriller cinematic"
+                            },
+                            "scene_narration": {
+                                "S": "<speak><prosody pitch='low' rate='slow'>Returning to the mansion, I felt its pulse, a rhythmic drumming that seemed to echo my own heartbeat. <break time='300ms'/> The walls whispered secrets of forgotten times, and I understood that the house was alive, watching, waiting. <break time='400ms'/> I realized then, it wasn't just shadows that lingered here, but echoes of every soul that dared to enter.</prosody></speak>"
+                            },
+                            "scene_number": {
+                                "N": "5"
+                            },
+                            "timing_estimates": {
+                                "L": [
+                                    {
+                                        "N": "41"
+                                    },
+                                    {
+                                        "N": "45.5"
+                                    },
+                                    {
+                                        "N": "50"
+                                    }
+                                ]
+                            },
+                            "negative_prompt": {
+                                "S": "natural settings, bright happy, supernatural monsters"
+                            },
+                            "music_track": {
+                                "S": "battle-of-the-dragons-8037.mp3"
+                            },
+                            "sfx_cues": {
+                                "L": []
+                            },
+                            "variation_used": {
+                                "S": "dramatic"
+                            },
+                            "scene_title": {
+                                "S": "The Mansion's Heartbeat"
+                            }
+                        }
+                    }
+                ]
+            },
+            "scene_count": {
+                "N": "5"
+            },
+            "channel_id": {
+                "S": "UCaxPNkUMQKqepAp0JbpVrrw"
+            },
+            "tokens_used": {
+                "N": "3903"
+            },
+            "type": {
+                "S": "mega_generation"
+            },
+            "created_at": {
+                "S": "2025-11-25T18:10:12.900846Z"
+            }
+        }
+    ],
+    "Count": 5,
+    "ScannedCount": 5,
+    "LastEvaluatedKey": {
+        "created_at": {
+            "S": "2025-11-25T18:10:12.900846Z"
+        },
+        "channel_id": {
+            "S": "UCaxPNkUMQKqepAp0JbpVrrw"
+        }
+    }
+}

@@ -1,0 +1,419 @@
+{
+  "Comment": "Optimized Multi-Channel Content Generator with Global Batching + Video Assembly",
+  "StartAt": "GetActiveChannels",
+  "States": {
+    "GetActiveChannels": {
+      "Type": "Task",
+      "Resource": "arn:aws:states:::lambda:invoke",
+      "Parameters": {
+        "FunctionName": "arn:aws:lambda:eu-central-1:599297130956:function:content-get-channels",
+        "Payload": {}
+      },
+      "ResultPath": "$.channelsResult",
+      "Next": "Phase1ContentGeneration",
+      "Comment": "Get all active channels"
+    },
+    "Phase1ContentGeneration": {
+      "Type": "Map",
+      "Comment": "PHASE 1: Generate content (Theme + Narrative + Image Prompts) for all channels in PARALLEL",
+      "ItemsPath": "$.channelsResult.Payload",
+      "MaxConcurrency": 5,
+      "ResultPath": "$.phase1Results",
+      "Iterator": {
+        "StartAt": "QueryTitles",
+        "States": {
+          "QueryTitles": {
+            "Type": "Task",
+            "Resource": "arn:aws:states:::lambda:invoke",
+            "Parameters": {
+              "FunctionName": "arn:aws:lambda:eu-central-1:599297130956:function:content-query-titles",
+              "Payload": {
+                "channel_id.$": "$.channel_id",
+                "config_id.$": "$.config_id",
+                "channel_name.$": "$.channel_name",
+                "genre.$": "$.genre"
+              }
+            },
+            "ResultPath": "$.queryResult",
+            "Next": "ThemeAgent"
+          },
+          "ThemeAgent": {
+            "Type": "Task",
+            "Resource": "arn:aws:states:::lambda:invoke",
+            "Parameters": {
+              "FunctionName": "arn:aws:lambda:eu-central-1:599297130956:function:content-theme-agent",
+              "Payload": {
+                "channel_id.$": "$.channel_id",
+                "channel_name.$": "$.channel_name",
+                "genre.$": "$.genre",
+                "titles.$": "$.queryResult.Payload.titles"
+              }
+            },
+            "ResultPath": "$.themeResult",
+            "Next": "MegaNarrativeGenerator"
+          },
+          "MegaNarrativeGenerator": {
+            "Type": "Task",
+            "Resource": "arn:aws:states:::lambda:invoke",
+            "Parameters": {
+              "FunctionName": "arn:aws:lambda:eu-central-1:599297130956:function:content-narrative",
+              "Payload": {
+                "channel_id.$": "$.channel_id",
+                "selected_topic.$": "$.themeResult.Payload.generated_titles[0]"
+              }
+            },
+            "ResultPath": "$.narrativeResult",
+            "End": true,
+            "Comment": "Generate narrative + image prompts (NO images yet)"
+          }
+        }
+      },
+      "Next": "CollectAllImagePrompts"
+    },
+    "CollectAllImagePrompts": {
+      "Type": "Task",
+      "Resource": "arn:aws:states:::lambda:invoke",
+      "Comment": "PHASE 2 START: Collect all image prompts from all channels",
+      "Parameters": {
+        "FunctionName": "arn:aws:lambda:eu-central-1:599297130956:function:collect-image-prompts",
+        "Payload": {
+          "channels_data.$": "$.phase1Results"
+        }
+      },
+      "ResultPath": "$.collectedPrompts",
+      "Next": "CheckIfAnyImages"
+    },
+    "CheckIfAnyImages": {
+      "Type": "Choice",
+      "Choices": [
+        {
+          "Variable": "$.collectedPrompts.Payload.total_images",
+          "NumericGreaterThan": 0,
+          "Next": "StartEC2ForAllImages"
+        }
+      ],
+      "Default": "PreparePhase3WithoutImages",
+      "Comment": "Skip image generation if no images needed"
+    },
+    "PreparePhase3WithoutImages": {
+      "Type": "Pass",
+      "Comment": "Create distributedData structure from phase1Results when no images generated",
+      "Parameters": {
+        "Payload": {
+          "channels_with_images.$": "$.phase1Results"
+        }
+      },
+      "ResultPath": "$.distributedData",
+      "Next": "Phase3AudioAndSave"
+    },
+    "StartEC2ForAllImages": {
+      "Type": "Task",
+      "Resource": "arn:aws:states:::lambda:invoke",
+      "Comment": "Start EC2 SD3.5 instance ONCE for ALL channels",
+      "Parameters": {
+        "FunctionName": "arn:aws:lambda:eu-central-1:599297130956:function:ec2-sd35-control",
+        "Payload": {
+          "action": "start"
+        }
+      },
+      "ResultPath": "$.ec2Endpoint",
+      "Next": "GenerateAllImagesBatched",
+      "Retry": [
+        {
+          "ErrorEquals": [
+            "States.ALL"
+          ],
+          "IntervalSeconds": 10,
+          "MaxAttempts": 3,
+          "BackoffRate": 2.0
+        }
+      ]
+    },
+    "GenerateAllImagesBatched": {
+      "Type": "Task",
+      "Resource": "arn:aws:states:::lambda:invoke",
+      "Comment": "Generate ALL images for ALL channels in batches",
+      "Parameters": {
+        "FunctionName": "arn:aws:lambda:eu-central-1:599297130956:function:content-generate-images",
+        "Payload": {
+          "all_prompts.$": "$.collectedPrompts.Payload.all_image_prompts",
+          "provider.$": "$.collectedPrompts.Payload.provider",
+          "batch_mode": true,
+          "ec2_endpoint.$": "$.ec2Endpoint.Payload.endpoint"
+        }
+      },
+      "ResultPath": "$.allGeneratedImages",
+      "Next": "DistributeImagesToChannels"
+    },
+    "DistributeImagesToChannels": {
+      "Type": "Task",
+      "Resource": "arn:aws:states:::lambda:invoke",
+      "Comment": "Distribute generated images back to respective channels",
+      "Parameters": {
+        "FunctionName": "arn:aws:lambda:eu-central-1:599297130956:function:distribute-images",
+        "Payload": {
+          "generated_images.$": "$.allGeneratedImages.Payload.scene_images",
+          "channels_data.$": "$.phase1Results"
+        }
+      },
+      "ResultPath": "$.distributedData",
+      "Next": "StopEC2AfterImages"
+    },
+    "StopEC2AfterImages": {
+      "Type": "Task",
+      "Resource": "arn:aws:states:::lambda:invoke",
+      "Comment": "Auto-stop EC2 SD3.5 instance after all images generated",
+      "Parameters": {
+        "FunctionName": "arn:aws:lambda:eu-central-1:599297130956:function:ec2-sd35-control",
+        "Payload": {
+          "action": "stop"
+        }
+      },
+      "ResultPath": "$.ec2StopResult",
+      "Next": "Phase3AudioAndSave",
+      "Catch": [
+        {
+          "ErrorEquals": [
+            "States.ALL"
+          ],
+          "ResultPath": "$.ec2StopError",
+          "Next": "Phase3AudioAndSave",
+          "Comment": "Continue even if EC2 stop fails"
+        }
+      ]
+    },
+    "Phase3AudioAndSave": {
+      "Type": "Map",
+      "Comment": "PHASE 3: Generate audio and save for each channel in PARALLEL",
+      "ItemsPath": "$.distributedData.Payload.channels_with_images",
+      "MaxConcurrency": 5,
+      "ResultPath": "$.finalResults",
+      "Iterator": {
+        "StartAt": "GetTTSConfig",
+        "States": {
+          "SaveFinalContent": {
+            "Type": "Task",
+            "Resource": "arn:aws:states:::lambda:invoke",
+            "Parameters": {
+              "FunctionName": "arn:aws:lambda:eu-central-1:599297130956:function:content-save-result",
+              "Payload": {
+                "channel_id.$": "$.channel_id",
+                "content_id.$": "$.narrativeResult.Payload.narrative_id",
+                "selected_topic": {
+                  "title.$": "$.themeResult.Payload.generated_titles[0]"
+                },
+                "narrative_data": {
+                  "story_title.$": "$.narrativeResult.Payload.story_title",
+                  "scenes.$": "$.narrativeResult.Payload.scenes",
+                  "character_count.$": "$.narrativeResult.Payload.character_count",
+                  "scene_count.$": "$.narrativeResult.Payload.scene_count",
+                  "cta_segments.$": "$.narrativeResult.Payload.narrative_content.cta_segments",
+                  "description.$": "$.narrativeResult.Payload.narrative_content.description"
+                },
+                "image_data": {},
+                "sfx_data": {},
+                "cta_data": {},
+                "thumbnail_data": {},
+                "description_data": {},
+                "metadata": {
+                  "total_scenes.$": "$.narrativeResult.Payload.scene_count"
+                },
+                "validation_errors": [],
+                "audio_files.$": "$.audioResult.Payload.audio_files",
+                "voice_id.$": "$.audioResult.Payload.voice_id",
+                "voice_profile.$": "$.audioResult.Payload.voice_profile",
+                "tts_service.$": "$.audioResult.Payload.tts_service",
+                "generated_images.$": "$.scene_images",
+                "config_id.$": "$.config_id",
+                "model.$": "$.narrativeResult.Payload.model",
+                "genre.$": "$.narrativeResult.Payload.genre"
+              }
+            },
+            "ResultPath": "$.saveResult",
+            "Next": "EstimateVideoDuration"
+          },
+          "EstimateVideoDuration": {
+            "Type": "Task",
+            "Resource": "arn:aws:states:::lambda:invoke",
+            "Parameters": {
+              "FunctionName": "arn:aws:lambda:eu-central-1:599297130956:function:content-video-assembly",
+              "Payload": {
+                "content_id.$": "$.narrativeResult.Payload.narrative_id",
+                "channel_id.$": "$.channel_id",
+                "estimate_only": true
+              }
+            },
+            "ResultPath": "$.durationEstimate",
+            "Next": "ChooseRenderingMode",
+            "Comment": "Estimate video duration to choose Lambda vs ECS",
+            "Catch": [
+              {
+                "ErrorEquals": [
+                  "States.ALL"
+                ],
+                "ResultPath": "$.videoError",
+                "Next": "VideoAssemblySkipped"
+              }
+            ]
+          },
+          "VideoAssemblySkipped": {
+            "Type": "Pass",
+            "Comment": "Video assembly skipped due to error",
+            "End": true
+          },
+          "ChooseRenderingMode": {
+            "Type": "Choice",
+            "Comment": "Choose Lambda (<15 min) or ECS Fargate (15+ min)",
+            "Choices": [
+              {
+                "Variable": "$.durationEstimate.Payload.status",
+                "StringEquals": "redirect_to_ecs",
+                "Next": "AssembleVideoECS"
+              }
+            ],
+            "Default": "AssembleVideoLambda"
+          },
+          "AssembleVideoLambda": {
+            "Type": "Task",
+            "Resource": "arn:aws:states:::lambda:invoke",
+            "Parameters": {
+              "FunctionName": "arn:aws:lambda:eu-central-1:599297130956:function:content-video-assembly",
+              "Payload": {
+                "content_id.$": "$.narrativeResult.Payload.narrative_id",
+                "channel_id.$": "$.channel_id",
+                "template_id": "video_template_universal_v2"
+              }
+            },
+            "ResultPath": "$.videoResult",
+            "TimeoutSeconds": 900,
+            "Comment": "Assemble video using Lambda (fast, <15 min videos)",
+            "Catch": [
+              {
+                "ErrorEquals": [
+                  "States.ALL"
+                ],
+                "ResultPath": "$.videoError",
+                "Next": "VideoAssemblySkipped"
+              }
+            ],
+            "End": true
+          },
+          "AssembleVideoECS": {
+            "Type": "Task",
+            "Resource": "arn:aws:states:::ecs:runTask.sync",
+            "Parameters": {
+              "Cluster": "default",
+              "TaskDefinition": "video-assembly-fargate",
+              "LaunchType": "FARGATE",
+              "NetworkConfiguration": {
+                "AwsvpcConfiguration": {
+                  "Subnets": [
+                    "subnet-062dbf8b6004e315f"
+                  ],
+                  "SecurityGroups": [
+                    "sg-08aee4fb3504062dc"
+                  ],
+                  "AssignPublicIp": "ENABLED"
+                }
+              },
+              "Overrides": {
+                "ContainerOverrides": [
+                  {
+                    "Name": "video-assembler",
+                    "Environment": [
+                      {
+                        "Name": "CONTENT_ID",
+                        "Value.$": "$.narrativeResult.Payload.narrative_id"
+                      },
+                      {
+                        "Name": "CHANNEL_ID",
+                        "Value.$": "$.channel_id"
+                      },
+                      {
+                        "Name": "TEMPLATE_ID",
+                        "Value": "video_template_universal_v2"
+                      }
+                    ]
+                  }
+                ]
+              }
+            },
+            "ResultPath": "$.videoResult",
+            "End": true,
+            "TimeoutSeconds": 10800,
+            "Comment": "Assemble video using ECS Fargate (15 min - 3 hour videos)"
+          },
+          "GetTTSConfig": {
+            "Type": "Pass",
+            "Comment": "Extract TTS configuration (use defaults if not present)",
+            "Parameters": {
+              "channel_id.$": "$.channel_id",
+              "narrative_id.$": "$.narrativeResult.Payload.narrative_id",
+              "story_title.$": "$.narrativeResult.Payload.story_title",
+              "scenes.$": "$.narrativeResult.Payload.scenes",
+              "tts_service": "aws_polly_neural",
+              "tts_voice_profile": "deep_male",
+              "genre.$": "$.genre"
+            },
+            "ResultPath": "$.ttsConfig",
+            "Next": "GenerateSSML"
+          },
+          "GenerateSSML": {
+            "Type": "Task",
+            "Resource": "arn:aws:states:::lambda:invoke",
+            "Comment": "Generate TTS-specific markup (SSML for Polly, plain text for ElevenLabs)",
+            "Parameters": {
+              "FunctionName": "arn:aws:lambda:eu-central-1:599297130956:function:ssml-generator",
+              "Payload": {
+                "scenes.$": "$.ttsConfig.scenes",
+                "tts_service.$": "$.ttsConfig.tts_service",
+                "genre.$": "$.ttsConfig.genre"
+              }
+            },
+            "ResultPath": "$.ssmlResult",
+            "Next": "GenerateAudioPolly",
+            "Retry": [
+              {
+                "ErrorEquals": [
+                  "States.ALL"
+                ],
+                "IntervalSeconds": 2,
+                "MaxAttempts": 3,
+                "BackoffRate": 2.0
+              }
+            ]
+          },
+          "GenerateAudioPolly": {
+            "Type": "Task",
+            "Resource": "arn:aws:states:::lambda:invoke",
+            "Comment": "AWS Polly TTS",
+            "Parameters": {
+              "FunctionName": "arn:aws:lambda:eu-central-1:599297130956:function:content-audio-polly",
+              "Payload": {
+                "channel_id.$": "$.ttsConfig.channel_id",
+                "narrative_id.$": "$.ttsConfig.narrative_id",
+                "story_title.$": "$.ttsConfig.story_title",
+                "scenes.$": "$.ssmlResult.Payload.scenes",
+                "tts_service.$": "$.ttsConfig.tts_service",
+                "tts_voice_profile.$": "$.ttsConfig.tts_voice_profile"
+              }
+            },
+            "ResultPath": "$.audioResult",
+            "Next": "SaveFinalContent",
+            "Retry": [
+              {
+                "ErrorEquals": [
+                  "States.ALL"
+                ],
+                "IntervalSeconds": 2,
+                "MaxAttempts": 3,
+                "BackoffRate": 2.0
+              }
+            ]
+          }
+        }
+      },
+      "End": true
+    }
+  }
+}
