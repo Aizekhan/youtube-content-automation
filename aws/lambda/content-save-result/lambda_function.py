@@ -1,3 +1,7 @@
+"""
+Content Save Result Lambda - Sprint 3 - Quality Metrics Collection
+Saves generated content to DynamoDB with enrichment metadata and quality metrics.
+"""
 import json
 import boto3
 from datetime import datetime
@@ -26,6 +30,9 @@ boto_config = Config(
 dynamodb = boto3.resource('dynamodb', region_name='eu-central-1', config=boto_config)
 table = dynamodb.Table('GeneratedContent')
 
+# Sprint 3: Lambda client for invoking cliche-detector
+lambda_client = boto3.client('lambda', region_name='eu-central-1')
+
 def convert_floats_to_decimal(obj):
     """Recursively convert float values to Decimal for DynamoDB compatibility"""
     if isinstance(obj, list):
@@ -42,8 +49,26 @@ def safe_get(obj, key, default='Unknown'):
         return obj.get(key, default)
     return default
 
+def invoke_cliche_detector(narrative_data):
+    """Call cliche detector Lambda to analyze narrative quality"""
+    try:
+        response = lambda_client.invoke(
+            FunctionName='content-cliche-detector',
+            InvocationType='RequestResponse',
+            Payload=json.dumps({'narrative_data': narrative_data})
+        )
+
+        result = json.loads(response['Payload'].read())
+        if result.get('statusCode') == 200:
+            body = json.loads(result['body'])
+            return body if body.get('success') else None
+        return None
+    except Exception as e:
+        print(f"Cliche detector error: {str(e)}")
+        return None
+
 def lambda_handler(event, context):
-    print(f" Save Result - MEGA Mode v4.0 - Multi-Tenant")
+    print(f" Save Result - MEGA Mode v4.0 - Multi-Tenant - Sprint 3")
     print(f"Event keys: {list(event.keys())}")
 
     # Extract user_id for multi-tenant data isolation
@@ -162,6 +187,38 @@ def lambda_handler(event, context):
         raise ValueError("Cannot save content: missing narrative (narrative_data). Both theme and narrative are required!")
 
     print(f" VALIDATION PASSED: Both theme '{selected_topic.get('title')}' and narrative '{narrative_data.get('story_title')}' exist")
+
+    # Sprint 3: Call cliche detector for quality metrics
+    print(" Sprint 3: Invoking cliche detector for quality metrics...")
+    cliche_results = invoke_cliche_detector(narrative_data)
+    if cliche_results:
+        print(f" Quality metrics collected: cliche_score={cliche_results.get('cliche_detection', {}).get('cliche_score', 0)}")
+    else:
+        print(" Quality metrics unavailable (cliche detector failed or returned no data)")
+
+    # Sprint 3: Extract enrichment metadata from master_config
+    master_config = event.get('master_config', {})
+    enrichment_metadata = {
+        'enrichment_enabled': bool(master_config.get('topic_analysis') or master_config.get('story_dna')),
+        'enrichment_version': 'v2.1',
+        'has_topic_analysis': bool(master_config.get('topic_analysis')),
+        'has_story_dna': bool(master_config.get('story_dna')),
+        'has_wikipedia_facts': bool(master_config.get('wikipedia_facts'))
+    }
+
+    # Sprint 3: Build quality metrics from cliche detector results
+    quality_metrics = {}
+    if cliche_results:
+        quality_metrics = {
+            'cliche_score': cliche_results.get('cliche_detection', {}).get('cliche_score', 0),
+            'detected_cliches': [p['pattern'] for p in cliche_results.get('cliche_detection', {}).get('detected_patterns', [])],
+            'is_clean': cliche_results.get('cliche_detection', {}).get('is_clean', True),
+            'severity': cliche_results.get('cliche_detection', {}).get('severity', 'minimal'),
+            'word_count': cliche_results.get('story_metrics', {}).get('word_count', 0),
+            'unique_words': cliche_results.get('story_metrics', {}).get('unique_words', 0),
+            'vocabulary_richness': cliche_results.get('story_metrics', {}).get('vocabulary_richness', 0),
+            'twist_count': cliche_results.get('story_metrics', {}).get('twist_count', 0)
+        }
 
     # Audio/Image results
     audio_files = event.get('audio_files', [])
@@ -299,7 +356,11 @@ def lambda_handler(event, context):
         # Original field names (for backward compatibility)
         'total_word_count': safe_get(metadata, 'total_word_count', 0),
         'total_scenes': safe_get(metadata, 'total_scenes', 0),
-        'estimated_duration_seconds': safe_get(metadata, 'estimated_duration_seconds', 0)
+        'estimated_duration_seconds': safe_get(metadata, 'estimated_duration_seconds', 0),
+
+        # Sprint 3: Enrichment metadata and quality metrics
+        'enrichment_metadata': enrichment_metadata,
+        'quality_metrics': quality_metrics
     }
 
     try:
