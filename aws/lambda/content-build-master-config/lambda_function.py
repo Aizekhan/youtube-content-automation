@@ -14,6 +14,7 @@ Functionality:
 
 import json
 import boto3
+import random
 from decimal import Decimal
 from botocore.config import Config
 
@@ -78,6 +79,57 @@ def invoke_lambda_sync(function_name, payload):
         import traceback
         traceback.print_exc()
         return None
+
+
+
+def decide_enrichment_group(channel_config):
+    """
+    Determine if enrichment should run based on A/B testing configuration
+    
+    Sprint 3 - A/B Testing Logic
+    
+    Args:
+        channel_config: Channel configuration dictionary
+        
+    Returns:
+        tuple: (should_enrich: bool, assigned_group: str, reason: str)
+        
+    Examples:
+        - A/B disabled → (True, 'default', 'A/B testing disabled')
+        - A/B enabled, group='A' → (True, 'A', 'Forced enrichment')
+        - A/B enabled, group='B' → (False, 'B', 'Forced baseline')
+        - A/B enabled, group='auto' → (True/False, 'A'/'B', 'Random assignment')
+    """
+    ab_enabled = channel_config.get('enrichment_ab_enabled', False)
+    
+    # Convert string 'true'/'false' to boolean if needed
+    if isinstance(ab_enabled, str):
+        ab_enabled = ab_enabled.lower() in ('true', '1', 'yes')
+    
+    # If A/B testing is disabled, always enrich (default behavior)
+    if not ab_enabled:
+        return (True, 'default', 'A/B testing disabled - enrichment enabled by default')
+    
+    # A/B testing is enabled - check group assignment
+    ab_group = channel_config.get('enrichment_ab_group', 'auto')
+    
+    if ab_group == 'A':
+        # Force Group A - Always enrich
+        return (True, 'A', 'Force Group A - Full enrichment')
+    
+    elif ab_group == 'B':
+        # Force Group B - Never enrich (baseline)
+        return (False, 'B', 'Force Group B - Baseline (no enrichment)')
+    
+    else:
+        # Auto mode - Random 50/50 assignment
+        random_choice = random.choice(['A', 'B'])
+        
+        if random_choice == 'A':
+            return (True, 'A', 'Random assignment - Group A (enriched)')
+        else:
+            return (False, 'B', 'Random assignment - Group B (baseline)')
+
 
 
 def lambda_handler(event, context):
@@ -242,57 +294,81 @@ def lambda_handler(event, context):
         else:
             print(f"\n  No topic_id provided, MasterConfig will not include topic")
 
-        # 4. Sprint 2.1 Enrichment Pipeline (OPTIMIZED)
+        # 4. Sprint 3 - A/B Testing Decision
+        should_enrich, assigned_group, assignment_reason = decide_enrichment_group(channel_config)
+
+        print(f"\n[A/B Testing]")
+        print(f"  Assigned Group: {assigned_group}")
+        print(f"  Should Enrich: {should_enrich}")
+        print(f"  Reason: {assignment_reason}")
+
+        # 5. Sprint 2.1 Enrichment Pipeline (OPTIMIZED) - Conditional based on A/B group
         topic_analysis = None
         enriched_context = None
         story_dna = None
         wikipedia_facts = None
 
+        ab_testing_metadata = {
+            'ab_testing_enabled': channel_config.get('enrichment_ab_enabled', False),
+            'assigned_group': assigned_group,
+            'enrichment_applied': should_enrich,
+            'assignment_reason': assignment_reason
+        }
+
         if topic_data:
             topic_text = topic_data['topic_text']
             topic_description = topic_data.get('topic_description', {})
 
-            # 1. Call MEGA ENRICHMENT Lambda (3-in-1: analyzer + context + DNA)
-            print(f"\n[3/4] Calling Mega Enrichment...")
-            mega_payload = {
-                'topic_text': topic_text,
-                'topic_description': topic_description,
-                'story_profile': story_profile
-            }
+            if should_enrich:
+                # GROUP A - Run enrichment pipeline
+                print(f"\n[GROUP A - ENRICHED]")
 
-            mega_response = invoke_lambda_sync('content-mega-enrichment', mega_payload)
-            if mega_response and mega_response.get('success'):
-                enrichment = mega_response.get('enrichment', {})
-                topic_analysis = enrichment.get('topic_analysis')
-                enriched_context = enrichment.get('enriched_context')
-                story_dna = enrichment.get('story_dna')
-
-                print(f"  Mega enrichment SUCCESS:")
-                if topic_analysis:
-                    print(f"    Genre: {topic_analysis.get('genre', 'N/A')}")
-                    print(f"    Complexity: {topic_analysis.get('complexity_level', 'N/A')}/5")
-                if enriched_context:
-                    print(f"    Atmosphere: {enriched_context.get('atmosphere', {}).get('primary_mood', 'N/A')}")
-                if story_dna:
-                    print(f"    Unique twist: {story_dna.get('unique_twist', 'N/A')[:60]}...")
-
-            # 2. Call Wikipedia Facts Search (if factual_mode enabled)
-            print(f"\n[4/4] Checking Wikipedia Facts...")
-            factual_mode = channel_config.get('factual_mode', False)
-
-            if factual_mode:
-                print(f"  Factual mode enabled, searching Wikipedia...")
-                facts_payload = {
+                # 1. Call MEGA ENRICHMENT Lambda (3-in-1: analyzer + context + DNA)
+                print(f"\n[3/4] Calling Mega Enrichment...")
+                mega_payload = {
                     'topic_text': topic_text,
-                    'max_results': 10
+                    'topic_description': topic_description,
+                    'story_profile': story_profile
                 }
 
-                facts_response = invoke_lambda_sync('content-search-facts', facts_payload)
-                if facts_response and facts_response.get('success'):
-                    wikipedia_facts = facts_response.get('facts', [])
-                    print(f"  Found {len(wikipedia_facts)} facts")
+                mega_response = invoke_lambda_sync('content-mega-enrichment', mega_payload)
+                if mega_response and mega_response.get('success'):
+                    enrichment = mega_response.get('enrichment', {})
+                    topic_analysis = enrichment.get('topic_analysis')
+                    enriched_context = enrichment.get('enriched_context')
+                    story_dna = enrichment.get('story_dna')
+
+                    print(f"  Mega enrichment SUCCESS:")
+                    if topic_analysis:
+                        print(f"    Genre: {topic_analysis.get('genre', 'N/A')}")
+                        print(f"    Complexity: {topic_analysis.get('complexity_level', 'N/A')}/5")
+                    if enriched_context:
+                        print(f"    Atmosphere: {enriched_context.get('atmosphere', {}).get('primary_mood', 'N/A')}")
+                    if story_dna:
+                        print(f"    Unique twist: {story_dna.get('unique_twist', 'N/A')[:60]}...")
+
+                # 2. Call Wikipedia Facts Search (if factual_mode enabled)
+                print(f"\n[4/4] Checking Wikipedia Facts...")
+                factual_mode = channel_config.get('factual_mode', False)
+
+                if factual_mode:
+                    print(f"  Factual mode enabled, searching Wikipedia...")
+                    facts_payload = {
+                        'topic_text': topic_text,
+                        'max_results': 10
+                    }
+
+                    facts_response = invoke_lambda_sync('content-search-facts', facts_payload)
+                    if facts_response and facts_response.get('success'):
+                        wikipedia_facts = facts_response.get('facts', [])
+                        print(f"  Found {len(wikipedia_facts)} facts")
+                else:
+                    print(f"  Factual mode disabled, skipping Wikipedia")
             else:
-                print(f"  Factual mode disabled, skipping Wikipedia")
+                # GROUP B - Skip enrichment (baseline)
+                print(f"\n[GROUP B - BASELINE]")
+                print(f"  Skipping enrichment layers (baseline for A/B comparison)")
+                print(f"  Content will be generated from topic only, without AI enrichment")
         else:
             print(f"\n[3-4/4] Skipping enrichment pipeline (no topic provided)")
 
@@ -319,6 +395,9 @@ def lambda_handler(event, context):
             master_config['story_dna'] = story_dna
         if wikipedia_facts:
             master_config['wikipedia_facts'] = wikipedia_facts
+        
+        # Add Sprint 3 A/B testing metadata
+        master_config['ab_testing_metadata'] = ab_testing_metadata
 
         print(f"\n  MasterConfig built successfully")
         print(f"  Size: {len(json.dumps(master_config, default=decimal_default))} bytes")
