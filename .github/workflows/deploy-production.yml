@@ -217,7 +217,7 @@ jobs:
           mkdir -p ~/.ssh
           echo "${{ secrets.SSH_KEY }}" > ~/.ssh/id_rsa
           chmod 600 ~/.ssh/id_rsa
-          ssh-keyscan -H 212.233.127.141 >> ~/.ssh/known_hosts
+          ssh-keyscan -H 3.75.97.188 >> ~/.ssh/known_hosts
 
       - name: Deploy Frontend files to production server
         run: |
@@ -238,13 +238,13 @@ jobs:
           for file in $CHANGED_FILES; do
             if [[ "$file" == js/* ]]; then
               echo "Deploying $file to /var/www/html/n8n-creator-space/js/"
-              scp -o StrictHostKeyChecking=no "$file" root@212.233.127.141:/var/www/html/n8n-creator-space/js/
+              scp -o StrictHostKeyChecking=no "$file" root@3.75.97.188:/var/www/html/n8n-creator-space/js/
             elif [[ "$file" == css/* ]]; then
               echo "Deploying $file to /var/www/html/n8n-creator-space/css/"
-              scp -o StrictHostKeyChecking=no "$file" root@212.233.127.141:/var/www/html/n8n-creator-space/css/
+              scp -o StrictHostKeyChecking=no "$file" root@3.75.97.188:/var/www/html/n8n-creator-space/css/
             elif [[ "$file" == *.html ]]; then
               echo "Deploying $file to /var/www/html/n8n-creator-space/"
-              scp -o StrictHostKeyChecking=no "$file" root@212.233.127.141:/var/www/html/n8n-creator-space/
+              scp -o StrictHostKeyChecking=no "$file" root@3.75.97.188:/var/www/html/n8n-creator-space/
             fi
           done
 
