@@ -1,0 +1,1 @@
+{"statusCode": 200, "headers": {"Content-Type": "application/json", "Access-Control-Allow-Origin": "*"}, "body": "{\"success\": true, \"topic\": {\"topic_id\": \"topic_20260220_220817_92f7ab6a\", \"status\": \"published\", \"updated_at\": \"2026-02-20T22:15:53.620660Z\", \"previous_status\": \"in_progress\"}, \"message\": \"Topic status updated from in_progress to published\"}"}

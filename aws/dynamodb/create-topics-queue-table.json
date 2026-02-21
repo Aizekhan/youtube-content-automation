@@ -1,0 +1,92 @@
+{
+  "TableName": "ContentTopicsQueue",
+  "KeySchema": [
+    {
+      "AttributeName": "channel_id",
+      "KeyType": "HASH"
+    },
+    {
+      "AttributeName": "topic_id",
+      "KeyType": "RANGE"
+    }
+  ],
+  "AttributeDefinitions": [
+    {
+      "AttributeName": "channel_id",
+      "AttributeType": "S"
+    },
+    {
+      "AttributeName": "topic_id",
+      "AttributeType": "S"
+    },
+    {
+      "AttributeName": "status",
+      "AttributeType": "S"
+    },
+    {
+      "AttributeName": "user_id",
+      "AttributeType": "S"
+    }
+  ],
+  "GlobalSecondaryIndexes": [
+    {
+      "IndexName": "status-index",
+      "KeySchema": [
+        {
+          "AttributeName": "channel_id",
+          "KeyType": "HASH"
+        },
+        {
+          "AttributeName": "status",
+          "KeyType": "RANGE"
+        }
+      ],
+      "Projection": {
+        "ProjectionType": "ALL"
+      },
+      "ProvisionedThroughput": {
+        "ReadCapacityUnits": 5,
+        "WriteCapacityUnits": 5
+      }
+    },
+    {
+      "IndexName": "user_id-index",
+      "KeySchema": [
+        {
+          "AttributeName": "user_id",
+          "KeyType": "HASH"
+        },
+        {
+          "AttributeName": "channel_id",
+          "KeyType": "RANGE"
+        }
+      ],
+      "Projection": {
+        "ProjectionType": "ALL"
+      },
+      "ProvisionedThroughput": {
+        "ReadCapacityUnits": 5,
+        "WriteCapacityUnits": 5
+      }
+    }
+  ],
+  "BillingMode": "PROVISIONED",
+  "ProvisionedThroughput": {
+    "ReadCapacityUnits": 5,
+    "WriteCapacityUnits": 5
+  },
+  "Tags": [
+    {
+      "Key": "Project",
+      "Value": "YouTubeContentAutomation"
+    },
+    {
+      "Key": "Feature",
+      "Value": "StoryEngineV1"
+    },
+    {
+      "Key": "Sprint",
+      "Value": "Sprint1-MVP"
+    }
+  ]
+}

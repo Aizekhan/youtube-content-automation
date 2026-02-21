@@ -1,0 +1,20 @@
+{
+  "Version": "2012-10-17",
+  "Statement": [
+    {
+      "Effect": "Allow",
+      "Action": [
+        "dynamodb:Query",
+        "dynamodb:GetItem",
+        "dynamodb:PutItem",
+        "dynamodb:UpdateItem",
+        "dynamodb:DeleteItem",
+        "dynamodb:Scan"
+      ],
+      "Resource": [
+        "arn:aws:dynamodb:eu-central-1:599297130956:table/ContentTopicsQueue",
+        "arn:aws:dynamodb:eu-central-1:599297130956:table/ContentTopicsQueue/index/*"
+      ]
+    }
+  ]
+}

@@ -1,0 +1,11 @@
+{
+  "user_id": "sprint1_test_user",
+  "channel_id": "sprint1_test_channel",
+  "topic_id": "topic_20260220_223643_8017a42b",
+  "new_status": "published",
+  "metadata": {
+    "video_id": "sprint1_test_video_xyz",
+    "published_url": "https://youtube.com/watch?v=test_sprint1",
+    "test": "end_to_end_integration"
+  }
+}
