@@ -5,7 +5,7 @@
 
 // Lambda Function URLs
 const LAMBDA_URLS = {
-    LIST: 'https://7rjgjxlq6r2xf6uds3umkwfmdm0yrkhc.lambda-url.eu-central-1.on.aws/',
+    LIST: 'https://o7oswstatxulqezia6fvli4iny0uizlg.lambda-url.eu-central-1.on.aws/',
     ADD: 'https://vrddclaa37szm5wk46yvimaovq0acntf.lambda-url.eu-central-1.on.aws/',
     GET_NEXT: 'https://y47kwb2yylyyafsi2mlt2siuta0kppuk.lambda-url.eu-central-1.on.aws/',
     UPDATE_STATUS: 'https://6h5sy3jqn7alvrqhpf36yohls40awfnu.lambda-url.eu-central-1.on.aws/',
