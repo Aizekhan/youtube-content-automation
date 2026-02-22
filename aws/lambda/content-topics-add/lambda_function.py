@@ -150,7 +150,6 @@ def lambda_handler(event, context):
             'statusCode': 200,
             'headers': {
                 'Content-Type': 'application/json',
-                'Access-Control-Allow-Origin': '*'
             },
             'body': json.dumps({
                 'success': True,
@@ -175,7 +174,6 @@ def lambda_handler(event, context):
             'statusCode': 500,
             'headers': {
                 'Content-Type': 'application/json',
-                'Access-Control-Allow-Origin': '*'
             },
             'body': json.dumps({
                 'success': False,
