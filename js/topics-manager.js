@@ -591,3 +591,5 @@ function formatDate(dateStr) {
         year: date.getFullYear() !== now.getFullYear() ? 'numeric' : undefined
     });
 }
+
+// Deployment trigger: 20260222-212835
