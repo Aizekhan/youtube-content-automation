@@ -242,15 +242,20 @@ jobs:
           chmod 600 ~/.ssh/id_rsa
           ssh-keyscan -H 3.75.97.188 >> ~/.ssh/known_hosts
 
+          # Test SSH connection
+          echo "Testing SSH connection..."
+          ssh -i ~/.ssh/id_rsa -o StrictHostKeyChecking=no ubuntu@3.75.97.188 "echo 'SSH connection successful'" || {
+            echo "❌ SSH connection failed!"
+            echo "Checking key format..."
+            head -1 ~/.ssh/id_rsa
+            exit 1
+          }
+
       - name: Deploy Frontend files to production server
         run: |
           echo "Deploying frontend files to production..."
           echo "DEBUG: Checking SSH key..."
           ls -la ~/.ssh/
-          echo ""
-
-          echo "DEBUG: Testing SSH connection..."
-          ssh -o StrictHostKeyChecking=no ubuntu@3.75.97.188 "echo 'SSH connection successful'" || echo "SSH connection failed"
           echo ""
 
           # Get list of changed files
@@ -269,15 +274,27 @@ jobs:
           for file in $CHANGED_FILES; do
             if [[ "$file" == js/* ]]; then
               echo "▶ Deploying $file to /home/ubuntu/web-admin/html/js/"
-              scp -v -o StrictHostKeyChecking=no "$file" ubuntu@3.75.97.188:/home/ubuntu/web-admin/html/js/ 2>&1 || echo "❌ Failed to deploy $file"
+              scp -i ~/.ssh/id_rsa -v -o StrictHostKeyChecking=no "$file" ubuntu@3.75.97.188:/home/ubuntu/web-admin/html/js/ 2>&1 || {
+                echo "❌ Failed to deploy $file"
+                exit 1
+              }
+              echo "✅ Successfully deployed $file"
               echo ""
             elif [[ "$file" == css/* ]]; then
               echo "▶ Deploying $file to /home/ubuntu/web-admin/html/css/"
-              scp -v -o StrictHostKeyChecking=no "$file" ubuntu@3.75.97.188:/home/ubuntu/web-admin/html/css/ 2>&1 || echo "❌ Failed to deploy $file"
+              scp -i ~/.ssh/id_rsa -v -o StrictHostKeyChecking=no "$file" ubuntu@3.75.97.188:/home/ubuntu/web-admin/html/css/ 2>&1 || {
+                echo "❌ Failed to deploy $file"
+                exit 1
+              }
+              echo "✅ Successfully deployed $file"
               echo ""
             elif [[ "$file" == *.html ]]; then
               echo "▶ Deploying $file to /home/ubuntu/web-admin/html/"
-              scp -v -o StrictHostKeyChecking=no "$file" ubuntu@3.75.97.188:/home/ubuntu/web-admin/html/ 2>&1 || echo "❌ Failed to deploy $file"
+              scp -i ~/.ssh/id_rsa -v -o StrictHostKeyChecking=no "$file" ubuntu@3.75.97.188:/home/ubuntu/web-admin/html/ 2>&1 || {
+                echo "❌ Failed to deploy $file"
+                exit 1
+              }
+              echo "✅ Successfully deployed $file"
               echo ""
             fi
           done
