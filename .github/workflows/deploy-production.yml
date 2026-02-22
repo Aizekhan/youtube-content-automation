@@ -245,6 +245,13 @@ jobs:
       - name: Deploy Frontend files to production server
         run: |
           echo "Deploying frontend files to production..."
+          echo "DEBUG: Checking SSH key..."
+          ls -la ~/.ssh/
+          echo ""
+
+          echo "DEBUG: Testing SSH connection..."
+          ssh -o StrictHostKeyChecking=no ubuntu@3.75.97.188 "echo 'SSH connection successful'" || echo "SSH connection failed"
+          echo ""
 
           # Get list of changed files
           CHANGED_FILES=$(git diff --name-only HEAD~5 HEAD | grep -E "\.(html|css|js)$" || true)
@@ -256,22 +263,26 @@ jobs:
 
           echo "Changed files:"
           echo "$CHANGED_FILES"
+          echo ""
 
           # Deploy each changed file
           for file in $CHANGED_FILES; do
             if [[ "$file" == js/* ]]; then
-              echo "Deploying $file to /home/ubuntu/web-admin/html/js/"
-              scp -o StrictHostKeyChecking=no "$file" ubuntu@3.75.97.188:/home/ubuntu/web-admin/html/js/
+              echo "▶ Deploying $file to /home/ubuntu/web-admin/html/js/"
+              scp -v -o StrictHostKeyChecking=no "$file" ubuntu@3.75.97.188:/home/ubuntu/web-admin/html/js/ 2>&1 || echo "❌ Failed to deploy $file"
+              echo ""
             elif [[ "$file" == css/* ]]; then
-              echo "Deploying $file to /home/ubuntu/web-admin/html/css/"
-              scp -o StrictHostKeyChecking=no "$file" ubuntu@3.75.97.188:/home/ubuntu/web-admin/html/css/
+              echo "▶ Deploying $file to /home/ubuntu/web-admin/html/css/"
+              scp -v -o StrictHostKeyChecking=no "$file" ubuntu@3.75.97.188:/home/ubuntu/web-admin/html/css/ 2>&1 || echo "❌ Failed to deploy $file"
+              echo ""
             elif [[ "$file" == *.html ]]; then
-              echo "Deploying $file to /home/ubuntu/web-admin/html/"
-              scp -o StrictHostKeyChecking=no "$file" ubuntu@3.75.97.188:/home/ubuntu/web-admin/html/
+              echo "▶ Deploying $file to /home/ubuntu/web-admin/html/"
+              scp -v -o StrictHostKeyChecking=no "$file" ubuntu@3.75.97.188:/home/ubuntu/web-admin/html/ 2>&1 || echo "❌ Failed to deploy $file"
+              echo ""
             fi
           done
 
-          echo "Frontend deployment completed successfully!"
+          echo "Frontend deployment completed!"
 
   # Job 5: Notify on completion
   notify:
