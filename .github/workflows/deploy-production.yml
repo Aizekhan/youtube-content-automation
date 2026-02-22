@@ -85,34 +85,57 @@ jobs:
     strategy:
       matrix:
         function:
+          # Content Generation Pipeline
           - content-narrative
-          - content-theme-agent
-          - content-audio-tts
-          - content-audio-polly
-          - content-audio-elevenlabs
           - content-generate-images
+          - content-audio-qwen3tts
+          - content-video-assembly
+          - content-build-master-config
+          - content-mega-enrichment
+          - content-search-facts
+          - content-cliche-detector
           - content-save-result
+          - save-final-content
+
+          # Orchestration (Batching)
+          - collect-audio-scenes
+          - collect-image-prompts
+          - distribute-audio
+          - distribute-images
+          - merge-channel-data
+          - merge-parallel-results
+
+          # Topics Queue (Sprint 1)
+          - content-topics-get-next
+          - content-topics-list
+          - content-topics-add
+          - content-topics-bulk-add
+          - content-topics-update-status
+
+          # Dashboard/API
           - content-get-channels
           - content-trigger
-          - content-video-assembly
           - dashboard-content
           - dashboard-costs
           - dashboard-monitoring
-          - prompts-api
-          - collect-all-image-prompts
-          - prepare-image-batches
-          - merge-image-batches
-          - distribute-images
-          - ec2-sd35-control
-          - save-phase1-to-s3
-          - load-phase1-from-s3
+          - system-settings-api
+
+          # Infrastructure
+          - ec2-qwen3-control
+          - ec2-zimage-control
+          - ec2-emergency-stop
+          - check-qwen3-health
+          - aws-costs-fetcher
+          - backfill-costs
+          - audio-library-manager
+          - update-sfx-library
+
+          # Support
           - telegram-error-notifier
-          - content-topics-add
-          - content-topics-list
-          - content-topics-get-next
-          - content-topics-update-status
-          - content-topics-bulk-add
-          - content-build-master-config
+          - log-execution-error
+          - schema-validator
+          - validate-step-functions-input
+          - debug-test-runner
 
       fail-fast: false  # Continue deploying other functions even if one fails
 
