@@ -6,10 +6,10 @@
 // Lambda Function URLs
 const LAMBDA_URLS = {
     LIST: 'https://o7oswstatxulqezia6fvli4iny0uizlg.lambda-url.eu-central-1.on.aws/',
-    ADD: 'https://vrddclaa37szm5wk46yvimaovq0acntf.lambda-url.eu-central-1.on.aws/',
-    GET_NEXT: 'https://y47kwb2yylyyafsi2mlt2siuta0kppuk.lambda-url.eu-central-1.on.aws/',
-    UPDATE_STATUS: 'https://6h5sy3jqn7alvrqhpf36yohls40awfnu.lambda-url.eu-central-1.on.aws/',
-    BULK_ADD: 'https://tiavvd5mptxn2czclztgd37eju0rgdab.lambda-url.eu-central-1.on.aws/'
+    ADD: 'https://vmipd7m6v63qqn5nud6xg3huum0poewo.lambda-url.eu-central-1.on.aws/',
+    GET_NEXT: 'https://rk7q7vapiwyrb5ydvzfqvnxyta0bytjr.lambda-url.eu-central-1.on.aws/',
+    UPDATE_STATUS: 'https://zwjkxakffcgnqyfm74xq5uxwvy0cckpe.lambda-url.eu-central-1.on.aws/',
+    BULK_ADD: 'https://24khhggitezt5uwhx7z53hdyzm0yizht.lambda-url.eu-central-1.on.aws/'
 };
 
 // Global state
@@ -58,7 +58,7 @@ document.addEventListener('DOMContentLoaded', async () => {
 async function loadChannels() {
     try {
         // Get channels from ChannelConfigs (using Function URL)
-        const response = await fetch('https://lr555ui3ycne6lj7opvpqjigce0cvkzu.lambda-url.eu-central-1.on.aws/', {
+        const response = await fetch('https://ywsop7xk36ir7r3a66fqcphdy40esadg.lambda-url.eu-central-1.on.aws/', {
             method: 'POST',
             headers: { 'Content-Type': 'application/json' },
             body: JSON.stringify({ user_id: currentUserId })
