@@ -546,37 +546,30 @@
             "Parameters": {
               "FunctionName": "arn:aws:lambda:eu-central-1:599297130956:function:content-save-result",
               "Payload": {
-                "channel_id.$": "$.channel_id",
-                "user_id.$": "$.user_id",
-                "content_id.$": "$.narrativeResult.data.narrative_id",
+                "channel_id.$": "$.phase1Results[0].channel_item.channel_id",
+                "user_id.$": "$.phase1Results[0].user_id",
+                "config_id.$": "$.phase1Results[0].channel_item.config_id",
+                "content_id.$": "$.phase1Results[0].narrativeResult.data.narrative_id",
                 "selected_topic": {
-                  "title.$": "$.themeResult.data.generated_titles[0]"
+                  "title.$": "$.phase1Results[0].themeResult.data.generated_titles[0]"
                 },
                 "narrative_data": {
-                  "story_title.$": "$.narrativeResult.data.story_title",
-                  "scenes.$": "$.narrativeResult.data.scenes",
-                  "character_count.$": "$.narrativeResult.data.character_count",
-                  "scene_count.$": "$.narrativeResult.data.scene_count",
-                  "cta_segments.$": "$.narrativeResult.data.narrative_content.cta_segments",
-                  "description.$": "$.narrativeResult.data.narrative_content.description"
+                  "story_title.$": "$.phase1Results[0].narrativeResult.data.story_title",
+                  "scenes.$": "$.phase1Results[0].narrativeResult.data.scenes",
+                  "total_word_count.$": "$.phase1Results[0].narrativeResult.data.character_count",
+                  "total_scenes.$": "$.phase1Results[0].narrativeResult.data.scene_count"
                 },
-                "image_data": {},
-                "sfx_data": {},
-                "cta_data": {},
-                "thumbnail_data": {},
-                "description_data": {},
+                "cta_data": {
+                  "cta_segments.$": "$.phase1Results[0].narrativeResult.data.cta_data.cta_segments"
+                },
+                "description_data.$": "$.phase1Results[0].narrativeResult.data.description_data",
                 "metadata": {
-                  "total_scenes.$": "$.narrativeResult.data.scene_count"
+                  "total_scenes.$": "$.phase1Results[0].narrativeResult.data.scene_count",
+                  "total_word_count.$": "$.phase1Results[0].narrativeResult.data.character_count"
                 },
-                "validation_errors": [],
                 "audio_files.$": "$.audio_files",
-                "cta_audio_files.$": "$.cta_audio_files",
-                "tts_service": "qwen3_tts",
-                "tts_provider": "Qwen3-TTS-0.6B",
                 "generated_images.$": "$.scene_images",
-                "config_id.$": "$.config_id",
-                "model.$": "$.narrativeResult.data.model",
-                "genre.$": "$.narrativeResult.data.genre"
+                "model.$": "$.phase1Results[0].narrativeResult.data.model"
               }
             },
             "ResultSelector": {
