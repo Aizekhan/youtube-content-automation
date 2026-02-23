@@ -26,22 +26,38 @@ jobs:
       - name: Check for changes
         id: filter
         run: |
+          # Determine comparison range based on trigger type
+          if [ "${{ github.event_name }}" = "workflow_dispatch" ]; then
+            # Manual trigger: check last commit only
+            COMPARE_RANGE="HEAD~1 HEAD"
+          else
+            # Auto trigger: check last 5 commits (but only if they exist)
+            if git rev-parse HEAD~5 >/dev/null 2>&1; then
+              COMPARE_RANGE="HEAD~5 HEAD"
+            else
+              # Fallback to HEAD~1 if not enough commits
+              COMPARE_RANGE="HEAD~1 HEAD"
+            fi
+          fi
+
+          echo "Comparing changes in range: $COMPARE_RANGE"
+
           # Check if Lambda functions changed
-          if git diff --name-only HEAD~5 HEAD | grep -q "^aws/lambda/"; then
+          if git diff --name-only $COMPARE_RANGE | grep -q "^aws/lambda/"; then
             echo "lambda=true" >> $GITHUB_OUTPUT
           else
             echo "lambda=false" >> $GITHUB_OUTPUT
           fi
 
           # Check if frontend changed
-          if git diff --name-only HEAD~5 HEAD | grep -qE "\.(html|css|js)$"; then
+          if git diff --name-only $COMPARE_RANGE | grep -qE "\.(html|css|js)$"; then
             echo "frontend=true" >> $GITHUB_OUTPUT
           else
             echo "frontend=false" >> $GITHUB_OUTPUT
           fi
 
           # Check if Terraform changed
-          if git diff --name-only HEAD~5 HEAD | grep -q "^terraform/"; then
+          if git diff --name-only $COMPARE_RANGE | grep -q "^terraform/"; then
             echo "terraform=true" >> $GITHUB_OUTPUT
           else
             echo "terraform=false" >> $GITHUB_OUTPUT
