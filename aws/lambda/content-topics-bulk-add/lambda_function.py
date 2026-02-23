@@ -100,17 +100,47 @@ def lambda_handler(event, context):
     print("=" * 80)
     print(f"Event: {json.dumps(event, default=str)[:500]}")
 
-    # Extract parameters
-    user_id = event.get('user_id')
-    channel_id = event.get('channel_id')
-    topics_input = event.get('topics', [])
-    default_priority = event.get('default_priority', 100)
-    default_status = event.get('default_status', 'draft')
-    series_id = event.get('series_id')  # NEW: Series support
-    season = event.get('season', 1)
-    auto_detect_episode = event.get('auto_detect_episode', True)
-    tone_suggestion = event.get('tone_suggestion', 'dark')
-    key_elements = event.get('key_elements', [])
+    # Extract parameters from different sources (Function URL, Step Functions, Direct)
+    user_id = None
+    channel_id = None
+    topics_input = []
+    default_priority = 100
+    default_status = 'draft'
+    series_id = None
+    season = 1
+    auto_detect_episode = True
+    tone_suggestion = 'dark'
+    key_elements = []
+
+    # Try body (POST request via Function URL)
+    if 'body' in event and event['body']:
+        try:
+            body = json.loads(event['body']) if isinstance(event['body'], str) else event['body']
+            user_id = body.get('user_id')
+            channel_id = body.get('channel_id')
+            topics_input = body.get('topics', [])
+            default_priority = body.get('default_priority', 100)
+            default_status = body.get('default_status', 'draft')
+            series_id = body.get('series_id')
+            season = body.get('season', 1)
+            auto_detect_episode = body.get('auto_detect_episode', True)
+            tone_suggestion = body.get('tone_suggestion', 'dark')
+            key_elements = body.get('key_elements', [])
+        except json.JSONDecodeError:
+            pass
+
+    # Try direct parameters (Step Functions / Lambda invoke)
+    if not channel_id:
+        user_id = event.get('user_id')
+        channel_id = event.get('channel_id')
+        topics_input = event.get('topics', [])
+        default_priority = event.get('default_priority', 100)
+        default_status = event.get('default_status', 'draft')
+        series_id = event.get('series_id')
+        season = event.get('season', 1)
+        auto_detect_episode = event.get('auto_detect_episode', True)
+        tone_suggestion = event.get('tone_suggestion', 'dark')
+        key_elements = event.get('key_elements', [])
 
     # Validation
     if not user_id:
