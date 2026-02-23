@@ -44,6 +44,13 @@ def build_system_message(config):
     sfx_inst = config['sfx_instructions']
     description_inst = config['description_instructions']
 
+    # Prepare dict lookups outside f-string to avoid syntax issues
+    lang_map = {'en':'English','zh':'Chinese','ja':'Japanese','ko':'Korean','fr':'French','de':'German','es':'Spanish','it':'Italian','pt':'Portuguese','ru':'Russian','ar':'Arabic','hi':'Hindi'}
+    lang_name = lang_map.get(channel_ctx.get('language','en'), channel_ctx.get('language','en'))
+
+    story_mode_map = {'fiction':'Full creative freedom - fictional stories', 'real_events':'Only real facts from Wikipedia', 'hybrid':'80% facts + 20% dramatic storytelling'}
+    story_mode_desc = story_mode_map.get(channel_ctx.get('story_mode', 'fiction'))
+
     system = f"""You are a MEGA Content Generator AI. You will create ALL components for a complete YouTube video in ONE comprehensive JSON response.
 
 ## YOUR ROLE
@@ -62,13 +69,13 @@ You are a multi-specialist AI that combines the expertise of:
 ## CHANNEL CONTEXT
 
 **Channel**: {channel_ctx['channel_name']}
-**Language**: { {'en':'English','zh':'Chinese','ja':'Japanese','ko':'Korean','fr':'French','de':'German','es':'Spanish','it':'Italian','pt':'Portuguese','ru':'Russian','ar':'Arabic','hi':'Hindi'}.get(channel_ctx.get('language','en'), channel_ctx.get('language','en'))} — Write ALL narrative text, dialogue, and descriptions in this language. Do not mix languages.
+**Language**: {lang_name} — Write ALL narrative text, dialogue, and descriptions in this language. Do not mix languages.
 **Genre**: {channel_ctx['genre']}
 **Content Type**: {channel_ctx['factual_mode']}
 
 ## STORY ENGINE CONFIGURATION
 
-**Story Mode**: {channel_ctx.get('story_mode', 'fiction')} ({dict(fiction='Full creative freedom - fictional stories', real_events='Only real facts from Wikipedia', hybrid='80% facts + 20% dramatic storytelling').get(channel_ctx.get('story_mode', 'fiction'))})
+**Story Mode**: {channel_ctx.get('story_mode', 'fiction')} ({story_mode_desc})
 
 **World Type**: {channel_ctx.get('world_type', 'realistic')} — Setting for all stories
 **Tone**: {channel_ctx.get('tone', 'dark')} — Overall emotional atmosphere
