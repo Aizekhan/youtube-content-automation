@@ -9,7 +9,7 @@ const API_BASE = 'https://n8n-creator.space';
 const VASTAI_API_URL = 'https://xmstnomewqj2zlhrgkqxnnhkz40znusc.lambda-url.eu-central-1.on.aws';
 
 // Lambda Function URLs (multi-tenant with CORS)
-const CHANNELS_API = 'https://lr555ui3ycne6lj7opvpqjigce0cvkzu.lambda-url.eu-central-1.on.aws';
+const CHANNELS_API = 'https://ywsop7xk36ir7r3a66fqcphdy40esadg.lambda-url.eu-central-1.on.aws';
 
 // Mови що підтримує Qwen3-TTS (source of truth — matches lang_map in content-audio-qwen3tts)
 // code: ISO 639-1 код -> label: відображення -> tts_name: назва для Qwen3 API
