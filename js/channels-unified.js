@@ -919,89 +919,35 @@ function updateImageProviderInfo() {
     const provider = document.getElementById('image_generation_provider').value;
     const infoBox = document.getElementById('providerInfo');
     const infoText = document.getElementById('providerInfoText');
-    const fluxVariantGroup = document.getElementById('fluxVariantGroup');
-
-    // Show/hide FLUX variant field
-    if (provider.includes('flux')) {
-        fluxVariantGroup.style.display = 'block';
-    } else {
-        fluxVariantGroup.style.display = 'none';
-    }
-
-    // Update info text and box
+    // FLUX variant options removed - using ec2-zimage only
     let info = '';
     let setupInfo = '';
 
-    switch(provider) {
-        case 'aws-bedrock-sdxl':
-            infoText.textContent = ' Працює одразу, не потребує налаштувань';
-            setupInfo = `
-                <div style="padding: 16px; background: #ecfdf5; border: 1px solid #10b981; border-radius: 8px;">
-                    <div style="display: flex; align-items: center; gap: 8px; margin-bottom: 8px;">
-                        <i class="bi bi-check-circle-fill" style="color: #10b981; font-size: 20px;"></i>
-                        <strong style="color: #065f46;">AWS Bedrock SDXL - Готово до використання!</strong>
-                    </div>
-                    <p style="color: #047857; font-size: 13px; margin: 0;">
-                        Надійний провайдер від AWS. Працює одразу після збереження конфігурації. Підходить для невеликих обсягів.
-                    </p>
-                </div>
-            `;
-            break;
+    // Provider info - ec2-zimage only
+    const infoBox = document.getElementById('providerSetupInfo');
+    let setupInfo = '';
+    let infoText = document.querySelector('#imageGenerationSettings .settings-info-text');
 
-        case 'replicate-flux-schnell':
-        case 'replicate-flux-dev':
-            const variant = provider.includes('schnell') ? 'Schnell' : 'Dev';
-            infoText.textContent = ' Потребує API ключ від Replicate';
-            setupInfo = `
-                <div style="padding: 16px; background: #fef3c7; border: 1px solid #f59e0b; border-radius: 8px;">
-                    <div style="display: flex; align-items: center; gap: 8px; margin-bottom: 8px;">
-                        <i class="bi bi-exclamation-triangle-fill" style="color: #f59e0b; font-size: 20px;"></i>
-                        <strong style="color: #92400e;">Replicate FLUX ${variant} - Потребує налаштування</strong>
-                    </div>
-                    <p style="color: #78350f; font-size: 13px; margin-bottom: 12px;">
-                        Щоб використовувати цей провайдер, додайте API ключ Replicate в AWS Secrets Manager:
-                    </p>
-                    <code style="display: block; padding: 12px; background: white; border-radius: 4px; font-size: 12px; overflow-x: auto; color: #1f2937;">
-aws secretsmanager create-secret \\<br>
-&nbsp;&nbsp;--name replicate/api-key \\<br>
-&nbsp;&nbsp;--secret-string '{"api_key":"r8_YOUR_KEY"}' \\<br>
-&nbsp;&nbsp;--region eu-central-1
-                    </code>
-                    <p style="color: #78350f; font-size: 12px; margin-top: 8px; margin-bottom: 0;">
-                         Отримати ключ: <a href="https://replicate.com" target="_blank" style="color: #3b82f6;">replicate.com</a> → Account → API Tokens
-                    </p>
+    if (provider === 'ec2-zimage') {
+        infoText.textContent = 'Z-Image-Turbo - Fast and efficient';
+        setupInfo = `
+            <div style="padding: 16px; background: #dcfce7; border: 1px solid #16a34a; border-radius: 8px;">
+                <div style="display: flex; align-items: center; gap: 8px; margin-bottom: 8px;">
+                    <i class="bi bi-lightning-charge" style="color: #16a34a; font-size: 20px;"></i>
+                    <strong style="color: #166534;">EC2 Z-Image-Turbo</strong>
                 </div>
-            `;
-            break;
-
-        case 'vast-ai-flux-schnell':
-            infoText.textContent = ' Керуйте GPU instance через панель нижче';
-            setupInfo = `
-                <div style="padding: 16px; background: #e0e7ff; border: 1px solid #6366f1; border-radius: 8px;">
-                    <div style="display: flex; align-items: center; gap: 8px; margin-bottom: 8px;">
-                        <i class="bi bi-gpu-card" style="color: #6366f1; font-size: 20px;"></i>
-                        <strong style="color: #3730a3;">Vast.ai FLUX - Найдешевше рішення! </strong>
-                    </div>
-                    <p style="color: #3730a3; font-size: 13px; margin-bottom: 8px;">
-                         Економія до 95%! |  RTX 3060 12GB |  FLUX Schnell
-                    </p>
-                    <p style="color: #4338ca; font-size: 12px; margin: 0;">
-                        Використовуйте панель керування нижче для старту/зупинки GPU instance
-                    </p>
-                </div>
-            `;
-            // Show Vast.ai control panel
-            document.getElementById('vastaiControlPanel').style.display = 'block';
-            // Refresh status
-            setTimeout(refreshVastaiStatus, 500);
-            break;
-        default:
-            // Hide Vast.ai panel for other providers
-            document.getElementById('vastaiControlPanel').style.display = 'none';
+                <p style="color: #166534; font-size: 13px; margin-bottom: 8px;">
+                    Fast image generation (~5s per image) | g5.xlarge GPU
+                </p>
+                <p style="color: #15803d; font-size: 12px; margin: 0;">
+                    Managed automatically by Step Functions
+                </p>
+            </div>
+        `;
+    } else {
+        infoText.textContent = 'Unknown provider - using ec2-zimage';
+        setupInfo = '<p style="color: #dc2626;">Unknown provider. Please select ec2-zimage.</p>';
     }
-
-    infoBox.innerHTML = setupInfo;
-
     // Update cost estimate
     updateImageCostEstimate();
 }
@@ -1015,11 +961,7 @@ function updateImageCostEstimate() {
 
     // Cost per image based on provider and quality
     const costs = {
-        'aws-bedrock-sdxl': quality === 'premium' ? 0.036 : 0.018,
-        'replicate-flux-schnell': 0.003,
-        'replicate-flux-dev': 0.025,
-        'vast-ai-flux-schnell': 0.0012
-    };
+            };
 
     const costPerImage = costs[provider] || 0.018;
     const scenesPerVideo = 10; // Average
@@ -1094,8 +1036,6 @@ function loadImageGenerationSettings(config) {
         if (imageGen.steps !== undefined) {
             document.getElementById('image_generation_steps').value = imageGen.steps;
         }
-        if (imageGen.flux_variant) {
-            document.getElementById('image_generation_flux_variant').value = imageGen.flux_variant;
         }
 
         updateImageProviderInfo();
@@ -1154,7 +1094,6 @@ function saveImageGenerationSettings() {
         imageGen.quality = document.getElementById('image_generation_quality').value;
         imageGen.cfg_scale = parseFloat(document.getElementById('image_generation_cfg_scale').value);
         imageGen.steps = parseInt(document.getElementById('image_generation_steps').value);
-        imageGen.flux_variant = document.getElementById('image_generation_flux_variant').value;
     }
 
     return imageGen;

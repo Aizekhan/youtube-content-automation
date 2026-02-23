@@ -667,37 +667,41 @@
                     </div>
                 </div>
 
-                <!-- FLUX EC2 Health Monitoring -->
-                <div class="card mb-4">
-                    <div class="card-header d-flex justify-content-between align-items-center">
-                        <span>
-                            <i class="bi bi-gpu-card"></i> FLUX EC2 Instance Status
-                        </span>
-                        <span id="sd35-health-timestamp" style="font-size: 0.85rem; color: var(--text-secondary);">
-                            Last checked: -
-                        </span>
-                    </div>
-                    <div class="card-body">
-                        <div class="row">
-                            <!-- EC2 Instance Status -->
-                            <div class="col-md-3">
-                                <div class="stat-card">
-                                    <div style="font-size: 0.9rem; color: var(--text-secondary); margin-bottom: 0.5rem;">EC2 Instance</div>
-                                    <div id="sd35-ec2-status" class="stat-value" style="font-size: 1.2rem;">
-                                        <i class="bi bi-hourglass-split"></i> Loading...
+                <!-- Z-Image EC2 Health Monitoring -->
+                        <div class="health-card" id="zimageHealthCard">
+                            <div class="health-card-header">
+                                <i class="bi bi-gpu-card"></i> Z-Image EC2 Instance Status
+                            </div>
+                            <div class="health-card-body">
+                                <div id="zimageStatus" class="status-badge status-unknown">
+                                    <i class="bi bi-question-circle"></i> Checking...
+                                </div>
+
+                                <div class="health-details" id="zimageDetails">
+                                    <div class="detail-row">
+                                        <span class="detail-label">Instance:</span>
+                                        <span class="detail-value" id="zimageInstance">-</span>
                                     </div>
-                                    <div id="sd35-ec2-id" style="font-size: 0.75rem; color: var(--text-secondary); margin-top: 0.5rem;">-</div>
+                                    <div class="detail-row">
+                                        <span class="detail-label">Model:</span>
+                                        <span class="detail-value">Z-Image-Turbo</span>
+                                    </div>
+                                    <div class="detail-row">
+                                        <span class="detail-label">Speed:</span>
+                                        <span class="detail-value">~5s per image</span>
+                                    </div>
                                 </div>
                             </div>
+                        </div>
 
-                            <!-- FLUX Model Status -->
+                            <!-- Z-Image Model Status -->
                             <div class="col-md-3">
                                 <div class="stat-card">
-                                    <div style="font-size: 0.9rem; color: var(--text-secondary); margin-bottom: 0.5rem;">FLUX Model</div>
-                                    <div id="sd35-model-status" class="stat-value" style="font-size: 1.2rem;">
+                                    <div style="font-size: 0.9rem; color: var(--text-secondary); margin-bottom: 0.5rem;">Z-Image Model</div>
+                                    <div id="zimage-old-model-status" class="stat-value" style="font-size: 1.2rem;">
                                         <i class="bi bi-hourglass-split"></i> Checking...
                                     </div>
-                                    <div id="sd35-model-details" style="font-size: 0.75rem; color: var(--text-secondary); margin-top: 0.5rem;">-</div>
+                                    <div id="zimage-old-model-details" style="font-size: 0.75rem; color: var(--text-secondary); margin-top: 0.5rem;">-</div>
                                 </div>
                             </div>
 
@@ -705,10 +709,10 @@
                             <div class="col-md-3">
                                 <div class="stat-card">
                                     <div style="font-size: 0.9rem; color: var(--text-secondary); margin-bottom: 0.5rem;">GPU</div>
-                                    <div id="sd35-gpu-info" class="stat-value" style="font-size: 1.2rem;">
+                                    <div id="zimage-old-gpu-info" class="stat-value" style="font-size: 1.2rem;">
                                         <i class="bi bi-gpu-card"></i> -
                                     </div>
-                                    <div id="sd35-gpu-memory" style="font-size: 0.75rem; color: var(--text-secondary); margin-top: 0.5rem;">-</div>
+                                    <div id="zimage-old-gpu-memory" style="font-size: 0.75rem; color: var(--text-secondary); margin-top: 0.5rem;">-</div>
                                 </div>
                             </div>
 
@@ -716,11 +720,11 @@
                             <div class="col-md-3">
                                 <div class="stat-card">
                                     <div style="font-size: 0.9rem; color: var(--text-secondary); margin-bottom: 0.5rem;">API Endpoint</div>
-                                    <div id="sd35-api-url" class="stat-value" style="font-size: 0.9rem; word-break: break-all;">
+                                    <div id="zimage-old-api-url" class="stat-value" style="font-size: 0.9rem; word-break: break-all;">
                                         -
                                     </div>
                                     <div style="font-size: 0.75rem; margin-top: 0.5rem;">
-                                        <a href="#" id="sd35-health-link" target="_blank" style="display: none;">
+                                        <a href="#" id="zimage-old-health-link" target="_blank" style="display: none;">
                                             <i class="bi bi-box-arrow-up-right"></i> Test Health
                                         </a>
                                     </div>
@@ -1157,12 +1161,12 @@
     <script src="js/navigation.js?v=20260221-0500"></script>
     <script>
         // API URLs
-        const API_URL = 'https://e2c5y2h1qj.execute-api.eu-central-1.amazonaws.com/prod';
+        const API_URL = 'https://7jc3xyyugq6bknqzr7viz2vd4q0qwlet.lambda-url.eu-central-1.on.aws';
         const CHANNELS_API_URL = 'https://ywsop7xk36ir7r3a66fqcphdy40esadg.lambda-url.eu-central-1.on.aws/';
         const DEBUG_API_URL = 'https://huooyve5uullyeh7safuexpawm0jidlu.lambda-url.eu-central-1.on.aws/';
         const SCHEMA_VALIDATOR_URL = 'https://qweb5zj34pftappyn3bqxt77qa0rkyii.lambda-url.eu-central-1.on.aws/';
         const TRIGGER_API_URL = 'https://qqlkgo62xbfcrsatii2g464dby0ibchd.lambda-url.eu-central-1.on.aws/';
-        const SD35_HEALTH_API_URL = 'https://dteaeahrmufib6yzhanlf2euoy0jkkrl.lambda-url.eu-central-1.on.aws/';
+        // SD35 removed;
 
         let currentExecutions = [];
         let currentLogs = [];

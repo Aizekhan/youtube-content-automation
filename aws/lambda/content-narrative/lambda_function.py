@@ -480,7 +480,7 @@ def lambda_handler(event, context):
 
         # 10. Get image provider from channel config (Templates system removed)
         image_generation_config = channel_config.get('image_generation', {})
-        image_provider = image_generation_config.get('provider', 'ec2-sd35')
+        image_provider = image_generation_config.get('provider', 'ec2-zimage')
 
         # 11. Return output for Step Functions
         print("\n Building output...")

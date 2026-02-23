@@ -11,46 +11,25 @@ import os
 # Add shared directory to path
 sys.path.insert(0, os.path.join(os.path.dirname(__file__), 'shared'))
 
-bedrock_runtime = boto3.client('bedrock-runtime', region_name='eu-central-1')
 s3 = boto3.client('s3', region_name='eu-central-1')
 secrets_client = boto3.client('secretsmanager', region_name='eu-central-1')
 dynamodb = boto3.resource('dynamodb', region_name='eu-central-1')
 cost_table = dynamodb.Table('CostTracking')
-lambda_client = boto3.client('lambda', region_name='eu-central-1')
 
-# Helper function to convert DynamoDB Decimal to JSON-serializable types
 def decimal_default(obj):
     """Convert Decimal to float for JSON serialization"""
     if isinstance(obj, Decimal):
         return float(obj)
     raise TypeError(f"Object of type {type(obj)} is not JSON serializable")
 
-# Global variable for EC2 endpoint (passed from Step Functions state)
 EC2_ENDPOINT = None
+S3_BUCKET = 'youtube-automation-audio-files'
+S3_IMAGES_PREFIX = 'images'
 
-S3_BUCKET = 'youtube-automation-audio-files'  # Використовуємо існуючий bucket
-S3_IMAGES_PREFIX = 'images'  # Підпапка для зображень
-
-# Pricing for different providers (USD)
 PRICING = {
-    'aws-bedrock-sdxl': {
-        'standard': 0.018,
-        'premium': 0.036
-    },
-    'aws-bedrock-nova-canvas': {
-        'standard-1024': 0.04,
-        'premium-1024': 0.06,
-        'standard-2048': 0.06,
-        'premium-2048': 0.08
-    },
     'ec2-zimage': {
-        'hourly_rate': 1.006,  # g5.xlarge
-        'images_per_hour': 720  # ~5 seconds per image (10x faster than SD3.5)
-    },
-    # Deprecated: SD3.5 replaced by Z-Image-Turbo
-    'ec2-sd35': {
-        'hourly_rate': 1.006,  # g5.xlarge
-        'images_per_hour': 85.7  # ~42 seconds per image (28 steps)
+        'hourly_rate': 1.006,
+        'images_per_hour': 720
     }
 }
 
@@ -58,7 +37,6 @@ def log_image_cost(channel_id, content_id, provider, num_images, cost_per_image,
     """Log image generation cost to CostTracking table"""
     try:
         total_cost = Decimal(str(num_images * cost_per_image))
-
         now = datetime.utcnow()
         date_str = now.strftime('%Y-%m-%d')
         timestamp = now.isoformat() + 'Z'
@@ -79,153 +57,92 @@ def log_image_cost(channel_id, content_id, provider, num_images, cost_per_image,
             }
         }
 
-        # Add user_id for multi-tenant support
         if user_id:
             item['user_id'] = user_id
-            print(f" Logged {provider} cost for user {user_id}: ${float(total_cost):.6f} ({num_images} images)")
+            print(f"✅ Logged cost for user {user_id}: ${float(total_cost):.6f}")
         else:
-            print(f"  Logging {provider} cost WITHOUT user_id: ${float(total_cost):.6f} ({num_images} images)")
+            print(f"⚠️  Logging cost WITHOUT user_id: ${float(total_cost):.6f}")
 
         cost_table.put_item(Item=item)
         return float(total_cost)
     except Exception as e:
-        print(f" Failed to log cost: {str(e)}")
+        print(f"❌ Failed to log cost: {e}")
         return 0.0
 
-def generate_with_bedrock_sdxl(prompt, image_config):
-    """Generate image using AWS Bedrock Stable Diffusion XL"""
+def generate_with_ec2_zimage(prompt, image_config):
+    """Generate image using EC2 Z-Image-Turbo"""
+    global EC2_ENDPOINT
     try:
-        quality = image_config.get('quality', 'standard')
-        width = image_config.get('width', 1024)
-        height = image_config.get('height', 1024)
+        if EC2_ENDPOINT:
+            endpoint_data = EC2_ENDPOINT
+            if isinstance(endpoint_data, dict) and 'body' in endpoint_data:
+                body = endpoint_data['body']
+                if isinstance(body, str):
+                    body = json.loads(body)
+                ec2_endpoint = body.get('endpoint', '')
+            elif isinstance(endpoint_data, str):
+                ec2_endpoint = endpoint_data
+            else:
+                ec2_endpoint = endpoint_data.get('endpoint', '')
+        else:
+            secret = secrets_client.get_secret_value(SecretId='ec2-zimage-endpoint')
+            ec2_endpoint = secret['SecretString']
 
-        # Prepare request for SDXL
+        if ec2_endpoint.startswith('http://'):
+            parts = ec2_endpoint.replace('http://', '').split(':')
+            api_host = parts[0]
+            api_port = int(parts[1].split('/')[0]) if len(parts) > 1 else 5000
+        else:
+            api_host = ec2_endpoint
+            api_port = 5000
+
+        width = int(image_config.get('width', 1024))
+        height = int(image_config.get('height', 576))
+
         request_body = {
-            "text_prompts": [{"text": prompt}],
-            "cfg_scale": image_config.get('cfg_scale', 7),
-            "steps": image_config.get('steps', 50),
-            "seed": image_config.get('seed', 0),
+            "prompt": prompt,
             "width": width,
-            "height": height
+            "height": height,
+            "steps": int(image_config.get('steps', 4))
         }
 
-        # Call Bedrock
-        response = bedrock_runtime.invoke_model(
-            modelId='stability.stable-diffusion-xl-v1',
-            body=json.dumps(request_body, default=decimal_default)
-        )
+        print(f"🎨 Calling Z-Image at {api_host}:{api_port}")
 
-        response_body = json.loads(response['body'].read())
+        conn = http.client.HTTPConnection(api_host, api_port, timeout=60)
+        headers = {'Content-Type': 'application/json'}
 
-        # Extract base64 image
-        image_base64 = response_body.get('artifacts', [{}])[0].get('base64')
+        conn.request('POST', '/generate', body=json.dumps(request_body), headers=headers)
+        response = conn.getresponse()
+        response_data = response.read()
 
-        if not image_base64:
-            raise Exception("No image returned from Bedrock SDXL")
+        if response.status != 200:
+            raise Exception(f"Z-Image API Error: {response.status}")
 
-        # Decode image
-        image_bytes = base64.b64decode(image_base64)
+        content_type = response.getheader('Content-Type', '')
+        if 'image/png' not in content_type:
+            raise Exception(f"Unexpected content type: {content_type}")
 
-        cost = PRICING['aws-bedrock-sdxl'][quality]
+        image_bytes = response_data
+        cost = PRICING['ec2-zimage']['hourly_rate'] / PRICING['ec2-zimage']['images_per_hour']
+
+        print(f"✅ Image generated ({width}x{height}, ${cost:.6f})")
 
         return {
             'image_bytes': image_bytes,
             'cost': cost,
-            'provider': 'aws-bedrock-sdxl',
+            'provider': 'ec2-zimage',
             'width': width,
             'height': height
         }
 
     except Exception as e:
-        print(f" Bedrock SDXL generation failed: {str(e)}")
+        print(f"❌ Z-Image generation failed: {e}")
         raise
-
-# DEPRECATED: generate_with_replicate_flux() removed
-
-
-
-
-def generate_with_ec2_sd35(prompt, image_config):
-    """Generate image using EC2 SD 3.5 Medium (g5.xlarge)"""
-    return generate_with_ec2_flux(prompt, image_config, provider='ec2-sd35')
-
-
-def generate_with_ec2_zimage(prompt, image_config):
-    """Generate image using EC2 Z-Image-Turbo (g5.xlarge - 10x faster than SD3.5)"""
-    return generate_with_ec2_flux(prompt, image_config, provider='ec2-zimage')
-
-
-# DEPRECATED: Vast.ai functions removed
-
-
-
-# EC2 SD35 Control Functions
-def start_ec2_sd35():
-    """Start EC2 SD3.5 instance via ec2-sd35-control Lambda"""
-    try:
-        print(" Starting EC2 SD35 instance...")
-        response = lambda_client.invoke(
-            FunctionName='ec2-sd35-control',
-            InvocationType='RequestResponse',
-            Payload=json.dumps({'action': 'start'})
-        )
-        
-        result = json.loads(response['Payload'].read())
-        body = json.loads(result.get('body', '{}' ))
-        
-        endpoint = body.get('endpoint')
-        print(f" EC2 started: {endpoint}")
-        return endpoint
-    except Exception as e:
-        print(f" Failed to start EC2: {e}")
-        raise
-
-
-def check_ec2_sd35_status():
-    """Check if EC2 SD3.5 instance is running"""
-    try:
-        response = lambda_client.invoke(
-            FunctionName='ec2-sd35-control',
-            InvocationType='RequestResponse',
-            Payload=json.dumps({'action': 'status'})
-        )
-        
-        result = json.loads(response['Payload'].read())
-        body = json.loads(result.get('body', '{}'))
-        
-        return body.get('state') == 'running'
-    except Exception as e:
-        print(f"Failed to check EC2 status: {e}")
-        return False
-
-def stop_ec2_sd35():
-    """Stop EC2 SD3.5 instance via ec2-sd35-control Lambda (async)"""
-    try:
-        print("Stopping EC2 SD35 instance (async)...")
-        lambda_client.invoke(
-            FunctionName='ec2-sd35-control',
-            InvocationType='Event',
-            Payload=json.dumps({'action': 'stop'})
-        )
-        print(" EC2 stop initiated")
-    except Exception as e:
-        print(f"  Failed to stop EC2 (non-critical): {e}")
-
 
 def wait_for_image_service(endpoint, max_wait=120):
-    """
-    Wait until Z-Image/EC2 image service is ready to accept requests.
-    EC2 instance can be 'running' but the ML service takes 30-120s to start.
-
-    Args:
-        endpoint: EC2 endpoint URL (e.g. 'http://IP:5000') or dict
-        max_wait: Max seconds to wait (default 120)
-    Returns:
-        True if service ready, False if timed out
-    """
+    """Wait for Z-Image service to be ready"""
     import time
 
-    # Parse host:port from endpoint
     if isinstance(endpoint, dict):
         ep_str = endpoint.get('endpoint', '') or ''
     else:
@@ -240,10 +157,9 @@ def wait_for_image_service(endpoint, max_wait=120):
         port = 5000
 
     if not host:
-        print('wait_for_image_service: no endpoint, skipping wait')
         return True
 
-    print(f'Waiting for image service at {host}:{port} (max {max_wait}s)...')
+    print(f'⏳ Waiting for Z-Image service at {host}:{port}...')
     waited = 0
     interval = 10
 
@@ -254,149 +170,34 @@ def wait_for_image_service(endpoint, max_wait=120):
             resp = conn.getresponse()
             resp.read()
             conn.close()
-            print(f'Image service ready after {waited}s (HTTP {resp.status})')
+            print(f'✅ Service ready after {waited}s')
             return True
-        except Exception as e:
-            err_str = str(e)
-            if 'refused' in err_str.lower() or 'timed out' in err_str.lower():
-                print(f'Service not ready ({waited}/{max_wait}s), retrying in {interval}s...')
-            else:
-                print(f'Image service responded after {waited}s: {err_str[:60]}')
-                return True
+        except Exception:
+            print(f'⏳ Not ready ({waited}/{max_wait}s), retrying...')
         time.sleep(interval)
         waited += interval
 
-    print(f'WARNING: Image service not ready after {max_wait}s, attempting anyway')
+    print(f'⚠️  WARNING: Service not ready after {max_wait}s')
     return False
 
-
-def generate_with_ec2_flux(prompt, image_config, provider='ec2-flux-schnell'):
-    """
-    Generate image using EC2 instance (SD3.5, Z-Image, or FLUX)
-
-    Args:
-        prompt: Image generation prompt
-        image_config: Image configuration (width, height, steps, etc.)
-        provider: Provider identifier for cost calculation (e.g., 'ec2-sd35', 'ec2-zimage')
-    """
-    global EC2_ENDPOINT
-    try:
-        # Get EC2 endpoint from global variable (Step Functions) or Secrets Manager
-        if EC2_ENDPOINT:
-            print(f" Using EC2 endpoint from Step Functions state")
-            # Parse endpoint from Step Functions Payload
-            endpoint_data = EC2_ENDPOINT
-            if isinstance(endpoint_data, dict) and 'body' in endpoint_data:
-                import json as json_module
-                body = endpoint_data['body']
-                if isinstance(body, str):
-                    body = json_module.loads(body)
-                ec2_endpoint = body.get('endpoint', '')
-            elif isinstance(endpoint_data, str):
-                ec2_endpoint = endpoint_data
-            else:
-                ec2_endpoint = endpoint_data.get('endpoint', '')
-            print(f"   Endpoint from state: {ec2_endpoint}")
-        else:
-            print(f" Using EC2 endpoint from Secrets Manager (fallback)")
-            secret = secrets_client.get_secret_value(SecretId='ec2-flux-endpoint')
-            ec2_endpoint = secret['SecretString']
-
-        # Parse endpoint (format: "http://IP:PORT/generate")
-        if ec2_endpoint.startswith('http://'):
-            parts = ec2_endpoint.replace('http://', '').split(':')
-            flux_api_host = parts[0]
-            flux_api_port = int(parts[1].split('/')[0]) if len(parts) > 1 else 8000
-        else:
-            flux_api_host = ec2_endpoint
-            flux_api_port = 8000
-
-        # Extract dimensions from image_config
-        width = int(image_config.get('width', 1024))
-        height = int(image_config.get('height', 1024))
-
-        # Call FLUX endpoint on EC2 instance
-        request_body = {
-            "prompt": prompt,
-            "width": width,
-            "height": height,
-            "steps": int(image_config.get('steps', 15))  # FLUX schnell optimal: 4-15 steps
-        }
-
-        print(f" Calling EC2 FLUX API at {flux_api_host}:{flux_api_port}")
-        print(f"   Prompt: {prompt[:80]}...")
-
-        conn = http.client.HTTPConnection(flux_api_host, flux_api_port, timeout=180)  # Increased from 90 to 180 for SD35
-        headers = {'Content-Type': 'application/json'}
-
-        conn.request('POST', '/generate', body=json.dumps(request_body), headers=headers)
-        response = conn.getresponse()
-        response_data = response.read()
-
-        if response.status != 200:
-            raise Exception(f"EC2 FLUX API Error: {response.status} - {response_data.decode()}")
-
-        # Response is raw PNG from FastAPI
-        content_type = response.getheader('Content-Type', '')
-        if 'image/png' in content_type:
-            image_bytes = response_data
-        else:
-            raise Exception(f"Unexpected content type: {content_type}")
-
-        # Calculate cost dynamically based on provider pricing
-        if provider in PRICING and 'hourly_rate' in PRICING[provider]:
-            provider_config = PRICING[provider]
-            cost = provider_config['hourly_rate'] / provider_config['images_per_hour']
-        else:
-            # Fallback to ec2-sd35 pricing if provider not found
-            cost = PRICING['ec2-sd35']['hourly_rate'] / PRICING['ec2-sd35']['images_per_hour']
-
-        print(f" Image generated successfully ({width}x{height}, cost: ${cost:.6f})")
-
-        return {
-            'image_bytes': image_bytes,
-            'cost': cost,
-            'provider': provider,  # Use the passed provider parameter
-            'width': width,
-            'height': height
-        }
-
-    except Exception as e:
-        print(f" EC2 FLUX generation failed: {str(e)}")
-        raise
-
-# DEPRECATED: generate_with_vast_ai() removed
-
 def get_dimensions_from_aspect_ratio(aspect_ratio, resolution_hint=None):
-    """
-    Convert aspect ratio string to width/height tuple
-
-    Args:
-        aspect_ratio: String like '16:9', '4:3', '1:1', '9:16'
-        resolution_hint: Optional string like '1280x720', '1920x1080', '720x720'
-
-    Returns:
-        (width, height) tuple
-    """
-    # If resolution_hint is provided, parse it directly
+    """Convert aspect ratio to dimensions"""
     if resolution_hint and 'x' in str(resolution_hint):
         parts = str(resolution_hint).split('x')
         return (int(parts[0]), int(parts[1]))
 
-    # Otherwise calculate from aspect ratio
     aspect_ratio_map = {
-        '16:9': (1920, 1080),   # Standard YouTube HD
-        '9:16': (1080, 1920),   # Vertical/Portrait
-        '4:3': (1024, 768),     # Classic 4:3
-        '1:1': (1024, 1024),    # Square
-        '21:9': (2560, 1080),   # Ultra-wide
+        '16:9': (1024, 576),
+        '9:16': (576, 1024),
+        '4:3': (768, 576),
+        '1:1': (768, 768),
+        '21:9': (1152, 512),
     }
 
-    # Default to 16:9 if not found
-    return aspect_ratio_map.get(aspect_ratio, (1920, 1080))
+    return aspect_ratio_map.get(aspect_ratio, (1024, 576))
 
 def upload_to_s3(image_bytes, channel_id, narrative_id, scene_id):
-    """Upload image to S3 and return URL"""
+    """Upload image to S3"""
     try:
         timestamp = datetime.utcnow().strftime('%Y%m%d_%H%M%S')
         key = f"{S3_IMAGES_PREFIX}/{channel_id}/{narrative_id}/scene_{scene_id}_{timestamp}.png"
@@ -411,7 +212,7 @@ def upload_to_s3(image_bytes, channel_id, narrative_id, scene_id):
         s3_url = f"s3://{S3_BUCKET}/{key}"
         https_url = f"https://{S3_BUCKET}.s3.eu-central-1.amazonaws.com/{key}"
 
-        print(f" Uploaded image to S3: {key}")
+        print(f"📤 Uploaded: {key}")
 
         return {
             's3_url': s3_url,
@@ -420,7 +221,7 @@ def upload_to_s3(image_bytes, channel_id, narrative_id, scene_id):
         }
 
     except Exception as e:
-        print(f" Failed to upload to S3: {str(e)}")
+        print(f"❌ Upload failed: {e}")
         raise
 
 def handle_multi_channel_batch(all_prompts, provider, user_id=None):
@@ -561,17 +362,6 @@ def handle_multi_channel_batch(all_prompts, provider, user_id=None):
 
         try:
             # Generate image based on provider
-            if provider == 'ec2-flux' or provider.startswith('ec2-flux'):
-                result = generate_with_ec2_flux(prompt, image_config, provider=provider)
-            elif provider == 'ec2-sd35' or provider.startswith('ec2-sd35'):
-                result = generate_with_ec2_sd35(prompt, image_config)
-            elif provider == 'ec2-zimage' or provider.startswith('ec2-zimage'):
-                result = generate_with_ec2_zimage(prompt, image_config)
-            elif provider == 'aws-bedrock-sdxl':
-                result = generate_with_bedrock_sdxl(prompt, image_config)
-            else:
-                print(f"  Unknown provider '{provider}', falling back to EC2 FLUX")
-                result = generate_with_ec2_flux(prompt, image_config, provider=provider)
 
             # Upload to S3
             upload_result = upload_to_s3(
@@ -737,7 +527,7 @@ def lambda_handler(event, context):
         print(f"   Total prompts from all channels: {len(all_prompts)}")
 
         # Extract provider and EC2 endpoint from event (passed by Step Functions)
-        provider = event.get('provider', 'ec2-flux')
+        provider = event.get('provider', 'ec2-zimage')
 
         # Set global EC2 endpoint if provided
         global EC2_ENDPOINT
@@ -798,7 +588,6 @@ def lambda_handler(event, context):
 
         # 2. Get image generation settings from channel config
         image_settings = channel_config.get('image_generation', {})
-        provider = image_settings.get('provider', 'vast-ai-flux')  # Default to Vast.ai FLUX (Bedrock SDXL not available in eu-central-1)
         quality = image_settings.get('quality', 'standard')
         width = image_settings.get('width', 1024)
         height = image_settings.get('height', 576)  # FLUX default 16:9 aspect ratio
@@ -808,45 +597,13 @@ def lambda_handler(event, context):
 
         # 3. Get API keys if needed
         api_keys = {}
-        if provider.startswith('replicate'):
-            try:
-                secret = secrets_client.get_secret_value(SecretId='replicate/api-key')
-                api_keys['replicate'] = json.loads(secret['SecretString']).get('api_key')
-            except:
-                print("  Replicate API key not found")
-
-        if provider.startswith('vast-ai'):
-            try:
-                secret = secrets_client.get_secret_value(SecretId='vast-ai/config')
-                vast_config = json.loads(secret['SecretString'])
-                api_keys['vast_ai'] = vast_config
-            except:
-                print("  Vast.ai config not found")
-
-        # 4. Auto-start Vast.ai instance if using vast-ai provider
-        vast_instance_started = False
         control_api_url = 'https://xmstnomewqj2zlhrgkqxnnhkz40znusc.lambda-url.eu-central-1.on.aws'
 
-        if provider.startswith('vast-ai') and 'vast_ai' in api_keys:
-            print("\n Checking Vast.ai instance status...")
-            is_running = check_vast_instance_status(control_api_url)
-
-            if not is_running:
-                print("Instance is stopped, starting it now...")
-                start_vast_instance_and_wait(control_api_url, max_wait=120)
-                vast_instance_started = True
-                print("Instance ready for image generation!")
-            else:
                 print("Instance already running")
 
         # 4b. Auto-start EC2 SD35 instance if using ec2-sd35 provider
         ec2_instance_started = False
         
-        if provider.startswith('ec2-sd35'):
-            print("Auto-starting EC2 SD35 instance...")
-            try:
-                start_ec2_sd35()
-                ec2_instance_started = True
                 print("EC2 SD35 instance ready for generation")
             except Exception as e:
                 print(f" Failed to start EC2: {e}")
@@ -879,19 +636,8 @@ def lambda_handler(event, context):
 
             try:
                 # Select generation method based on provider
-                if provider == 'aws-bedrock-sdxl':
-                    result = generate_with_bedrock_sdxl(image_prompt, image_config)
-
-                elif provider.startswith('ec2-flux'):
-                    result = generate_with_ec2_flux(image_prompt, image_config)
-
-                elif provider.startswith('ec2-sd35'):
-                    result = generate_with_ec2_sd35(image_prompt, image_config)
-
-
-                else:
+                
                     print(f"  Unknown provider '{provider}', falling back to EC2 FLUX")
-                    result = generate_with_ec2_flux(image_prompt, image_config)
 
                 # Upload to S3
                 upload_result = upload_to_s3(
@@ -970,10 +716,6 @@ def lambda_handler(event, context):
         print(f"   Failed: {output['images_failed']} images")
         print(f"   Total cost: ${total_cost:.4f}")
 
-        # 7. Auto-stop Vast.ai instance if we started it
-        if vast_instance_started:
-            print("\n Auto-stopping Vast.ai instance to save costs...")
-            stop_vast_instance(control_api_url)
 
         # 7b. Auto-stop EC2 SD35 instance if we started it
         if ec2_instance_started:
@@ -987,10 +729,6 @@ def lambda_handler(event, context):
         import traceback
         traceback.print_exc()
 
-        # Stop Vast.ai instance if we started it (even on error to save costs)
-        if 'vast_instance_started' in locals() and vast_instance_started:
-            print("\n Stopping Vast.ai instance after error to save costs...")
-            stop_vast_instance(control_api_url)
 
         # Stop EC2 SD35 instance if we started it (even on error)
         if 'ec2_instance_started' in locals() and ec2_instance_started:
