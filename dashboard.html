@@ -2704,7 +2704,7 @@
             } else if (tabName === 'monitoring') {
                 refreshExecutions();
                 refreshLogs();
-                checkSD35Health();
+                // checkSD35Health(); // DEPRECATED - SD 3.5 Medium removed
             } else if (tabName === 'debug') {
                 loadChannels();
             }
@@ -2724,7 +2724,7 @@
             // Check if monitoring tab is active
             const monitoringTab = document.getElementById('monitoring');
             if (monitoringTab && monitoringTab.style.display !== 'none') {
-                checkSD35Health();
+                // checkSD35Health(); // DEPRECATED - SD 3.5 Medium removed
             }
         }, 30000);
 
