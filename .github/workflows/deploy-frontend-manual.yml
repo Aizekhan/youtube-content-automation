@@ -1,0 +1,64 @@
+name: Deploy Frontend (Manual)
+
+on:
+  workflow_dispatch:
+    inputs:
+      files:
+        description: 'Files to deploy (space-separated)'
+        required: false
+        default: 'channels.html js/channels-unified.js'
+
+env:
+  AWS_REGION: eu-central-1
+
+jobs:
+  deploy-frontend:
+    name: Deploy Frontend Files
+    runs-on: ubuntu-latest
+
+    steps:
+      - uses: actions/checkout@v3
+
+      - name: Setup SSH key
+        run: |
+          mkdir -p ~/.ssh
+          echo "${{ secrets.SSH_KEY }}" > ~/.ssh/id_rsa
+          chmod 600 ~/.ssh/id_rsa
+          ssh-keyscan -H 3.75.97.188 >> ~/.ssh/known_hosts
+
+      - name: Test SSH connection
+        run: |
+          echo "Testing SSH connection..."
+          ssh -i ~/.ssh/id_rsa -o StrictHostKeyChecking=no ubuntu@3.75.97.188 "echo 'SSH connection successful'" || {
+            echo "❌ SSH connection failed!"
+            exit 1
+          }
+
+      - name: Deploy Frontend files
+        run: |
+          echo "Deploying frontend files..."
+
+          FILES="${{ github.event.inputs.files }}"
+          if [ -z "$FILES" ]; then
+            FILES="channels.html js/channels-unified.js"
+          fi
+
+          echo "Files to deploy: $FILES"
+
+          for file in $FILES; do
+            if [[ "$file" == js/* ]]; then
+              echo "▶ Deploying $file to /home/ubuntu/web-admin/html/js/"
+              scp -i ~/.ssh/id_rsa -o StrictHostKeyChecking=no "$file" ubuntu@3.75.97.188:/home/ubuntu/web-admin/html/js/
+              echo "✅ Successfully deployed $file"
+            elif [[ "$file" == css/* ]]; then
+              echo "▶ Deploying $file to /home/ubuntu/web-admin/html/css/"
+              scp -i ~/.ssh/id_rsa -o StrictHostKeyChecking=no "$file" ubuntu@3.75.97.188:/home/ubuntu/web-admin/html/css/
+              echo "✅ Successfully deployed $file"
+            elif [[ "$file" == *.html ]]; then
+              echo "▶ Deploying $file to /home/ubuntu/web-admin/html/"
+              scp -i ~/.ssh/id_rsa -o StrictHostKeyChecking=no "$file" ubuntu@3.75.97.188:/home/ubuntu/web-admin/html/
+              echo "✅ Successfully deployed $file"
+            fi
+          done
+
+          echo "✅ Frontend deployment completed!"
