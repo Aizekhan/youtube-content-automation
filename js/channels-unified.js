@@ -613,7 +613,9 @@ function populateForm(config) {
         // Story Engine - Story Structure
         'story_structure_mode', 'story_structure_template',
         // Story Engine - Logic & Consistency
-        'generate_plan_before_writing', 'auto_consistency_check', 'character_motivation_validation', 'no_cliches_mode', 'surprise_injection_level'
+        'generate_plan_before_writing', 'auto_consistency_check', 'character_motivation_validation', 'no_cliches_mode', 'surprise_injection_level',
+        // Story Engine v4.0 - Three Phase System
+        'complexity_level', 'narrative_tone'
     ];
     
     fields.forEach(field => {
@@ -668,6 +670,30 @@ function populateForm(config) {
 
     // Sync generation mode cards with saved factual_mode
     setGenerationMode(config.factual_mode || 'fictional');
+
+    // Load Story Engine v4.0 fields
+    // complexity_level slider
+    if (config.complexity_level !== undefined) {
+        const complexitySlider = document.getElementById('complexity_level');
+        if (complexitySlider) {
+            complexitySlider.value = config.complexity_level;
+            updateComplexityHint(config.complexity_level);
+        }
+    }
+
+    // narrative_tone dropdown (already handled by fields loop above)
+
+    // archetype_pool checkboxes
+    if (config.archetype_pool && Array.isArray(config.archetype_pool)) {
+        // Uncheck all first
+        document.querySelectorAll('.archetype-checkbox').forEach(cb => cb.checked = false);
+
+        // Check the ones from config
+        config.archetype_pool.forEach(archetype => {
+            const checkbox = document.querySelector(`.archetype-checkbox[value="${archetype}"]`);
+            if (checkbox) checkbox.checked = true;
+        });
+    }
 }
 
 // REMOVED: initializeTemplateSelects() - Templates system deleted
@@ -750,6 +776,11 @@ async function saveModalConfig() {
     const fields = Array.from(form.querySelectorAll('input, textarea, select'));
     fields.forEach(field => {
         if (field.id) {
+            // Skip archetype checkboxes - will be handled separately
+            if (field.classList.contains('archetype-checkbox')) {
+                return;
+            }
+
             // Handle checkboxes specially
             if (field.type === 'checkbox') {
                 formData.append(field.id, field.checked ? 'true' : 'false');
@@ -763,6 +794,16 @@ async function saveModalConfig() {
             }
         }
     });
+
+    // Save Story Engine v4.0 fields
+    // complexity_level (already handled by fields loop)
+    // narrative_tone (already handled by fields loop)
+
+    // archetype_pool - collect checked archetype checkboxes into JSON array
+    const archetypePool = Array.from(document.querySelectorAll('.archetype-checkbox:checked'))
+        .map(cb => cb.value);
+    formData.append('archetype_pool', JSON.stringify(archetypePool));
+    console.log(` Saving archetype_pool: ${JSON.stringify(archetypePool)}`);
 
     try {
         const response = await fetch('/api/update-channel-config.php', {

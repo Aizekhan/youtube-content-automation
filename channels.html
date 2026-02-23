@@ -500,6 +500,47 @@
         .filter-btn[data-filter="inactive"]:not(.active):hover {
             background: rgba(239, 68, 68, 0.25) !important;
         }
+
+        /* Story Engine Archetype Cards */
+        .archetype-card {
+            display: flex;
+            align-items: start;
+            padding: 12px;
+            background: #f7fafc;
+            border-radius: 8px;
+            cursor: pointer;
+            border: 2px solid transparent;
+            transition: all 0.2s;
+        }
+        .archetype-card:hover {
+            border-color: #667eea;
+            background: #ebf4ff;
+        }
+        .archetype-card input[type="checkbox"] {
+            margin-right: 10px;
+            margin-top: 2px;
+            width: 18px;
+            height: 18px;
+            cursor: pointer;
+        }
+        .archetype-card input[type="checkbox"]:checked ~ .archetype-content {
+            color: #667eea;
+        }
+        .archetype-card input[type="checkbox"]:checked {
+            accent-color: #667eea;
+        }
+        .archetype-content {
+            flex: 1;
+        }
+        .archetype-content strong {
+            color: #2d3748;
+            display: block;
+            margin-bottom: 2px;
+        }
+        .archetype-content span {
+            font-size: 12px;
+            color: #718096;
+        }
     </style>
 </head>
 <body>
@@ -766,146 +807,127 @@
                 </details>
 <!-- ═══ SECTION 5: A/B TESTING (Sprint 3) ═══ -->                <details class="advanced-settings">                    <summary>🧪 A/B Testing - Quality Measurement</summary>                    <div class="advanced-settings-body">                        <!-- Enable A/B Testing -->                        <div class="form-group full">                            <label>                                <input type="checkbox" id="enrichment_ab_enabled" style="margin-right: 8px; width: auto;">                                Enable A/B Testing (50% enriched, 50% baseline)                            </label>                            <span class="field-hint">                                When enabled, half of content will use full enrichment (topic analysis + story DNA),                                and half will skip enrichment for comparison.                            </span>                        </div>                        <!-- A/B Group Assignment -->                        <div class="form-group">                            <label>Current A/B Group</label>                            <select id="enrichment_ab_group">                                <option value="auto">Auto (Random 50/50)</option>                                <option value="A">Force Group A (Enriched)</option>                                <option value="B">Force Group B (Baseline)</option>                            </select>                            <span class="field-hint">Auto = Random assignment per generation</span>                        </div>                        <div class="info-box" style="margin-top: 15px;">                            <strong>📊 How it works:</strong>                            <ul style="margin: 10px 0 0 20px; line-height: 1.8;">                                <li><strong>Group A (Enriched):</strong> Full AI enrichment (genre analysis, story DNA, anti-cliché guards)</li>                                <li><strong>Group B (Baseline):</strong> Simple topic → narrative (no enrichment layers)</li>                                <li><strong>Metrics tracked:</strong> cliché score, vocabulary richness, twist count, engagement</li>                                <li><strong>Purpose:</strong> Measure real impact of enrichment on content quality</li>                            </ul>                        </div>                    </div>                </details>
 
-                <!-- ═══ SECTION 5: STORY DNA ═══ -->
-                <details class="advanced-settings">
-                    <summary>🧬 Story DNA (Характер каналу)</summary>
+                <!-- ═══ SECTION 5: STORY ENGINE v4.0 ═══ -->
+                <details class="advanced-settings" open>
+                    <summary>🎯 Story Engine (Механіки наративу)</summary>
                     <div class="advanced-settings-body">
 
-                        <div class="form-grid">
-
-                            <!-- World Type -->
-                            <div class="form-group full">
-                                <label>🌍 World Type (Тип світу)</label>
-                                <select id="world_type">
-                                    <option value="realistic">Realistic (сучасний реальний світ)</option>
-                                    <option value="medieval_fantasy">Medieval Fantasy (середньовіччя, магія, дракони)</option>
-                                    <option value="cyberpunk">Cyberpunk (майбутнє, технології, неон)</option>
-                                    <option value="anime">Anime (аніме стиль, японська анімація)</option>
-                                    <option value="post_apocalyptic">Post-Apocalyptic (після катастрофи, виживання)</option>
-                                    <option value="alternate_reality">Alternate Reality (альтернативна історія)</option>
-                                </select>
-                                <span class="field-hint">Світ в якому відбуваються історії на каналі</span>
-                            </div>
-
-                            <!-- Tone -->
-                            <div class="form-group full">
-                                <label>🎨 Tone (Емоційна тональність)</label>
-                                <select id="tone">
-                                    <option value="dark">Dark (темний, похмурий, драматичний)</option>
-                                    <option value="emotional">Emotional (емоційний, зворушливий, людяний)</option>
-                                    <option value="epic">Epic (епічний, грандіозний, героїчний)</option>
-                                    <option value="calm">Calm (спокійний, медитативний, філософський)</option>
-                                    <option value="disturbing">Disturbing (тривожний, моторошний, напружений)</option>
-                                </select>
-                                <span class="field-hint">Загальна емоційна атмосфера історій</span>
-                            </div>
-
-                            <!-- Psychological Depth -->
-                            <div class="form-group full">
-                                <label>🧠 Psychological Depth (Психологічна глибина)</label>
-                                <input type="range" id="psychological_depth" min="1" max="5" value="3" step="1"
-                                       oninput="updateSliderValue(this, 'psychological_depth_value')">
-                                <div style="display: flex; justify-content: space-between; margin-top: 8px; font-size: 12px; color: #718096;">
-                                    <span>1 (Поверхнево)</span>
-                                    <span id="psychological_depth_value" style="font-weight: 700; color: #667eea; font-size: 16px;">3</span>
-                                    <span>5 (Дуже глибоко)</span>
-                                </div>
-                                <span class="field-hint">
-                                    1 = проста подача без деталей<br>
-                                    3 = помірна глибина<br>
-                                    5 = складні персонажі, внутрішні конфлікти, філософські питання
-                                </span>
-                            </div>
-
-                            <!-- Plot Intensity -->
-                            <div class="form-group full">
-                                <label>⚡ Plot Intensity (Інтенсивність сюжету)</label>
-                                <input type="range" id="plot_intensity" min="1" max="5" value="4" step="1"
-                                       oninput="updateSliderValue(this, 'plot_intensity_value')">
-                                <div style="display: flex; justify-content: space-between; margin-top: 8px; font-size: 12px; color: #718096;">
-                                    <span>1 (Повільний)</span>
-                                    <span id="plot_intensity_value" style="font-weight: 700; color: #667eea; font-size: 16px;">4</span>
-                                    <span>5 (Дуже швидкий)</span>
-                                </div>
-                                <span class="field-hint">
-                                    1 = повільний, медитативний темп<br>
-                                    3 = збалансований темп<br>
-                                    5 = динамічний екшн, швидкі зміни
-                                </span>
-                            </div>
-
+                        <div class="info-box" style="margin-bottom: 20px; background: #ebf4ff; border-left: 4px solid #667eea;">
+                            <strong>📘 Story Engine v4.0 - Three Phase System</strong><br>
+                            Трифазна система генерації з обов'язковими механіками історії:<br>
+                            • Phase 1a: Вибір архетипу + створення механік<br>
+                            • Phase 1b: Генерація наративу на основі механік<br>
+                            • Phase 1c: Створення image/audio промптів<br>
+                            <span style="color: #667eea; font-weight: 600;">→ Ці налаштування реально впливають на генерацію!</span>
                         </div>
 
-                    </div>
-                </details>
-
-                <!-- ═══ SECTION 6: CHARACTER ENGINE ═══ -->
-                <details class="advanced-settings">
-                    <summary>👤 Character Engine (Персонажі)</summary>
-                    <div class="advanced-settings-body">
-
                         <div class="form-grid">
 
-                            <!-- Character Mode -->
+                            <!-- Complexity Level -->
                             <div class="form-group full">
-                                <label>Режим персонажів</label>
-                                <select id="character_mode">
-                                    <option value="auto_generate">Auto Generate (новий персонаж кожної історії)</option>
-                                    <option value="persistent">Persistent Character (той самий персонаж у всіх відео - серіал)</option>
-                                </select>
-                                <span class="field-hint">
-                                    Auto = кожна історія має унікального персонажа<br>
-                                    Persistent = всі відео про одного персонажа (для серіалів)
-                                </span>
-                            </div>
-
-                            <!-- Character Archetype -->
-                            <div class="form-group full">
-                                <label>Архетип персонажа</label>
-                                <select id="character_archetype">
-                                    <option value="anti_hero">Anti-Hero (анти-герой, моральна двозначність)</option>
-                                    <option value="innocent">Innocent (невинний, чистий, наївний)</option>
-                                    <option value="broken_genius">Broken Genius (геній зі складним минулим)</option>
-                                    <option value="survivor">Survivor (виживач, сильний духом)</option>
-                                    <option value="villain_pov">Villain POV (історія з позиції лиходія)</option>
-                                </select>
-                                <span class="field-hint">Базовий тип персонажа для історій</span>
-                            </div>
-
-                            <!-- Character Features -->
-                            <div class="form-group full">
-                                <label style="display: block; margin-bottom: 10px;">Особливості персонажів</label>
-
-                                <label style="display: block; margin-bottom: 8px; cursor: pointer;">
-                                    <input type="checkbox" id="enable_internal_conflict" style="margin-right: 8px; width: auto;">
-                                    Enable Internal Conflict (внутрішній конфлікт, сумніви)
-                                </label>
-
-                                <label style="display: block; margin-bottom: 8px; cursor: pointer;">
-                                    <input type="checkbox" id="enable_secret" style="margin-right: 8px; width: auto;">
-                                    Enable Character Secret (персонаж має таємницю)
-                                </label>
-
-                                <span class="field-hint">
-                                    Internal Conflict = персонаж має внутрішню боротьбу, сумніви<br>
-                                    Character Secret = у персонажа є прихована таємниця
-                                </span>
-                            </div>
-
-                            <!-- Moral Dilemma Level -->
-                            <div class="form-group full">
-                                <label>⚖️ Moral Dilemma Level (Рівень моральних дилем)</label>
-                                <input type="range" id="moral_dilemma_level" min="1" max="5" value="3" step="1"
-                                       oninput="updateSliderValue(this, 'moral_dilemma_level_value')">
+                                <label>📊 Complexity Level (Складність наративу)</label>
+                                <input type="range" id="complexity_level" min="1" max="10" value="5" step="1"
+                                       oninput="updateComplexityHint(this.value)">
                                 <div style="display: flex; justify-content: space-between; margin-top: 8px; font-size: 12px; color: #718096;">
-                                    <span>1 (Просто)</span>
-                                    <span id="moral_dilemma_level_value" style="font-weight: 700; color: #667eea; font-size: 16px;">3</span>
-                                    <span>5 (Складно)</span>
+                                    <span>1 (Простий)</span>
+                                    <span id="complexity_value" style="font-weight: 700; color: #667eea; font-size: 18px;">5</span>
+                                    <span>10 (Складний)</span>
                                 </div>
-                                <span class="field-hint">
-                                    1 = прості вибори (добро vs зло)<br>
-                                    5 = складні моральні дилеми без правильної відповіді
+                                <div id="complexity_hint" style="margin-top: 10px; padding: 12px; background: #f7fafc; border-radius: 6px; font-size: 13px; color: #2d3748; border-left: 3px solid #667eea;">
+                                    <strong>Рівень 5:</strong> Стандартна глибина з психологічними елементами. Модель: GPT-4o-mini
+                                </div>
+                                <span class="field-hint" style="margin-top: 10px; display: block;">
+                                    <strong>1-3:</strong> Прості зрозумілі історії (GPT-4o-mini, швидко, дешево)<br>
+                                    <strong>4-6:</strong> Психологічна глибина, емоційні дуги (GPT-4o-mini)<br>
+                                    <strong>7-10:</strong> Складні багатошарові наративи з підтекстом (GPT-4o, дорожче але глибше)
                                 </span>
+                            </div>
+
+                            <!-- Archetype Pool -->
+                            <div class="form-group full">
+                                <label>🎭 Archetype Pool (Дозволені архетипи історій)</label>
+                                <div id="archetype-checkboxes" style="display: grid; grid-template-columns: 1fr 1fr; gap: 12px; margin-top: 10px;">
+
+                                    <label class="archetype-card" data-archetype="inversion_of_source">
+                                        <input type="checkbox" class="archetype-checkbox" value="inversion_of_source">
+                                        <div class="archetype-content">
+                                            <strong>Інверсія джерела</strong><br>
+                                            <span>Рішення проблеми стає проблемою</span>
+                                        </div>
+                                    </label>
+
+                                    <label class="archetype-card" data-archetype="mistaken_identity_of_evil">
+                                        <input type="checkbox" class="archetype-checkbox" value="mistaken_identity_of_evil">
+                                        <div class="archetype-content">
+                                            <strong>Помилкова ідентифікація зла</strong><br>
+                                            <span>Ворог насправді потрібен герою</span>
+                                        </div>
+                                    </label>
+
+                                    <label class="archetype-card" data-archetype="cost_of_winning">
+                                        <input type="checkbox" class="archetype-checkbox" value="cost_of_winning">
+                                        <div class="archetype-content">
+                                            <strong>Ціна перемоги</strong><br>
+                                            <span>Успіх перетворює на ворога</span>
+                                        </div>
+                                    </label>
+
+                                    <label class="archetype-card" data-archetype="inherited_sin">
+                                        <input type="checkbox" class="archetype-checkbox" value="inherited_sin">
+                                        <div class="archetype-content">
+                                            <strong>Успадкований гріх</strong><br>
+                                            <span>Виправлення минулого повторює помилку</span>
+                                        </div>
+                                    </label>
+
+                                    <label class="archetype-card" data-archetype="catalyst_sacrifice">
+                                        <input type="checkbox" class="archetype-checkbox" value="catalyst_sacrifice">
+                                        <div class="archetype-content">
+                                            <strong>Жертва каталізатора</strong><br>
+                                            <span>Вчитель жертвує тим чому навчає</span>
+                                        </div>
+                                    </label>
+
+                                    <label class="archetype-card" data-archetype="reluctant_transformation">
+                                        <input type="checkbox" class="archetype-checkbox" value="reluctant_transformation">
+                                        <div class="archetype-content">
+                                            <strong>Небажана трансформація</strong><br>
+                                            <span>Зміна якій опираєшся вже відбулась</span>
+                                        </div>
+                                    </label>
+
+                                    <label class="archetype-card" data-archetype="protector_paradox">
+                                        <input type="checkbox" class="archetype-checkbox" value="protector_paradox">
+                                        <div class="archetype-content">
+                                            <strong>Парадокс захисника</strong><br>
+                                            <span>Безпека створює небезпеку</span>
+                                        </div>
+                                    </label>
+
+                                    <label class="archetype-card" data-archetype="delayed_consequence">
+                                        <input type="checkbox" class="archetype-checkbox" value="delayed_consequence">
+                                        <div class="archetype-content">
+                                            <strong>Відкладені наслідки</strong><br>
+                                            <span>Ціна з'являється набагато пізніше</span>
+                                        </div>
+                                    </label>
+
+                                </div>
+                                <span class="field-hint" style="margin-top: 12px; display: block;">
+                                    <strong>Оберіть 2-4 архетипи</strong> для цього каналу. AI обиратиме найбільш підходящий для кожної теми.<br>
+                                    Якщо нічого не обрано - використовуються дефолтні архетипи для вашого жанру.
+                                </span>
+                            </div>
+
+                            <!-- Narrative Tone -->
+                            <div class="form-group full">
+                                <label>🎨 Narrative Tone (Емоційна тональність)</label>
+                                <select id="narrative_tone">
+                                    <option value="neutral">Neutral - Збалансований, об'єктивний, аналітичний</option>
+                                    <option value="dark">Dark - Темний, похмурий, драматичний</option>
+                                    <option value="inspiring">Inspiring - Надихаючий, оптимістичний, мотивуючий</option>
+                                </select>
+                                <span class="field-hint">Впливає на вибір архетипу та емоційну подачу наративу</span>
                             </div>
 
                         </div>
@@ -1184,6 +1206,28 @@
                 });
             }
         });
+
+        // Story Engine: Update complexity hint
+        function updateComplexityHint(value) {
+            const hints = {
+                1: '<strong>Рівень 1:</strong> Максимально проста подача, без підтексту. Модель: GPT-4o-mini',
+                2: '<strong>Рівень 2:</strong> Проста історія з базовою емоційною дугою. Модель: GPT-4o-mini',
+                3: '<strong>Рівень 3:</strong> Зрозуміла історія з одним twist. Модель: GPT-4o-mini',
+                4: '<strong>Рівень 4:</strong> Помірна психологічна глибина. Модель: GPT-4o-mini',
+                5: '<strong>Рівень 5:</strong> Стандартна глибина з психологічними елементами. Модель: GPT-4o-mini',
+                6: '<strong>Рівень 6:</strong> Глибока історія з емоційним підтекстом. Модель: GPT-4o',
+                7: '<strong>Рівень 7:</strong> Складний наратив з багатошаровим twist. Модель: GPT-4o',
+                8: '<strong>Рівень 8:</strong> Дуже глибока історія з філософськими темами. Модель: GPT-4o',
+                9: '<strong>Рівень 9:</strong> Майже максимальна складність, вимагає уваги. Модель: GPT-4o',
+                10: '<strong>Рівень 10:</strong> Максимальна складність для досвідченої аудиторії. Модель: GPT-4o'
+            };
+
+            const valueElem = document.getElementById('complexity_value');
+            const hintElem = document.getElementById('complexity_hint');
+
+            if (valueElem) valueElem.textContent = value;
+            if (hintElem) hintElem.innerHTML = hints[value] || hints[5];
+        }
     </script>
 
     <!-- Auth Manager -->
