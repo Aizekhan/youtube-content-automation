@@ -95,12 +95,28 @@ DEFAULT_POOLS = {
     'general': ['mistaken_identity_of_evil', 'cost_of_winning', 'reluctant_transformation']
 }
 
+# Genre Keywords for fuzzy matching
+# Maps pool keys to keywords that should match that pool
+GENRE_KEYWORDS = {
+    'horror': ['horror', 'scary', 'ghost', 'dark', 'fear', 'terror', 'spooky'],
+    'science fiction': ['science fiction', 'sci-fi', 'scifi', 'space', 'neural', 'cyber', 'future', 'alien'],
+    'technology': ['tech', 'technology', 'digital', 'ai', 'robot', 'computer', 'software'],
+    'motivational': ['motivational', 'parables', 'growth', 'success', 'life', 'inspire', 'uplift'],
+    'psychology': ['psychology', 'psychological', 'mind', 'mental', 'emotion', 'therapy', 'relationship'],
+    'philosophy': ['philosophy', 'philosophical', 'essay', 'ethics', 'existential', 'contemplative'],
+    'history': ['history', 'historical', 'archaeology', 'ancient', 'ruins', 'war', 'past', 'empire'],
+    'mystery': ['mystery', 'crime', 'detective', 'thriller', 'investigation', 'true crime', 'murder'],
+    'entertainment': ['fantasy', 'mythology', 'myth', 'magic', 'legend', 'game', 'fiction', 'story'],
+    'education': ['educational', 'education', 'documentary', 'learning', 'geography', 'culture', 'folklore', 'biography'],
+    'health': ['health', 'wellness', 'relaxation', 'sleep', 'meditation', 'healing'],
+}
+
 def get_archetype_pool(genre=None, custom_pool=None):
     """
-    Get archetype pool for a channel
+    Get archetype pool for a channel with fuzzy keyword matching
 
     Args:
-        genre (str): Channel genre (e.g., 'psychology', 'business')
+        genre (str): Channel genre (e.g., 'psychology', 'business', 'History / Archaeology')
         custom_pool (list): Custom archetype list if manually configured
 
     Returns:
@@ -110,11 +126,17 @@ def get_archetype_pool(genre=None, custom_pool=None):
     if custom_pool and isinstance(custom_pool, list) and len(custom_pool) > 0:
         return custom_pool
 
-    # Priority 2: Default pool by genre
+    # Priority 2: Try exact match first
     if genre:
         genre_lower = genre.lower()
         if genre_lower in DEFAULT_POOLS:
             return DEFAULT_POOLS[genre_lower]
+
+        # Priority 3: Fuzzy keyword matching
+        # Check if any keyword from GENRE_KEYWORDS matches the genre string
+        for pool_key, keywords in GENRE_KEYWORDS.items():
+            if any(keyword in genre_lower for keyword in keywords):
+                return DEFAULT_POOLS[pool_key]
 
     # Fallback: general pool
     return DEFAULT_POOLS['general']
