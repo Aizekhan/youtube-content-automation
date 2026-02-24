@@ -65,7 +65,7 @@ async function loadSeriesState() {
             throw new Error(data.error || 'Failed to load series state');
         }
 
-        currentSeriesState = data.series_state;
+        currentSeriesState = data.data;
         renderAllTabs();
 
     } catch (error) {
