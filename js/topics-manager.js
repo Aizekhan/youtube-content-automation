@@ -311,13 +311,41 @@ function viewTopic(topicId) {
     const topic = allTopics.find(t => t.topic_id === topicId);
     if (!topic) return;
 
-    alert(`Topic: ${topic.topic_text}\n\nStatus: ${topic.status}\nPriority: ${topic.priority}\n\nContext: ${topic.topic_description?.context || 'N/A'}\nTone: ${topic.topic_description?.tone_suggestion || 'N/A'}\nKey Elements: ${topic.topic_description?.key_elements?.join(', ') || 'N/A'}\n\nCreated: ${formatDate(topic.created_at)}\nUpdated: ${formatDate(topic.updated_at)}`);
+    // Populate modal fields
+    document.getElementById('viewTopicText').textContent = topic.topic_text;
+    document.getElementById('viewTopicContext').textContent = topic.topic_description?.context || 'No context provided';
+    document.getElementById('viewTopicCreated').textContent = formatDate(topic.created_at);
+    document.getElementById('viewTopicUpdated').textContent = formatDate(topic.updated_at);
+
+    // Status badge
+    const statusBadge = document.getElementById('viewTopicStatus');
+    statusBadge.textContent = topic.status.replace('_', ' ');
+    statusBadge.className = `status-badge status-${topic.status}`;
+
+    // Priority badge
+    const priorityBadge = document.getElementById('viewTopicPriority');
+    const priorityClass = topic.priority >= 200 ? 'priority-high' : (topic.priority >= 100 ? 'priority-medium' : 'priority-low');
+    priorityBadge.textContent = topic.priority;
+    priorityBadge.className = `priority-badge ${priorityClass}`;
+
+    // Show modal
+    document.getElementById('viewTopicModal').classList.add('active');
 }
+
+/**
+ * Close View Topic Modal
+ */
+function closeViewTopicModal() {
+    document.getElementById('viewTopicModal').classList.remove('active');
+}
+
+// Global variable for status change
+let pendingStatusChange = null;
 
 /**
  * Change Topic Status
  */
-async function changeStatus(topicId, currentStatus) {
+function changeStatus(topicId, currentStatus) {
     const topic = allTopics.find(t => t.topic_id === topicId);
     if (!topic) return;
 
@@ -339,21 +367,60 @@ async function changeStatus(topicId, currentStatus) {
         return;
     }
 
-    const newStatus = prompt(`Change status from "${currentStatus}" to:\n\n${allowedStatuses.join('\n')}\n\nEnter new status:`);
+    // Set current topic ID for later
+    pendingStatusChange = { topicId, currentStatus };
 
-    if (!newStatus) return;
+    // Show current status
+    document.getElementById('currentStatusText').textContent = currentStatus.replace('_', ' ');
 
-    if (!allowedStatuses.includes(newStatus.toLowerCase())) {
-        showToast('Invalid status transition', 'error');
-        return;
-    }
+    // Generate status buttons
+    const container = document.getElementById('statusButtonsContainer');
+    container.innerHTML = '';
+
+    // Status button configs with icons and colors
+    const statusConfigs = {
+        'approved': { icon: 'bi-check-circle', color: '#10b981', label: 'Approve' },
+        'queued': { icon: 'bi-list-check', color: '#3b82f6', label: 'Queue' },
+        'in_progress': { icon: 'bi-arrow-clockwise', color: '#f59e0b', label: 'In Progress' },
+        'published': { icon: 'bi-check-all', color: '#8b5cf6', label: 'Published' },
+        'failed': { icon: 'bi-x-circle', color: '#ef4444', label: 'Mark Failed' },
+        'archived': { icon: 'bi-archive', color: '#64748b', label: 'Archive' },
+        'deleted': { icon: 'bi-trash', color: '#ef4444', label: 'Delete' }
+    };
+
+    allowedStatuses.forEach(status => {
+        const config = statusConfigs[status] || { icon: 'bi-circle', color: '#94a3b8', label: status };
+        const button = document.createElement('button');
+        button.className = 'btn btn-secondary';
+        button.style.justifyContent = 'flex-start';
+        button.style.background = `linear-gradient(135deg, ${config.color}22 0%, ${config.color}11 100%)`;
+        button.style.borderColor = `${config.color}44`;
+        button.style.color = config.color;
+        button.innerHTML = `<i class="bi ${config.icon}"></i> ${config.label}`;
+        button.onclick = () => executeStatusChange(status);
+        container.appendChild(button);
+    });
+
+    // Show modal
+    document.getElementById('changeStatusModal').classList.add('active');
+}
+
+/**
+ * Execute status change
+ */
+async function executeStatusChange(newStatus) {
+    if (!pendingStatusChange) return;
+
+    const { topicId } = pendingStatusChange;
+
+    closeChangeStatusModal();
 
     try {
         const payload = {
             user_id: currentUserId,
             channel_id: currentChannelId,
             topic_id: topicId,
-            new_status: newStatus.toLowerCase()
+            new_status: newStatus
         };
 
         const response = await fetch(LAMBDA_URLS.UPDATE_STATUS, {
@@ -365,7 +432,7 @@ async function changeStatus(topicId, currentStatus) {
         const data = await response.json();
 
         if (data.success) {
-            showToast(`Status updated to ${newStatus}`, 'success');
+            showToast(`Status updated to ${newStatus.replace('_', ' ')}`, 'success');
             await loadTopics();
         } else {
             showToast(data.error || 'Failed to update status', 'error');
@@ -374,16 +441,46 @@ async function changeStatus(topicId, currentStatus) {
         console.error('Error updating status:', error);
         showToast('Failed to update status', 'error');
     }
+
+    pendingStatusChange = null;
 }
+
+/**
+ * Close Change Status Modal
+ */
+function closeChangeStatusModal() {
+    document.getElementById('changeStatusModal').classList.remove('active');
+    pendingStatusChange = null;
+}
+
+// Global variable for delete confirmation
+let pendingDeleteTopicId = null;
 
 /**
  * Delete Topic
  */
-async function deleteTopic(topicId) {
-    if (!confirm('Are you sure you want to delete this topic?')) return;
-
+function deleteTopic(topicId) {
     const topic = allTopics.find(t => t.topic_id === topicId);
     if (!topic) return;
+
+    // Set pending delete
+    pendingDeleteTopicId = topicId;
+
+    // Show topic text in modal
+    document.getElementById('deleteTopicText').textContent = `"${topic.topic_text}"`;
+
+    // Show modal
+    document.getElementById('deleteConfirmModal').classList.add('active');
+}
+
+/**
+ * Confirm and execute delete
+ */
+async function confirmDelete() {
+    if (!pendingDeleteTopicId) return;
+
+    const topicId = pendingDeleteTopicId;
+    closeDeleteConfirmModal();
 
     try {
         const payload = {
@@ -411,6 +508,16 @@ async function deleteTopic(topicId) {
         console.error('Error deleting topic:', error);
         showToast('Failed to delete topic', 'error');
     }
+
+    pendingDeleteTopicId = null;
+}
+
+/**
+ * Close Delete Confirmation Modal
+ */
+function closeDeleteConfirmModal() {
+    document.getElementById('deleteConfirmModal').classList.remove('active');
+    pendingDeleteTopicId = null;
 }
 
 /**

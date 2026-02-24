@@ -570,6 +570,88 @@ Secrets of the Deep Ocean"
         </div>
     </div>
 
+    <!-- View Topic Details Modal -->
+    <div id="viewTopicModal" class="modal">
+        <div class="modal-content" style="max-width: 600px;">
+            <span class="close-modal" onclick="closeViewTopicModal()">&times;</span>
+            <div class="modal-header">
+                <h2 class="modal-title">Topic Details</h2>
+            </div>
+            <div style="padding: 1.5rem 0;">
+                <div style="margin-bottom: 1.5rem;">
+                    <label style="display: block; color: #64748b; font-size: 0.875rem; margin-bottom: 0.5rem;">Topic</label>
+                    <p id="viewTopicText" style="margin: 0; color: #e2e8f0; font-size: 1rem; line-height: 1.5;"></p>
+                </div>
+                <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 1.5rem; margin-bottom: 1.5rem;">
+                    <div>
+                        <label style="display: block; color: #64748b; font-size: 0.875rem; margin-bottom: 0.5rem;">Status</label>
+                        <span id="viewTopicStatus" class="status-badge"></span>
+                    </div>
+                    <div>
+                        <label style="display: block; color: #64748b; font-size: 0.875rem; margin-bottom: 0.5rem;">Priority</label>
+                        <span id="viewTopicPriority" class="priority-badge"></span>
+                    </div>
+                </div>
+                <div style="margin-bottom: 1.5rem;">
+                    <label style="display: block; color: #64748b; font-size: 0.875rem; margin-bottom: 0.5rem;">Context / Description</label>
+                    <p id="viewTopicContext" style="margin: 0; color: #cbd5e1; font-size: 0.875rem; line-height: 1.5;"></p>
+                </div>
+                <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 1.5rem; padding-top: 1rem; border-top: 1px solid rgba(255,255,255,0.1); color: #64748b; font-size: 0.75rem;">
+                    <div>
+                        <strong>Created:</strong> <span id="viewTopicCreated"></span>
+                    </div>
+                    <div>
+                        <strong>Updated:</strong> <span id="viewTopicUpdated"></span>
+                    </div>
+                </div>
+            </div>
+            <div style="display: flex; justify-content: flex-end;">
+                <button class="btn btn-secondary" onclick="closeViewTopicModal()">Close</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- Change Status Modal -->
+    <div id="changeStatusModal" class="modal">
+        <div class="modal-content" style="max-width: 500px;">
+            <span class="close-modal" onclick="closeChangeStatusModal()">&times;</span>
+            <div class="modal-header">
+                <h2 class="modal-title">Change Status</h2>
+            </div>
+            <div style="padding: 1.5rem 0;">
+                <p style="color: #cbd5e1; margin-bottom: 1.5rem;">
+                    Current status: <strong id="currentStatusText" style="color: #e2e8f0;"></strong>
+                </p>
+                <p style="color: #94a3b8; font-size: 0.875rem; margin-bottom: 1rem;">Select new status:</p>
+                <div id="statusButtonsContainer" style="display: flex; flex-direction: column; gap: 0.75rem;">
+                    <!-- Buttons will be added dynamically -->
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Delete Confirmation Modal -->
+    <div id="deleteConfirmModal" class="modal">
+        <div class="modal-content" style="max-width: 450px;">
+            <span class="close-modal" onclick="closeDeleteConfirmModal()">&times;</span>
+            <div class="modal-header">
+                <h2 class="modal-title" style="color: #ef4444;">
+                    <i class="bi bi-exclamation-triangle"></i> Confirm Delete
+                </h2>
+            </div>
+            <div style="padding: 1.5rem 0;">
+                <p style="color: #cbd5e1; margin-bottom: 0.5rem;">Are you sure you want to delete this topic?</p>
+                <p id="deleteTopicText" style="color: #94a3b8; font-size: 0.875rem; font-style: italic; margin: 0;"></p>
+            </div>
+            <div style="display: flex; gap: 1rem; justify-content: flex-end;">
+                <button class="btn btn-secondary" onclick="closeDeleteConfirmModal()">Cancel</button>
+                <button class="btn btn-primary" onclick="confirmDelete()" style="background: linear-gradient(135deg, #ef4444 0%, #dc2626 100%);">
+                    <i class="bi bi-trash"></i> Delete
+                </button>
+            </div>
+        </div>
+    </div>
+
     <!-- Toast Notification -->
     <div id="toast" class="toast">
         <i class="bi bi-check-circle" id="toastIcon"></i>
