@@ -1076,7 +1076,6 @@ function loadImageGenerationSettings(config) {
         if (imageGen.steps !== undefined) {
             document.getElementById('image_generation_steps').value = imageGen.steps;
         }
-        }
 
         updateImageProviderInfo();
         updateImageCostEstimate();
