@@ -34,6 +34,28 @@ def decimal_default(obj):
     raise TypeError
 
 
+def is_function_url_invocation(event):
+    """Detect if Lambda was invoked via Function URL (vs Step Functions/direct invoke)"""
+    # Function URL requests have 'requestContext' or 'body' as string
+    return ('requestContext' in event or
+            ('body' in event and isinstance(event.get('body'), str)) or
+            'queryStringParameters' in event)
+
+
+def create_response(status_code, data, event):
+    """Create response in appropriate format (Function URL vs Step Functions)"""
+    if is_function_url_invocation(event):
+        # Function URL format: with statusCode, headers, body
+        return {
+            'statusCode': status_code,
+            'headers': {'Content-Type': 'application/json'},
+            'body': json.dumps(data, default=decimal_default)
+        }
+    else:
+        # Step Functions / direct invoke format: plain object
+        return data
+
+
 def lambda_handler(event, context):
     """
     Get next topic from queue
@@ -94,28 +116,16 @@ def lambda_handler(event, context):
 
     # Validation
     if not user_id:
-        return {
-            'statusCode': 400,
-            'headers': {
-                'Content-Type': 'application/json',
-            },
-            'body': json.dumps({
-                'success': False,
-                'error': 'user_id is required'
-            })
-        }
+        return create_response(400, {
+            'success': False,
+            'error': 'user_id is required'
+        }, event)
 
     if not channel_id:
-        return {
-            'statusCode': 400,
-            'headers': {
-                'Content-Type': 'application/json',
-            },
-            'body': json.dumps({
-                'success': False,
-                'error': 'channel_id is required'
-            })
-        }
+        return create_response(400, {
+            'success': False,
+            'error': 'channel_id is required'
+        }, event)
 
     print(f"\nGetting next topic for:")
     print(f"  channel_id: {channel_id}")
@@ -158,27 +168,35 @@ def lambda_handler(event, context):
 
         if len(filtered_topics) == 0:
             print("\n  NO_TOPICS_AVAILABLE")
-            return {
-                'statusCode': 404,
-                'headers': {
-                    'Content-Type': 'application/json',
-                },
-                'body': json.dumps({
-                    'success': False,
-                    'error': 'NO_TOPICS_AVAILABLE',
-                    'message': 'No approved or queued topics found for this channel'
-                })
-            }
+            return create_response(404, {
+                'success': False,
+                'error': 'NO_TOPICS_AVAILABLE',
+                'message': 'No approved or queued topics found for this channel'
+            }, event)
 
-        # Sort by priority DESC
-        filtered_topics.sort(key=lambda x: x.get('priority', 0), reverse=True)
+        # Sort by priority DESC, then by episode_number ASC (for series)
+        # This ensures:
+        # 1. Higher priority topics come first
+        # 2. Within same priority, episodes are processed in order (ep1, ep2, ep3...)
+        filtered_topics.sort(
+            key=lambda x: (
+                -x.get('priority', 0),  # Negative for DESC
+                x.get('episode_number', 9999)  # ASC, non-episodes go last
+            )
+        )
 
-        # Get the first topic (highest priority)
+        # Get the first topic (highest priority, or earliest episode in series)
         next_topic = filtered_topics[0]
 
         print(f"\n  Selected topic: {next_topic['topic_id']}")
         print(f"    priority: {next_topic.get('priority')}")
         print(f"    status: {next_topic.get('status')} -> in_progress")
+
+        # Log series information if present
+        if next_topic.get('series_id'):
+            print(f"    series_id: {next_topic.get('series_id')}")
+            print(f"    season: {next_topic.get('season', 1)}")
+            print(f"    episode_number: {next_topic.get('episode_number', 'N/A')}")
 
         # Update status to "in_progress"
         timestamp = datetime.utcnow().isoformat() + 'Z'
@@ -210,31 +228,26 @@ def lambda_handler(event, context):
             'updated_at': timestamp
         }
 
+        # Add series metadata if present
+        if next_topic.get('series_id'):
+            topic_response['series_id'] = next_topic.get('series_id')
+            topic_response['season'] = int(next_topic.get('season', 1))
+            if next_topic.get('episode_number'):
+                topic_response['episode_number'] = int(next_topic.get('episode_number'))
+
         print(f"\n  Topic marked as in_progress")
 
-        return {
-            'statusCode': 200,
-            'headers': {
-                'Content-Type': 'application/json',
-            },
-            'body': json.dumps({
-                'success': True,
-                'topic': topic_response
-            }, default=decimal_default)
-        }
+        return create_response(200, {
+            'success': True,
+            'topic': topic_response
+        }, event)
 
     except Exception as e:
         print(f"  Error getting next topic: {e}")
         import traceback
         traceback.print_exc()
 
-        return {
-            'statusCode': 500,
-            'headers': {
-                'Content-Type': 'application/json',
-            },
-            'body': json.dumps({
-                'success': False,
-                'error': f'Failed to get next topic: {str(e)}'
-            })
-        }
+        return create_response(500, {
+            'success': False,
+            'error': f'Failed to get next topic: {str(e)}'
+        }, event)
