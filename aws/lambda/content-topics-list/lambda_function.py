@@ -180,7 +180,11 @@ def lambda_handler(event, context):
                 'priority': int(item.get('priority', 100)),
                 'source': item.get('source'),
                 'created_at': item.get('created_at'),
-                'updated_at': item.get('updated_at')
+                'updated_at': item.get('updated_at'),
+                # Series fields for Topics Manager UI
+                'series_id': item.get('series_id'),
+                'episode_number': int(item.get('episode_number')) if item.get('episode_number') else None,
+                'channel_id': item.get('channel_id')
             }
             topics.append(topic)
 

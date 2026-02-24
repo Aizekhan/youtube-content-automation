@@ -224,7 +224,7 @@ function renderTopics() {
         // Add Series Dashboard button if topic is part of a series
         const seriesDashboardBtn = topic.series_id ?
             `<button class="btn-icon btn-primary" onclick="openSeriesDashboard('${topic.series_id}', '${topic.channel_id || currentChannelId}')" title="Series Dashboard" style="background: #8b5cf6; color: white;">
-                <i class="bi bi-bar-chart-fill"></i>
+                <i class="bi bi-list-check"></i>
             </button>` : '';
 
         actionsCell.innerHTML = `
