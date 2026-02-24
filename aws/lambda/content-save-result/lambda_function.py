@@ -1,6 +1,7 @@
 """
 Content Save Result Lambda - Sprint 3 - Quality Metrics Collection
 Saves generated content to DynamoDB with enrichment metadata and quality metrics.
+Sprint 4 - Series Episode Summary Generation
 """
 import json
 import boto3
@@ -19,6 +20,14 @@ except ImportError:
         pass
     class RequestSizeTooLargeError(Exception):
         pass
+
+# Sprint 4: Episode summary generation
+try:
+    from episode_summary_generator import generate_episode_summary, update_topic_with_summary
+except ImportError:
+    print("WARNING: episode_summary_generator not available")
+    generate_episode_summary = None
+    update_topic_with_summary = None
 
 # WEEK 2 FIX: Add timeout configuration
 boto_config = Config(
@@ -95,10 +104,6 @@ def lambda_handler(event, context):
     config_id = event.get('config_id')  # Primary key for ChannelConfigs
     content_id = event.get('content_id')
     created_at = datetime.utcnow().isoformat() + 'Z'
-    # VARIATION SET TRACKING: Read current variation set info
-    variation_set_index = None
-    variation_set_name = None
-    generation_count_at_creation = None
 
     if config_id:
         try:
@@ -120,41 +125,8 @@ def lambda_handler(event, context):
                 print(f" SECURITY ERROR: Access denied - Channel config {config_id} belongs to user {channel_config.get('user_id')}, not {user_id}")
                 raise ValueError(f"SECURITY: Access denied - Channel config does not belong to user {user_id}")
 
-            # Parse variation_sets if it's a JSON string (PHP backend compatibility)
-            variation_sets = channel_config.get('variation_sets', [])
-            if isinstance(variation_sets, str):
-                try:
-                    variation_sets = json.loads(variation_sets)
-                    print(f" Parsed variation_sets from JSON string: {len(variation_sets)} sets")
-                except json.JSONDecodeError as e:
-                    print(f" Failed to parse variation_sets JSON: {e}")
-                    variation_sets = []
-
-            # Convert generation_count to int (handles both string and number)
-            generation_count_raw = channel_config.get('generation_count', 0)
-            generation_count = int(generation_count_raw) if generation_count_raw else 0
-            rotation_mode = channel_config.get('rotation_mode', 'sequential')
-
-            if variation_sets and len(variation_sets) > 0:
-                # Calculate active set (same logic as theme-agent and narrative)
-                if rotation_mode == 'sequential':
-                    active_set_index = generation_count % len(variation_sets)
-                elif rotation_mode == 'random':
-                    import random
-                    random.seed(generation_count)
-                    active_set_index = random.randint(0, len(variation_sets) - 1)
-                else:  # manual
-                    active_set_index = channel_config.get('manual_set_index', 0)
-
-                if active_set_index < len(variation_sets):
-                    active_set = variation_sets[active_set_index]
-                    variation_set_index = active_set_index
-                    variation_set_name = active_set.get('set_name', f'Set_{active_set_index}')
-                    generation_count_at_creation = generation_count
-
-                    print(f" Variation Set Tracking: Set {active_set_index}/{len(variation_sets)-1}: '{variation_set_name}' (gen #{generation_count})")
         except Exception as e:
-            print(f" Failed to read variation set info: {e}")
+            print(f" Failed to load channel config: {e}")
             # Non-critical - continue saving content
 
     # MEGA mode data (as dicts)
@@ -326,11 +298,6 @@ def lambda_handler(event, context):
             'total_scenes': safe_get(metadata, 'total_scenes', 0),
         },
 
-        # VARIATION SET TRACKING (for history and analytics)
-        'variation_set_index': variation_set_index,  # e.g., 0, 1, 2, 3, 4
-        'variation_set_name': variation_set_name,    # e.g., 'Ancient Egypt', 'Ancient Greece'
-        'generation_count_at_creation': generation_count_at_creation,  # e.g., 0, 1, 2...
-
         # Audio
         'audio_files': audio_files,
         'cta_audio_files': cta_audio_files,
@@ -369,21 +336,41 @@ def lambda_handler(event, context):
 
         print(f" Saved: content_id={content_id}, title={story_title}")
 
-        # AUTO-INCREMENT generation_count for Variation Sets rotation
-        try:
-            channels_table = dynamodb.Table('ChannelConfigs')
-            channels_table.update_item(
-                Key={'config_id': config_id},
-                UpdateExpression='SET generation_count = if_not_exists(generation_count, :zero) + :inc',
-                ExpressionAttributeValues={
-                    ':zero': 0,
-                    ':inc': 1
-                }
-            )
-            print(f" Incremented generation_count for channel {channel_id}")
-        except Exception as inc_error:
-            # Non-critical error - content is already saved
-            print(f" Failed to increment generation_count: {inc_error}")
+        # Sprint 4: Generate episode summary for series episodes
+        topic_id = selected_topic.get('topic_id') if isinstance(selected_topic, dict) else None
+        series_id = event.get('series_id')
+        episode_number = event.get('episode_number')
+
+        if topic_id and series_id and episode_number and generate_episode_summary and update_topic_with_summary:
+            print(f" Sprint 4: Generating episode summary for series {series_id}, episode {episode_number}")
+            try:
+                # Generate structured episode summary
+                episode_summary = generate_episode_summary(
+                    narrative_data=narrative_data,
+                    topic_text=selected_topic.get('title', story_title),
+                    episode_number=episode_number
+                )
+
+                # Update topic in ContentTopicsQueue with summary
+                update_success = update_topic_with_summary(
+                    channel_id=channel_id,
+                    topic_id=topic_id,
+                    episode_summary=episode_summary,
+                    content_id=content_id
+                )
+
+                if update_success:
+                    print(f" Episode summary generated and saved: {len(episode_summary.get('episode_summary', ''))} chars")
+                else:
+                    print(f" WARNING: Failed to update topic with episode summary")
+
+            except Exception as e:
+                print(f" ERROR generating episode summary: {e}")
+                import traceback
+                traceback.print_exc()
+                # Non-fatal - don't fail the whole save operation
+        elif topic_id and (series_id or episode_number):
+            print(f" Skipping episode summary: series_id={series_id}, episode_number={episode_number}, generator_available={generate_episode_summary is not None}")
 
         return {
             'channel_id': channel_id,
