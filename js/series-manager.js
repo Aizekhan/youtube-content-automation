@@ -52,7 +52,7 @@ async function loadSeriesState() {
             method: 'POST',
             headers: { 'Content-Type': 'application/json' },
             body: JSON.stringify({
-                action: 'GET',
+                operation: 'GET',
                 user_id: USER_ID,
                 channel_id: currentChannelId,
                 series_id: currentSeriesId
@@ -338,7 +338,7 @@ async function saveSeriesState() {
             method: 'POST',
             headers: { 'Content-Type': 'application/json' },
             body: JSON.stringify({
-                action: 'UPDATE',
+                operation: 'UPDATE',
                 user_id: USER_ID,
                 channel_id: currentChannelId,
                 series_id: currentSeriesId,
