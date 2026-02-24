@@ -3,7 +3,7 @@
  * Loads and manages SeriesState from DynamoDB
  */
 
-const LAMBDA_URL = 'https://vxyrs3rffckz7dklkvoe37ngvy0mdhcw.lambda-url.eu-central-1.on.aws/';
+const LAMBDA_URL = 'https://4cjfvbsvr5ahk5wqxoiygbj3zi0ypdwk.lambda-url.eu-central-1.on.aws/';
 const USER_ID = 'c334d862-4031-7097-4207-84856b59d3ed';
 
 // Qwen3-TTS Voice Configuration
