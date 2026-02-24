@@ -26,11 +26,6 @@ jobs:
           chmod 600 ~/.ssh/id_rsa
           ssh-keyscan -H 3.75.97.188 >> ~/.ssh/known_hosts
 
-      - name: Test SSH connection
-        run: |
-          echo "Testing SSH connection..."
-          ssh -i ~/.ssh/id_rsa -o StrictHostKeyChecking=no ubuntu@3.75.97.188 "echo 'SSH connection successful'"
-
       - name: Deploy Frontend files
         run: |
           echo "Deploying frontend files..."
@@ -44,21 +39,18 @@ jobs:
 
           for file in $FILES; do
             if [[ "$file" == js/* ]]; then
-              echo "Deploying $file"
               scp -i ~/.ssh/id_rsa -o StrictHostKeyChecking=no "$file" ubuntu@3.75.97.188:/home/ubuntu/web-admin/html/js/
             elif [[ "$file" == css/* ]]; then
-              echo "Deploying $file"
               scp -i ~/.ssh/id_rsa -o StrictHostKeyChecking=no "$file" ubuntu@3.75.97.188:/home/ubuntu/web-admin/html/css/
             elif [[ "$file" == *.html ]]; then
-              echo "Deploying $file"
               scp -i ~/.ssh/id_rsa -o StrictHostKeyChecking=no "$file" ubuntu@3.75.97.188:/home/ubuntu/web-admin/html/
             fi
           done
 
           echo "Files copied to server"
 
-      - name: Reload Nginx Docker container
+      - name: Restart Nginx Docker container
         run: |
-          echo "Reloading nginx in Docker container..."
-          ssh -i ~/.ssh/id_rsa -o StrictHostKeyChecking=no ubuntu@3.75.97.188 "docker exec nginx nginx -s reload && echo 'Nginx reloaded successfully'"
+          echo "Restarting nginx Docker container to remount read-only volume..."
+          ssh -i ~/.ssh/id_rsa -o StrictHostKeyChecking=no ubuntu@3.75.97.188 "docker restart nginx"
           echo "✅ Frontend deployment completed!"
