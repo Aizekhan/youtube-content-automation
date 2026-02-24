@@ -554,9 +554,14 @@ def run_three_phase_generation(api_key, topic, channel_config, series_context=No
     )
 
     # Phase 1c: Image/Audio Prompts
-    image_config = channel_config.get('image_generation', {})
-    if isinstance(image_config, str):
-        image_config = json.loads(image_config)
+    # Build image_config from channel config fields
+    image_config = {
+        'provider': channel_config.get('image_provider', 'ec2-zimage'),
+        'width': channel_config.get('image_width', 1024),
+        'height': channel_config.get('image_height', 576),
+        'style': channel_config.get('image_style', 'cinematic, photorealistic')
+    }
+    print(f"  Image config: {image_config['width']}x{image_config['height']}, style={image_config['style']}")
 
     prompts, usage_1c = generate_phase1c_prompts(
         api_key=api_key,
