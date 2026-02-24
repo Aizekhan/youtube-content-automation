@@ -481,30 +481,10 @@
                     <textarea id="topicContext" class="form-textarea" placeholder="Brief context or description for this topic..."></textarea>
                 </div>
 
-                <div class="form-row">
-                    <div class="form-group">
-                        <label class="form-label">Tone Suggestion</label>
-                        <select id="toneSuggestion" class="form-select">
-                            <option value="dark">Dark</option>
-                            <option value="emotional">Emotional</option>
-                            <option value="epic">Epic</option>
-                            <option value="calm">Calm</option>
-                            <option value="light">Light</option>
-                            <option value="mysterious">Mysterious</option>
-                            <option value="uplifting">Uplifting</option>
-                        </select>
-                    </div>
-
-                    <div class="form-group">
-                        <label class="form-label">Priority</label>
-                        <input type="number" id="topicPriority" class="form-input" value="100" min="0" max="1000">
-                    </div>
-                </div>
-
-                <div class="form-group">
-                    <label class="form-label">Key Elements (comma-separated)</label>
-                    <input type="text" id="keyElements" class="form-input" placeholder="e.g., temples, mystery, discovery">
-                </div>
+                <!-- Hidden fields (dead fields removed from UI) -->
+                <input type="hidden" id="topicPriority" value="100">
+                <input type="hidden" id="toneSuggestion" value="dark">
+                <input type="hidden" id="keyElements" value="">
 
                 <div class="form-group" style="display: flex; gap: 1rem; justify-content: flex-end; margin-top: 2rem;">
                     <button type="button" class="btn btn-secondary" onclick="closeTopicModal()">Cancel</button>
@@ -538,62 +518,47 @@ Secrets of the Deep Ocean"
                     <small style="color: #64748b;">Detected topics: <span id="topicCount" style="font-weight: 600;">0</span></small>
                 </div>
 
-                <div class="form-row">
-                    <div class="form-group">
-                        <label class="form-label">Series ID (optional)</label>
-                        <input type="text" id="bulkSeriesId" class="form-input" placeholder="e.g., deep_sea_mystery_s1">
-                        <small style="color: #64748b;">Leave empty for standalone topics</small>
-                    </div>
-
-                    <div class="form-group">
-                        <label class="form-label">Season Number</label>
-                        <input type="number" id="bulkSeason" class="form-input" value="1" min="1" max="100">
-                    </div>
-                </div>
-
-                <div class="form-row">
-                    <div class="form-group">
-                        <label class="form-label">Default Priority</label>
-                        <input type="number" id="bulkPriority" class="form-input" value="100" min="0" max="1000">
-                    </div>
-
-                    <div class="form-group">
-                        <label class="form-label">Default Status</label>
-                        <select id="bulkStatus" class="form-select">
-                            <option value="draft">Draft</option>
-                            <option value="approved">Approved</option>
-                            <option value="queued">Queued</option>
-                        </select>
-                    </div>
-                </div>
-
-                <div class="form-row">
-                    <div class="form-group">
-                        <label class="form-label">Default Tone</label>
-                        <select id="bulkTone" class="form-select">
-                            <option value="dark">Dark</option>
-                            <option value="emotional">Emotional</option>
-                            <option value="epic">Epic</option>
-                            <option value="calm">Calm</option>
-                            <option value="light">Light</option>
-                            <option value="mysterious">Mysterious</option>
-                            <option value="uplifting">Uplifting</option>
-                        </select>
-                    </div>
-
-                    <div class="form-group">
-                        <label class="form-label">Auto-Detect Episodes</label>
-                        <select id="bulkAutoDetect" class="form-select">
-                            <option value="true">Yes</option>
-                            <option value="false">No</option>
-                        </select>
-                    </div>
+                <div class="form-group">
+                    <label class="form-label">Series ID (optional)</label>
+                    <input type="text" id="bulkSeriesId" class="form-input" placeholder="e.g., deep_sea_mystery_s1">
+                    <small style="color: #64748b;">Leave empty for standalone topics. All episodes will be processed in order.</small>
                 </div>
 
                 <div class="form-group">
-                    <label class="form-label">Default Key Elements (comma-separated)</label>
-                    <input type="text" id="bulkKeyElements" class="form-input" placeholder="e.g., mystery, series, deep sea">
+                    <label class="form-label">Status</label>
+                    <select id="bulkStatus" class="form-select">
+                        <option value="draft">Draft</option>
+                        <option value="approved">Approved (Ready for Generation)</option>
+                        <option value="queued">Queued</option>
+                    </select>
                 </div>
+
+                <!-- Advanced Options (collapsed by default) -->
+                <details style="margin: 1.5rem 0; padding: 1rem; background: rgba(255,255,255,0.03); border-radius: 8px; border: 1px solid rgba(255,255,255,0.1);">
+                    <summary style="cursor: pointer; font-weight: 600; color: #94a3b8; user-select: none;">
+                        <i class="bi bi-gear"></i> Advanced Options
+                    </summary>
+                    <div style="margin-top: 1rem;">
+                        <div class="form-row">
+                            <div class="form-group">
+                                <label class="form-label">Season Number</label>
+                                <input type="number" id="bulkSeason" class="form-input" value="1" min="1" max="100">
+                                <small style="color: #64748b;">For multi-season series</small>
+                            </div>
+
+                            <div class="form-group">
+                                <label class="form-label">Priority</label>
+                                <input type="number" id="bulkPriority" class="form-input" value="100" min="0" max="1000">
+                                <small style="color: #64748b;">Higher = processed first</small>
+                            </div>
+                        </div>
+                    </div>
+                </details>
+
+                <!-- Hidden fields (always enabled) -->
+                <input type="hidden" id="bulkAutoDetect" value="true">
+                <input type="hidden" id="bulkTone" value="dark">
+                <input type="hidden" id="bulkKeyElements" value="">
 
                 <div class="form-group" style="display: flex; gap: 1rem; justify-content: flex-end; margin-top: 2rem;">
                     <button type="button" class="btn btn-secondary" onclick="closeBulkModal()">Cancel</button>
