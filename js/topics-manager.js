@@ -185,7 +185,15 @@ function renderTopics() {
         // Topic Text
         const topicTextCell = document.createElement('td');
         topicTextCell.className = 'topic-text-cell';
-        topicTextCell.textContent = topic.topic_text;
+
+        // Add series badge if topic is part of a series
+        if (topic.series_id && topic.episode_number) {
+            const seriesBadge = `<span class="badge bg-info me-2" style="font-size: 11px;">🎬 EP${topic.episode_number}</span>`;
+            topicTextCell.innerHTML = seriesBadge + topic.topic_text;
+        } else {
+            topicTextCell.textContent = topic.topic_text;
+        }
+
         topicTextCell.title = topic.topic_text;
         row.appendChild(topicTextCell);
 
@@ -212,8 +220,16 @@ function renderTopics() {
 
         // Actions
         const actionsCell = document.createElement('td');
+
+        // Add Series Dashboard button if topic is part of a series
+        const seriesDashboardBtn = topic.series_id ?
+            `<button class="btn-icon btn-primary" onclick="openSeriesDashboard('${topic.series_id}', '${topic.channel_id || currentChannelId}')" title="Series Dashboard" style="background: #8b5cf6; color: white;">
+                <i class="bi bi-bar-chart-fill"></i>
+            </button>` : '';
+
         actionsCell.innerHTML = `
             <div class="action-btns">
+                ${seriesDashboardBtn}
                 <button class="btn-icon" onclick="viewTopic('${topic.topic_id}')" title="View Details">
                     <i class="bi bi-eye"></i>
                 </button>
@@ -701,3 +717,10 @@ function formatDate(dateStr) {
 }
 
 // Deployment trigger: 20260222-212835
+
+/**
+ * Open Series Dashboard
+ */
+function openSeriesDashboard(seriesId, channelId) {
+    window.open(`series-manager.html?series_id=${seriesId}&channel_id=${channelId}`, '_blank');
+}
