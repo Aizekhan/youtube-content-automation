@@ -77,8 +77,12 @@ DEFAULT_POOLS = {
     'business': ['cost_of_winning', 'catalyst_sacrifice', 'delayed_consequence'],
     'history': ['inherited_sin', 'cost_of_winning', 'delayed_consequence'],
     'science': ['inversion_of_source', 'delayed_consequence', 'reluctant_transformation'],
+    'science fiction': ['inversion_of_source', 'delayed_consequence', 'reluctant_transformation'],  # Alias for sci-fi
+    'sci-fi': ['inversion_of_source', 'delayed_consequence', 'reluctant_transformation'],
     'technology': ['inversion_of_source', 'cost_of_winning', 'delayed_consequence'],
     'personal_growth': ['reluctant_transformation', 'mistaken_identity_of_evil', 'protector_paradox'],
+    'motivational': ['reluctant_transformation', 'mistaken_identity_of_evil', 'protector_paradox'],  # Alias for motivation
+    'motivational / parables': ['reluctant_transformation', 'mistaken_identity_of_evil', 'protector_paradox'],
     'philosophy': ['mistaken_identity_of_evil', 'inherited_sin', 'catalyst_sacrifice'],
     'entertainment': ['cost_of_winning', 'reluctant_transformation', 'catalyst_sacrifice'],
     'education': ['catalyst_sacrifice', 'reluctant_transformation', 'inversion_of_source'],

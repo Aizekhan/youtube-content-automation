@@ -8,55 +8,18 @@ INPUT:
 OUTPUT: A JSON object with story mechanics
 
 CRITICAL RULES:
-1. You MUST choose ONE dominant archetype from the 8 available
-2. The archetype is MANDATORY - the narrative generator has NO freedom to deviate
-3. For complexity 7+, you MAY add a secondary_element (but dominant archetype still leads)
-4. ALL four mechanics fields are REQUIRED and must be specific to this topic
-5. Frozen character strings must have semantic meaning - every detail serves the narrative
-6. key_dialogue must sound like protagonist's internal monologue, NOT exposition
-7. Visual contrast in mirror_character must create immediate recognizable opposition
+1. You MUST choose ONE dominant archetype from the ALLOWED archetypes listed below
+2. You CANNOT choose archetypes outside this specific list - they are channel-specific
+3. The archetype is MANDATORY - the narrative generator has NO freedom to deviate
+4. For complexity 7+, you MAY add a secondary_element from the same pool
+5. ALL four mechanics fields are REQUIRED and must be specific to this topic
+6. Frozen character strings must have semantic meaning - every detail serves the narrative
+7. key_dialogue must sound like protagonist's internal monologue, NOT exposition
+8. Visual contrast in mirror_character must create immediate recognizable opposition
 
-AVAILABLE ARCHETYPES:
+ALLOWED ARCHETYPES FOR THIS CHANNEL:
 
-1. inversion_of_source
-   What appears to solve the problem IS the problem
-   Pattern: Solution → Dependency → Hidden Cost → Realization
-   Best for: Tech addiction, medication, productivity tools, lifestyle solutions
-
-2. mistaken_identity_of_evil
-   The thing protagonist fights IS the thing they need
-   Pattern: Enemy Identification → Battle → Self-Recognition → Integration
-   Best for: Internal struggles, addiction recovery, accepting change, self-acceptance
-
-3. cost_of_winning
-   Victory requires becoming what you opposed
-   Pattern: Noble Goal → Escalating Means → Moral Compromise → Hollow Victory
-   Best for: Competition, ambition, justice pursuit, success stories
-
-4. inherited_sin
-   Trying to fix past creates identical pattern
-   Pattern: Discovery of Past → Correction Attempt → Repetition → Breaking Cycle
-   Best for: Generational patterns, family dynamics, historical repetition
-
-5. catalyst_sacrifice
-   The guide must destroy what they're teaching
-   Pattern: Mentorship → Student Growth → Teacher's Paradox → Necessary Loss
-   Best for: Teaching, mentorship, leadership transition, passing torch
-
-6. reluctant_transformation
-   The change you resist is the change you are
-   Pattern: Resistance → Forced Proximity → Gradual Adoption → Identity Shift
-   Best for: Career changes, relationship evolution, lifestyle shifts
-
-7. protector_paradox
-   Safety creates the danger it prevents
-   Pattern: Protection → Isolation → Vulnerability → Controlled Exposure
-   Best for: Parenting, security, risk management, overprotection
-
-8. delayed_consequence
-   The price appears long after the choice
-   Pattern: Innocent Decision → Gradual Accumulation → Trigger Event → Reckoning
-   Best for: Long-term decisions, compound effects, delayed gratification
+{ARCHETYPE_POOL}
 
 MECHANICS STRUCTURE:
 
@@ -115,7 +78,7 @@ EXAMPLES FROM PRODUCTION:
 Topic: "Why Phone Addiction Is Getting Worse"
 Complexity: 3
 {
-  "dominant_archetype": "INVERSION_OF_SOURCE",
+  "dominant_archetype": "inversion_of_source",
   "surface_truth": "Phone features help us stay connected and productive",
   "hidden_truth": "The same features are engineered to create dependency and anxiety",
   "mirror_character": {
@@ -132,8 +95,8 @@ Complexity: 3
 Topic: "The Science of Letting Go of Anger"
 Complexity: 7
 {
-  "dominant_archetype": "MISTAKEN_IDENTITY_OF_EVIL",
-  "secondary_element": "RELUCTANT_TRANSFORMATION",
+  "dominant_archetype": "mistaken_identity_of_evil",
+  "secondary_element": "reluctant_transformation",
   "surface_truth": "Anger is the enemy preventing peace and healthy relationships",
   "hidden_truth": "Anger is a messenger showing where boundaries were violated; suppression creates the dysfunction",
   "mirror_character": {
