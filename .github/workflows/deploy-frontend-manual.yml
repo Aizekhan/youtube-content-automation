@@ -63,8 +63,9 @@ jobs:
 
           echo "Files copied to server"
 
-      - name: Reload Nginx
+      - name: Deploy and run reload script
         run: |
-          echo "Reloading nginx to apply changes..."
-          ssh -i ~/.ssh/id_rsa -o StrictHostKeyChecking=no ubuntu@3.75.97.188 "sudo systemctl reload nginx && echo 'Nginx reloaded successfully'"
+          echo "Deploying reload script..."
+          scp -i ~/.ssh/id_rsa -o StrictHostKeyChecking=no reload-webserver.sh ubuntu@3.75.97.188:/tmp/reload-webserver.sh
+          ssh -i ~/.ssh/id_rsa -o StrictHostKeyChecking=no ubuntu@3.75.97.188 "chmod +x /tmp/reload-webserver.sh && /tmp/reload-webserver.sh"
           echo "Frontend deployment completed!"
