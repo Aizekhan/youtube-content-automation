@@ -628,11 +628,6 @@
                                 <span class="field-hint">Тільки мови що підтримує Qwen3-TTS</span>
                             </div>
 
-                            <div class="form-group">
-                                <label>Тривалість відео (хвилини)</label>
-                                <input type="number" id="video_duration_target" min="5" max="20" value="10">
-                                <span class="field-hint">Ціль: 5–20 хвилин</span>
-                            </div>
                         </div>
                     </div>
                 </details>
@@ -650,107 +645,6 @@
                                 <span class="field-hint">Базовий голос для всіх сцен — тільки голоси Qwen3-TTS</span>
                             </div>
                         </div>
-                    </div>
-                </details>
-
-                <!-- ═══ SECTION 3: MANUAL INPUT MODE ═══ -->
-                <details class="advanced-settings">
-                    <summary>✍️ Manual Input Mode</summary>
-                    <div class="advanced-settings-body">
-
-                        <!-- Enable Manual Mode -->
-                        <div class="form-group full">
-                            <label>
-                                <input type="checkbox" id="manual_mode_enabled" style="margin-right: 8px; width: auto;">
-                                Enable Manual Input (skip AI generation)
-                            </label>
-                            <span class="field-hint">
-                                ⚠️ Коли увімкнено - пропускаються AI етапи генерації theme/planning/narrative.
-                                Система одразу переходить до audio/images/video з вашого готового narrative.
-                            </span>
-                        </div>
-
-                        <!-- Manual Input Fields -->
-                        <div id="manual-input-fields" style="display: none;">
-
-                            <!-- Story Title -->
-                            <div class="form-group full">
-                                <label>📌 Story Title / Theme</label>
-                                <input type="text" id="manual_theme"
-                                       placeholder="Example: The Last Samurai's Secret">
-                                <span class="field-hint">Назва історії або тема відео</span>
-                            </div>
-
-                            <!-- Narrative JSON -->
-                            <div class="form-group full">
-                                <label>📝 Story Narrative (JSON format)</label>
-                                <textarea id="manual_narrative" rows="15"
-                                          style="font-family: monospace; font-size: 12px;"
-                                          placeholder="Paste narrative JSON here..."></textarea>
-                                <span class="field-hint">
-                                    <strong>Формат JSON має містити:</strong> story_title, scenes (array)<br>
-                                    <strong>Кожна scene має містити:</strong> scene_number, scene_title, scene_narration, image_prompt
-                                    <br><br>
-                                    <details style="margin-top: 10px;">
-                                        <summary style="cursor: pointer; color: #667eea; font-weight: 600;">📋 Показати приклад структури JSON</summary>
-                                        <pre style="background: #f5f5f5; padding: 15px; border-radius: 8px; font-size: 11px; overflow-x: auto; margin-top: 10px;">{
-  "story_title": "The Last Samurai's Secret",
-  "scenes": [
-    {
-      "scene_number": 1,
-      "scene_title": "The Village Burns",
-      "scene_narration": "In fifteen eighty-seven, a quiet village in feudal Japan faced an unimaginable horror...",
-      "image_prompt": "Japanese feudal village on fire at night, cinematic wide shot, dramatic orange lighting, smoke rising, wooden houses burning...",
-      "negative_prompt": "blurry, low quality, distorted, anime",
-      "music_track": "dramatic_japanese.mp3",
-      "sfx_cues": ["fire_crackling.mp3", "wind_howling.mp3"],
-      "timing_estimates": [0, 5, 10, 15]
-    },
-    {
-      "scene_number": 2,
-      "scene_title": "The Survivor",
-      "scene_narration": "Among the ashes, one man remained standing...",
-      "image_prompt": "Lone samurai standing in burning village ruins, backlit by flames...",
-      "negative_prompt": "blurry, low quality",
-      "music_track": "epic_orchestral.mp3",
-      "sfx_cues": ["sword_unsheath.mp3"],
-      "timing_estimates": [0, 8]
-    }
-  ],
-  "metadata": {
-    "total_scenes": 2,
-    "estimated_duration_seconds": 120
-  }
-}</pre>
-                                    </details>
-                                </span>
-                            </div>
-
-                            <!-- Buttons -->
-                            <div class="form-group full">
-                                <button type="button" class="btn btn-secondary"
-                                        onclick="generateManualNarrativeTemplate()"
-                                        style="margin-right: 10px;">
-                                    📋 Generate Empty Template
-                                </button>
-                                <button type="button" class="btn btn-secondary"
-                                        onclick="validateManualNarrative()">
-                                    ✅ Validate JSON
-                                </button>
-                            </div>
-
-                            <!-- Preview -->
-                            <div class="form-group full">
-                                <label>👁️ Preview</label>
-                                <div id="manual-narrative-preview"
-                                     style="background: #f5f5f5; padding: 15px; border-radius: 8px;
-                                            max-height: 300px; overflow-y: auto; font-size: 13px; line-height: 1.6;">
-                                    <em style="color: #718096;">Preview will appear after validation...</em>
-                                </div>
-                            </div>
-
-                        </div>
-
                     </div>
                 </details>
 
@@ -805,7 +699,6 @@
 
                     </div>
                 </details>
-<!-- ═══ SECTION 5: A/B TESTING (Sprint 3) ═══ -->                <details class="advanced-settings">                    <summary>🧪 A/B Testing - Quality Measurement</summary>                    <div class="advanced-settings-body">                        <!-- Enable A/B Testing -->                        <div class="form-group full">                            <label>                                <input type="checkbox" id="enrichment_ab_enabled" style="margin-right: 8px; width: auto;">                                Enable A/B Testing (50% enriched, 50% baseline)                            </label>                            <span class="field-hint">                                When enabled, half of content will use full enrichment (topic analysis + story DNA),                                and half will skip enrichment for comparison.                            </span>                        </div>                        <!-- A/B Group Assignment -->                        <div class="form-group">                            <label>Current A/B Group</label>                            <select id="enrichment_ab_group">                                <option value="auto">Auto (Random 50/50)</option>                                <option value="A">Force Group A (Enriched)</option>                                <option value="B">Force Group B (Baseline)</option>                            </select>                            <span class="field-hint">Auto = Random assignment per generation</span>                        </div>                        <div class="info-box" style="margin-top: 15px;">                            <strong>📊 How it works:</strong>                            <ul style="margin: 10px 0 0 20px; line-height: 1.8;">                                <li><strong>Group A (Enriched):</strong> Full AI enrichment (genre analysis, story DNA, anti-cliché guards)</li>                                <li><strong>Group B (Baseline):</strong> Simple topic → narrative (no enrichment layers)</li>                                <li><strong>Metrics tracked:</strong> cliché score, vocabulary richness, twist count, engagement</li>                                <li><strong>Purpose:</strong> Measure real impact of enrichment on content quality</li>                            </ul>                        </div>                    </div>                </details>
 
                 <!-- ═══ SECTION 5: STORY ENGINE v4.0 ═══ -->
                 <details class="advanced-settings" open>
@@ -1014,22 +907,6 @@
                                 </span>
                             </div>
 
-                            <!-- Surprise Injection Level -->
-                            <div class="form-group full">
-                                <label>🎲 Surprise Injection Level (Рівень несподіванок)</label>
-                                <input type="range" id="surprise_injection_level" min="1" max="5" value="3" step="1"
-                                       oninput="updateSliderValue(this, 'surprise_injection_level_value')">
-                                <div style="display: flex; justify-content: space-between; margin-top: 8px; font-size: 12px; color: #718096;">
-                                    <span>1 (Передбачувано)</span>
-                                    <span id="surprise_injection_level_value" style="font-weight: 700; color: #667eea; font-size: 16px;">3</span>
-                                    <span>5 (Максимум несподіванок)</span>
-                                </div>
-                                <span class="field-hint">
-                                    1 = класичний передбачуваний сюжет<br>
-                                    5 = максимум несподіваних поворотів та сюрпризів
-                                </span>
-                            </div>
-
                         </div>
 
                     </div>
@@ -1117,13 +994,8 @@
                                     <label>Кількість сцен</label>
                                     <input type="number" id="scene_count_target" min="10" max="30" value="18">
                                 </div>
-                                <div class="form-group">
-                                    <label>Max Tokens (OpenAI)</label>
-                                    <input type="number" id="max_tokens" min="8000" max="16000" step="1000" value="16000">
-                                    <span class="field-hint">Максимум 16000</span>
-                                </div>
-                                
-                                
+
+
                                 <div class="form-group full">
                                     <label>Режим генерації контенту</label>
                                     <div class="generation-mode-toggle">
@@ -1287,51 +1159,6 @@
                         <span class="field-hint">Варіанти стилів зображень. Наприклад: "Cinematic photography, photorealistic Ancient Egypt, National Geographic style"</span>
                     </label>
                     <textarea id="set_image_style_variants" rows="2" placeholder="Cinematic photography, photorealistic..."></textarea>
-                </div>
-
-                <!-- Color Palettes -->
-                <div class="form-group">
-                    <label>
-                        Color Palettes
-                        <span class="field-hint">Колірні палітри. Наприклад: "Warm golden tones, sandy beige, deep blue accents, bronze highlights"</span>
-                    </label>
-                    <textarea id="set_color_palettes" rows="2" placeholder="Warm golden tones, sandy beige..."></textarea>
-                </div>
-
-                <!-- Lighting Variants -->
-                <div class="form-group">
-                    <label>
-                        Lighting Variants
-                        <span class="field-hint">Варіанти освітлення. Наприклад: "Dramatic desert sunlight, golden hour, torch-lit interiors, mysterious shadows"</span>
-                    </label>
-                    <textarea id="set_lighting_variants" rows="2" placeholder="Dramatic desert sunlight, golden hour..."></textarea>
-                </div>
-
-                <!-- Composition Variants -->
-                <div class="form-group">
-                    <label>
-                        Composition Variants
-                        <span class="field-hint">Варіанти композиції. Наприклад: "Monumental scale, rule of thirds, symmetrical temple architecture, epic perspectives"</span>
-                    </label>
-                    <textarea id="set_composition_variants" rows="2" placeholder="Monumental scale, rule of thirds..."></textarea>
-                </div>
-
-                <!-- Visual Reference Type -->
-                <div class="form-group">
-                    <label>
-                        Visual Reference Type
-                        <span class="field-hint">Тип візуального референсу. Наприклад: "Ancient Egypt Historical / Cinematic"</span>
-                    </label>
-                    <input type="text" id="set_visual_reference_type" placeholder="Ancient Egypt Historical / Cinematic">
-                </div>
-
-                <!-- Negative Prompt -->
-                <div class="form-group">
-                    <label>
-                        Negative Prompt
-                        <span class="field-hint">Що НЕ показувати в зображеннях. Наприклад: "modern elements, cars, digital devices, contemporary clothing"</span>
-                    </label>
-                    <textarea id="set_negative_prompt" rows="2" placeholder="modern elements, cars, digital devices..."></textarea>
                 </div>
             </div>
 
