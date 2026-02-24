@@ -958,16 +958,9 @@ function toggleImageGenerationSettings() {
  */
 function updateImageProviderInfo() {
     const provider = document.getElementById('image_generation_provider').value;
-    const infoBox = document.getElementById('providerInfo');
-    const infoText = document.getElementById('providerInfoText');
-    // FLUX variant options removed - using ec2-zimage only
-    let info = '';
+    const setupInfoBox = document.getElementById('providerSetupInfo');
+    const infoText = document.querySelector('#imageGenerationSettings .settings-info-text');
     let setupInfo = '';
-
-    // Provider info - ec2-zimage only
-    const infoBox = document.getElementById('providerSetupInfo');
-    let setupInfo = '';
-    let infoText = document.querySelector('#imageGenerationSettings .settings-info-text');
 
     if (provider === 'ec2-zimage') {
         infoText.textContent = 'Z-Image-Turbo - Fast and efficient';
@@ -989,6 +982,12 @@ function updateImageProviderInfo() {
         infoText.textContent = 'Unknown provider - using ec2-zimage';
         setupInfo = '<p style="color: #dc2626;">Unknown provider. Please select ec2-zimage.</p>';
     }
+
+    // Update setup info box
+    if (setupInfoBox) {
+        setupInfoBox.innerHTML = setupInfo;
+    }
+
     // Update cost estimate
     updateImageCostEstimate();
 }
