@@ -30,7 +30,7 @@ jobs:
         run: |
           echo "Testing SSH connection..."
           ssh -i ~/.ssh/id_rsa -o StrictHostKeyChecking=no ubuntu@3.75.97.188 "echo 'SSH connection successful'" || {
-            echo "❌ SSH connection failed!"
+            echo "SSH connection failed!"
             exit 1
           }
 
@@ -47,18 +47,24 @@ jobs:
 
           for file in $FILES; do
             if [[ "$file" == js/* ]]; then
-              echo "▶ Deploying $file to /home/ubuntu/web-admin/html/js/"
+              echo "Deploying $file to /home/ubuntu/web-admin/html/js/"
               scp -i ~/.ssh/id_rsa -o StrictHostKeyChecking=no "$file" ubuntu@3.75.97.188:/home/ubuntu/web-admin/html/js/
-              echo "✅ Successfully deployed $file"
+              echo "Successfully deployed $file"
             elif [[ "$file" == css/* ]]; then
-              echo "▶ Deploying $file to /home/ubuntu/web-admin/html/css/"
+              echo "Deploying $file to /home/ubuntu/web-admin/html/css/"
               scp -i ~/.ssh/id_rsa -o StrictHostKeyChecking=no "$file" ubuntu@3.75.97.188:/home/ubuntu/web-admin/html/css/
-              echo "✅ Successfully deployed $file"
+              echo "Successfully deployed $file"
             elif [[ "$file" == *.html ]]; then
-              echo "▶ Deploying $file to /home/ubuntu/web-admin/html/"
+              echo "Deploying $file to /home/ubuntu/web-admin/html/"
               scp -i ~/.ssh/id_rsa -o StrictHostKeyChecking=no "$file" ubuntu@3.75.97.188:/home/ubuntu/web-admin/html/
-              echo "✅ Successfully deployed $file"
+              echo "Successfully deployed $file"
             fi
           done
 
-          echo "✅ Frontend deployment completed!"
+          echo "Files copied to server"
+
+      - name: Reload Nginx
+        run: |
+          echo "Reloading nginx to apply changes..."
+          ssh -i ~/.ssh/id_rsa -o StrictHostKeyChecking=no ubuntu@3.75.97.188 "sudo systemctl reload nginx && echo 'Nginx reloaded successfully'"
+          echo "Frontend deployment completed!"
