@@ -84,17 +84,7 @@ def convert_decimals(obj):
 def lambda_handler(event, context):
     print(f"SeriesState Lambda - Event: {json.dumps(event, default=str)}")
 
-    # Handle CORS preflight
-    if event.get('requestContext', {}).get('http', {}).get('method') == 'OPTIONS':
-        return {
-            'statusCode': 200,
-            'headers': {
-                'Access-Control-Allow-Origin': '*',
-                'Access-Control-Allow-Methods': 'GET, POST, PUT, DELETE, OPTIONS',
-                'Access-Control-Allow-Headers': 'Content-Type, Authorization'
-            },
-            'body': ''
-        }
+    # CORS is handled by Function URL configuration - no need for OPTIONS handler
 
     # Parse body if Function URL request
     if isinstance(event.get('body'), str):
@@ -485,12 +475,11 @@ def generate_default_tension_curve(total_episodes):
     return curve
 
 def success_response(data):
-    """Standard success response"""
+    """Standard success response - CORS handled by Function URL"""
     return {
         'statusCode': 200,
         'headers': {
-            'Content-Type': 'application/json',
-            'Access-Control-Allow-Origin': '*'
+            'Content-Type': 'application/json'
         },
         'body': json.dumps({
             'success': True,
@@ -499,12 +488,11 @@ def success_response(data):
     }
 
 def error_response(message, status_code=500):
-    """Standard error response"""
+    """Standard error response - CORS handled by Function URL"""
     return {
         'statusCode': status_code,
         'headers': {
-            'Content-Type': 'application/json',
-            'Access-Control-Allow-Origin': '*'
+            'Content-Type': 'application/json'
         },
         'body': json.dumps({
             'success': False,
