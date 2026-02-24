@@ -24,8 +24,16 @@ except ImportError:
 # Sprint 4: Episode summary generation
 try:
     from episode_summary_generator import generate_episode_summary, update_topic_with_summary
-except ImportError:
-    print("WARNING: episode_summary_generator not available")
+except ImportError as e:
+    print(f"WARNING: episode_summary_generator not available - {e}")
+    import traceback
+    traceback.print_exc()
+    generate_episode_summary = None
+    update_topic_with_summary = None
+except Exception as e:
+    print(f"ERROR importing episode_summary_generator: {e}")
+    import traceback
+    traceback.print_exc()
     generate_episode_summary = None
     update_topic_with_summary = None
 

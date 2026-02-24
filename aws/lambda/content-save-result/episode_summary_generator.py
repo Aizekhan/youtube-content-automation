@@ -3,11 +3,26 @@ Episode Summary Generator
 Generates structured episode summaries for series continuity
 """
 import json
-import openai
 import os
+import boto3
 
-# OpenAI API setup
-openai.api_key = os.environ.get('OPENAI_API_KEY')
+# Load OpenAI API key from Secrets Manager
+def get_openai_api_key():
+    """Load OpenAI API key from AWS Secrets Manager"""
+    try:
+        # First try environment variable (for local testing)
+        api_key = os.environ.get('OPENAI_API_KEY')
+        if api_key:
+            return api_key
+
+        # Otherwise load from Secrets Manager
+        secrets_client = boto3.client('secretsmanager', region_name='eu-central-1')
+        response = secrets_client.get_secret_value(SecretId='openai/api-key')
+        # Secret is stored as plain text, not JSON
+        return response['SecretString'].strip()
+    except Exception as e:
+        print(f"Error loading OpenAI API key: {e}")
+        return None
 
 def generate_episode_summary(narrative_data, topic_text, episode_number=None):
     """
@@ -81,7 +96,16 @@ CRITICAL RULES:
 Generate the JSON now:"""
 
     try:
-        response = openai.chat.completions.create(
+        # Get API key
+        api_key = get_openai_api_key()
+        if not api_key:
+            raise ValueError("OpenAI API key not available")
+
+        # Create OpenAI client with explicit API key
+        from openai import OpenAI
+        client = OpenAI(api_key=api_key)
+
+        response = client.chat.completions.create(
             model="gpt-4o-mini",
             messages=[
                 {"role": "system", "content": "You are a narrative continuity expert. Generate structured episode summaries for series storytelling."},
