@@ -29,10 +29,7 @@ jobs:
       - name: Test SSH connection
         run: |
           echo "Testing SSH connection..."
-          ssh -i ~/.ssh/id_rsa -o StrictHostKeyChecking=no ubuntu@3.75.97.188 "echo 'SSH connection successful'" || {
-            echo "SSH connection failed!"
-            exit 1
-          }
+          ssh -i ~/.ssh/id_rsa -o StrictHostKeyChecking=no ubuntu@3.75.97.188 "echo 'SSH connection successful'"
 
       - name: Deploy Frontend files
         run: |
@@ -47,31 +44,21 @@ jobs:
 
           for file in $FILES; do
             if [[ "$file" == js/* ]]; then
-              echo "Deploying $file to /home/ubuntu/web-admin/html/js/"
+              echo "Deploying $file"
               scp -i ~/.ssh/id_rsa -o StrictHostKeyChecking=no "$file" ubuntu@3.75.97.188:/home/ubuntu/web-admin/html/js/
-              echo "Successfully deployed $file"
             elif [[ "$file" == css/* ]]; then
-              echo "Deploying $file to /home/ubuntu/web-admin/html/css/"
+              echo "Deploying $file"
               scp -i ~/.ssh/id_rsa -o StrictHostKeyChecking=no "$file" ubuntu@3.75.97.188:/home/ubuntu/web-admin/html/css/
-              echo "Successfully deployed $file"
             elif [[ "$file" == *.html ]]; then
-              echo "Deploying $file to /home/ubuntu/web-admin/html/"
+              echo "Deploying $file"
               scp -i ~/.ssh/id_rsa -o StrictHostKeyChecking=no "$file" ubuntu@3.75.97.188:/home/ubuntu/web-admin/html/
-              echo "Successfully deployed $file"
             fi
           done
 
           echo "Files copied to server"
 
-      - name: Try to reload web server
-        continue-on-error: true
+      - name: Reload Nginx Docker container
         run: |
-          echo "Attempting to reload web server (errors will be ignored)..."
-          
-          # Try multiple possible commands
-          ssh -i ~/.ssh/id_rsa -o StrictHostKeyChecking=no ubuntu@3.75.97.188 "sudo systemctl reload nginx" 2>/dev/null && echo "✓ Nginx reloaded" || echo "⚠ Nginx reload failed or not found"
-          ssh -i ~/.ssh/id_rsa -o StrictHostKeyChecking=no ubuntu@3.75.97.188 "sudo systemctl reload apache2" 2>/dev/null && echo "✓ Apache2 reloaded" || echo "⚠ Apache2 reload failed or not found"
-          ssh -i ~/.ssh/id_rsa -o StrictHostKeyChecking=no ubuntu@3.75.97.188 "sudo service nginx reload" 2>/dev/null && echo "✓ Nginx service reloaded" || echo "⚠ Nginx service reload failed"
-          
-          echo "Reload attempts completed (some may have failed - this is OK)"
+          echo "Reloading nginx in Docker container..."
+          ssh -i ~/.ssh/id_rsa -o StrictHostKeyChecking=no ubuntu@3.75.97.188 "docker exec nginx nginx -s reload && echo 'Nginx reloaded successfully'"
           echo "✅ Frontend deployment completed!"
