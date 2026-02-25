@@ -1,21 +1,24 @@
 """
 Collect Audio Scenes Lambda
 Збирає всі audio scenes з усіх каналів для паралельного батчингу
+Підтримує multi-voice TTS через narrative_parser для серіалів
 """
 import json
 import re
 import boto3
 from datetime import datetime
+from narrative_parser import parse_narrative_for_tts, get_character_voices_from_series_state
 
 dynamodb = boto3.client('dynamodb')
+series_table = boto3.resource('dynamodb', region_name='eu-central-1').Table('SeriesState')
 
 # Mapping variation_used -> voice_description for Qwen3-TTS
-# variation_used визначається OpenAI пер scene з урахуванням story blueprint
+# Simple, clear instructions - Qwen3 works best with natural conversational style
 VOICE_DESCRIPTIONS = {
-    'whisper': 'Speak in a slow, quiet whisper. Long pauses between sentences. Convey dread and secrecy.',
-    'dramatic': 'Strong commanding voice. Slight pause before key words. High conviction and urgency.',
-    'action': 'Fast, urgent, breathless delivery. No hesitation. Pure forward momentum.',
-    'normal': 'Clear, measured storytelling. Steady pace. Natural delivery.',
+    'normal': 'Clear, natural voice. Speak at a calm, steady pace as if telling a story to a friend.',
+    'whisper': 'Quiet, intimate voice. Slightly slower pace, as if sharing something personal.',
+    'dramatic': 'Speak with quiet intensity. Do not shout — let the words carry the weight.',
+    'action': 'Slightly faster pace with energy. Stay natural, do not over-dramatize.',
 }
 
 
@@ -80,7 +83,23 @@ def lambda_handler(event, context):
         language = voice_config.get('language', 'en')
         speaker = voice_config.get('speaker', 'Ryan') or 'Ryan'
 
-        print(f"Channel {channel_id}: {len(scenes)} scenes, language={language}, speaker={speaker}")
+        # Check if this is a series episode (for multi-voice support)
+        series_id = channel.get('series_id')
+        character_voices = {}
+
+        if series_id:
+            print(f"Channel {channel_id}: Series episode detected (series_id={series_id})")
+            try:
+                response = series_table.get_item(Key={'series_id': series_id})
+                if 'Item' in response:
+                    series_state = response['Item']
+                    character_voices = get_character_voices_from_series_state(series_state)
+                    print(f"  Loaded {len(character_voices)} character voices from SeriesState")
+            except Exception as e:
+                print(f"  WARNING: Failed to load SeriesState for {series_id}: {e}")
+                # Fallback to single voice
+
+        print(f"Channel {channel_id}: {len(scenes)} scenes, language={language}, default_speaker={speaker}")
 
         # Collect all scenes
         for idx, scene in enumerate(scenes):
@@ -98,22 +117,45 @@ def lambda_handler(event, context):
                 continue
 
             # Per-scene voice_description based on variation_used (from OpenAI / story blueprint)
+            # Keep it simple - just use the base variation description
             variation = scene.get('variation_used', 'normal')
             scene_voice_desc = VOICE_DESCRIPTIONS.get(variation, VOICE_DESCRIPTIONS['normal'])
-            print(f"  Scene {scene_id}: variation={variation}")
 
-            all_scenes.append({
-                'channel_id': channel_id,
-                'content_id': content_id,
-                'narrative_id': narrative_id,
-                'scene_index': idx,
-                'scene_id': str(scene_id),
-                'text': text,
-                'language': language,
-                'speaker': speaker,
-                'voice_description': scene_voice_desc,
-                'audio_type': 'scene'
-            })
+            # Multi-voice parsing: if series_id exists and text has character tags
+            if series_id and ('[NARRATOR]' in text or re.search(r'\[[A-Z_]+\]', text)):
+                print(f"  Scene {scene_id}: Parsing for multi-voice (variation={variation})")
+                segments = parse_narrative_for_tts(text, scene_id, speaker, character_voices)
+
+                for seg in segments:
+                    all_scenes.append({
+                        'channel_id': channel_id,
+                        'content_id': content_id,
+                        'narrative_id': narrative_id,
+                        'scene_index': idx,
+                        'scene_id': str(scene_id),
+                        'segment_index': seg['segment_index'],
+                        'character_id': seg['character_id'],
+                        'text': seg['text'],
+                        'language': language,
+                        'speaker': seg['speaker'],
+                        'voice_description': scene_voice_desc,
+                        'audio_type': 'scene'
+                    })
+            else:
+                # Single voice (no series or no character tags)
+                print(f"  Scene {scene_id}: Single voice (variation={variation})")
+                all_scenes.append({
+                    'channel_id': channel_id,
+                    'content_id': content_id,
+                    'narrative_id': narrative_id,
+                    'scene_index': idx,
+                    'scene_id': str(scene_id),
+                    'text': text,
+                    'language': language,
+                    'speaker': speaker,
+                    'voice_description': scene_voice_desc,
+                    'audio_type': 'scene'
+                })
 
         # Collect CTA segments - support both narrative_content.cta_segments and cta_data.cta_segments
         narrative_content = narrative_payload.get('narrative_content', {})

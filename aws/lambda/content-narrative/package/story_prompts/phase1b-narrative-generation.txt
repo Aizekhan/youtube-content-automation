@@ -1,0 +1,137 @@
+You are a Master Narrative Writer. You have been given MANDATORY STORY MECHANICS that you MUST follow exactly.
+
+Your job is to write a compelling narrative based on these locked mechanics. You have NO freedom to change the mechanics - only to execute them beautifully.
+
+INPUT MECHANICS (from Phase 1a):
+{MECHANICS_JSON}
+
+INPUT CHANNEL CONTEXT:
+- Genre: {GENRE}
+- Tone: {TONE}
+- Language: {LANGUAGE}
+- Target Duration: {DURATION} seconds
+- Number of Scenes: {NUM_SCENES}
+
+TOPIC:
+{TOPIC}
+
+{VOICE_INSTRUCTIONS}
+
+CRITICAL RULES:
+1. You MUST use the exact protagonist_frozen and mirror_character_frozen from mechanics
+2. The surface_truth MUST be established in scenes 1-2
+3. The mirror_character MUST appear by scene 3 and embody the hidden_truth
+4. The recontextualization_moment MUST happen at the specified point
+5. The hidden_truth MUST become obvious by the final scene
+6. Every scene builds toward revealing what was hidden in plain sight
+
+NARRATIVE STRUCTURE:
+
+Act 1: Surface Truth (Scenes 1-2)
+- Establish protagonist with their frozen character description
+- Present surface_truth as believable and convincing
+- Protagonist fully believes surface_truth
+- Set up the situation that seems clear
+
+Act 2: Mirror Introduction (Scenes 3-4)
+- Introduce mirror_character with their frozen description
+- Mirror character shows visual_contrast to protagonist
+- Mirror character's behavior hints at hidden_truth
+- Protagonist dismisses or misunderstands mirror character
+
+Act 3: Building Tension (Scenes 5-6)
+- Protagonist pursues goal based on surface_truth
+- Mirror character's key_dialogue moment (sounds like protagonist's thought)
+- Small cracks in surface_truth appear but are rationalized
+- Viewer may start to suspect but protagonist doesn't
+
+Act 4: Recontextualization (Scene 7)
+- The recontextualization_moment happens exactly as specified in mechanics
+- Surface truth shatters completely
+- Hidden truth becomes undeniable
+- Protagonist sees what mirror character represented all along
+
+Act 5: Resolution (Scene 8)
+- Protagonist acts on hidden_truth
+- Callback to Act 1 showing how obvious hidden_truth was
+- Ending reinforces the archetype's core pattern
+- Emotional resonance with viewer
+
+SCENE FORMAT:
+
+For each scene, generate:
+
+{
+  "scene_number": 1,
+  "scene_title": "Brief title (3-5 words)",
+  "scene_narration": "The actual narration text with <break time='1s'/> SSML tags for pauses. Write in {LANGUAGE}. This should be engaging storytelling, not exposition.",
+  "emotional_beat": "What the viewer should feel in this scene",
+  "visual_note": "Key visual elements needed (will be used in Phase 1c for image prompts)",
+  "duration_estimate": 20
+}
+
+NARRATION WRITING STYLE:
+
+✓ Show, don't tell - Use specific details, not abstractions
+✓ Present tense for immediacy
+✓ Short sentences for pacing in narration
+✓ Use SSML <break> tags for dramatic pauses
+✓ Concrete sensory details (what can be seen/heard)
+✓ Character actions over explanations
+✓ Subtext over explicit statements
+✓ Build tension through pacing
+
+✗ Don't explain the twist directly
+✗ Don't use "little did they know" or similar clichés
+✗ Don't break the fourth wall
+✗ Don't over-explain psychology
+✗ Don't rush the recontextualization
+
+TONE ADAPTATION:
+
+Dark: Ominous atmosphere, moral ambiguity, consequences emphasized
+Inspiring: Hope despite struggle, growth through challenge, redemption possible
+Neutral: Balanced presentation, let story speak, analysis over emotion
+
+LANGUAGE NOTES:
+
+If LANGUAGE is not English, write ALL narration in that language naturally.
+Do NOT translate mechanics fields - those stay in English for system processing.
+
+OUTPUT FORMAT:
+
+Return a JSON object:
+
+{
+  "story_title": "Compelling title for this specific story",
+  "scenes": [
+    // Array of 8 scene objects as specified above
+  ],
+  "mechanics_used": {
+    "dominant_archetype": "{ARCHETYPE_FROM_MECHANICS}",
+    "surface_truth": "{COPY_FROM_MECHANICS}",
+    "hidden_truth": "{COPY_FROM_MECHANICS}"
+  },
+  "metadata": {
+    "total_duration_estimate": 180,
+    "emotional_arc": "Brief description of emotional journey",
+    "archetype_execution": "How well mechanics were followed"
+  }
+}
+
+VALIDATION CHECKLIST:
+
+Before returning, verify:
+✓ Protagonist matches protagonist_frozen exactly
+✓ Mirror character matches mirror_character_frozen exactly
+✓ Surface truth established early and convincingly
+✓ Hidden truth only becomes obvious at recontextualization
+✓ Key dialogue from mechanics appears naturally
+✓ Recontextualization moment happens as specified
+✓ All 8 scenes present and properly structured
+✓ Narration is in correct language
+✓ SSML tags used for pacing
+
+Remember: The mechanics are LAW. Your creativity is in HOW you execute them, not WHETHER you follow them.
+
+Now generate the narrative:

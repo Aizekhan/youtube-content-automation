@@ -1,0 +1,856 @@
+{
+  "Comment": "Multi-Channel Content Generator with Topics Queue Manager - Uses pre-approved topics from ContentTopicsQueue",
+  "StartAt": "GetActiveChannels",
+  "States": {
+    "GetActiveChannels": {
+      "Type": "Task",
+      "Resource": "arn:aws:states:::lambda:invoke",
+      "Parameters": {
+        "FunctionName": "arn:aws:lambda:eu-central-1:599297130956:function:content-get-channels",
+        "Payload": {
+          "user_id.$": "$.user_id"
+        }
+      },
+      "ResultSelector": {
+        "data.$": "$.Payload"
+      },
+      "ResultPath": "$.channelsResult",
+      "Next": "Phase1ContentGeneration",
+      "Comment": "Get all active channels"
+    },
+    "Phase1ContentGeneration": {
+      "Type": "Map",
+      "Comment": "PHASE 1: Get topic from queue and generate content (Narrative + Image Prompts) for all channels in PARALLEL",
+      "ItemsPath": "$.channelsResult.data",
+      "MaxConcurrency": 5,
+      "ResultPath": "$.phase1Results",
+      "Iterator": {
+        "StartAt": "GetNextTopic",
+        "States": {
+          "GetNextTopic": {
+            "Type": "Task",
+            "Resource": "arn:aws:states:::lambda:invoke",
+            "Comment": "Get next approved topic from Topics Queue for this channel",
+            "Parameters": {
+              "FunctionName": "arn:aws:lambda:eu-central-1:599297130956:function:content-topics-get-next",
+              "Payload": {
+                "channel_id.$": "$.channel_id",
+                "user_id.$": "$.user_id"
+              }
+            },
+            "ResultSelector": {
+              "data.$": "$.Payload"
+            },
+            "ResultPath": "$.topicResult",
+            "Next": "CheckTopicAvailable",
+            "Catch": [
+              {
+                "ErrorEquals": ["States.ALL"],
+                "ResultPath": "$.topicError",
+                "Next": "NoTopicAvailable",
+                "Comment": "On error: skip this channel"
+              }
+            ]
+          },
+          "CheckTopicAvailable": {
+            "Type": "Choice",
+            "Comment": "Check if topic was found (success=true) or not (success=false = no approved topics)",
+            "Choices": [
+              {
+                "Variable": "$.topicResult.data.success",
+                "BooleanEquals": true,
+                "Next": "ExtractTopicData"
+              }
+            ],
+            "Default": "NoTopicAvailable"
+          },
+          "ExtractTopicData": {
+            "Type": "Pass",
+            "Comment": "Extract topic data and add to context",
+            "Parameters": {
+              "channel_id.$": "$.channel_id",
+              "user_id.$": "$.user_id",
+              "config_id.$": "$.config_id",
+              "channel_name.$": "$.channel_name",
+              "genre.$": "$.genre",
+              "factual_mode.$": "$.factual_mode",
+              "topic_id.$": "$.topicResult.data.topic.topic_id",
+              "selected_topic.$": "$.topicResult.data.topic.topic_text",
+              "topic_description.$": "$.topicResult.data.topic.topic_description",
+              "topic_priority.$": "$.topicResult.data.topic.priority"
+            },
+            "ResultPath": "$",
+            "Next": "CheckFactualMode"
+          },
+          "CheckFactualMode": {
+            "Type": "Choice",
+            "Comment": "If factual_mode=factual -> search Wikipedia facts before narrative generation",
+            "Choices": [
+              {
+                "Variable": "$.factual_mode",
+                "StringEquals": "factual",
+                "Next": "SearchWikipediaFacts"
+              }
+            ],
+            "Default": "SetNoFacts"
+          },
+          "SearchWikipediaFacts": {
+            "Type": "Task",
+            "Resource": "arn:aws:states:::lambda:invoke",
+            "Comment": "Search Wikipedia for real facts about the topic (factual_mode channels only)",
+            "Parameters": {
+              "FunctionName": "arn:aws:lambda:eu-central-1:599297130956:function:content-search-facts",
+              "Payload": {
+                "selected_topic.$": "$.selected_topic",
+                "genre.$": "$.genre"
+              }
+            },
+            "ResultSelector": {
+              "data.$": "$.Payload"
+            },
+            "ResultPath": "$.factsResult",
+            "Next": "MegaNarrativeGenerator",
+            "Catch": [
+              {
+                "ErrorEquals": ["States.ALL"],
+                "ResultPath": "$.factsError",
+                "Next": "SetNoFacts",
+                "Comment": "On failure: skip facts and continue without them"
+              }
+            ]
+          },
+          "SetNoFacts": {
+            "Type": "Pass",
+            "Comment": "No facts (fictional mode or factual search failed) - set empty facts",
+            "Result": {
+              "data": {
+                "wikipedia_facts": null,
+                "has_real_facts": false,
+                "facts_source": null
+              }
+            },
+            "ResultPath": "$.factsResult",
+            "Next": "MegaNarrativeGenerator"
+          },
+          "MegaNarrativeGenerator": {
+            "Type": "Task",
+            "Resource": "arn:aws:states:::lambda:invoke",
+            "Parameters": {
+              "FunctionName": "arn:aws:lambda:eu-central-1:599297130956:function:content-narrative",
+              "Payload": {
+                "channel_id.$": "$.channel_id",
+                "user_id.$": "$.user_id",
+                "selected_topic.$": "$.selected_topic",
+                "wikipedia_facts.$": "$.factsResult.data.wikipedia_facts",
+                "has_real_facts.$": "$.factsResult.data.has_real_facts"
+              }
+            },
+            "ResultSelector": {
+              "data.$": "$.Payload"
+            },
+            "ResultPath": "$.narrativeResult",
+            "Next": "UpdateTopicStatusInProgress",
+            "Comment": "Generate narrative + image prompts (NO images/audio yet)",
+            "Catch": [
+              {
+                "ErrorEquals": ["States.ALL"],
+                "ResultPath": "$.narrativeError",
+                "Next": "UpdateTopicStatusFailed",
+                "Comment": "On narrative failure: mark topic as failed"
+              }
+            ]
+          },
+          "UpdateTopicStatusInProgress": {
+            "Type": "Pass",
+            "Comment": "Topic status already changed to in_progress by get-next Lambda - continue to end",
+            "End": true
+          },
+          "UpdateTopicStatusFailed": {
+            "Type": "Task",
+            "Resource": "arn:aws:states:::lambda:invoke",
+            "Comment": "Mark topic as failed if narrative generation failed",
+            "Parameters": {
+              "FunctionName": "arn:aws:lambda:eu-central-1:599297130956:function:content-topics-update-status",
+              "Payload": {
+                "topic_id.$": "$.topic_id",
+                "channel_id.$": "$.channel_id",
+                "user_id.$": "$.user_id",
+                "new_status": "failed",
+                "error_message.$": "$.narrativeError.Error"
+              }
+            },
+            "ResultPath": "$.updateStatusResult",
+            "End": true,
+            "Catch": [
+              {
+                "ErrorEquals": ["States.ALL"],
+                "ResultPath": "$.updateStatusError",
+                "Next": "NoTopicAvailable",
+                "Comment": "Continue even if status update fails"
+              }
+            ]
+          },
+          "NoTopicAvailable": {
+            "Type": "Pass",
+            "Comment": "No approved topics in queue for this channel - skip content generation",
+            "Result": {
+              "message": "No approved topics available",
+              "skip_channel": true
+            },
+            "End": true
+          }
+        }
+      },
+      "Next": "FilterSuccessfulChannels"
+    },
+    "FilterSuccessfulChannels": {
+      "Type": "Pass",
+      "Comment": "Filter out channels that had no topics or failed - only continue with successful narrative generation",
+      "Parameters": {
+        "phase1Results.$": "$.phase1Results[?(@.narrativeResult)]"
+      },
+      "ResultPath": "$",
+      "Next": "CheckIfAnyChannelsSucceeded"
+    },
+    "CheckIfAnyChannelsSucceeded": {
+      "Type": "Choice",
+      "Comment": "Check if any channels successfully generated content",
+      "Choices": [
+        {
+          "Variable": "$.phase1Results[0]",
+          "IsPresent": true,
+          "Next": "Phase2Start"
+        }
+      ],
+      "Default": "NoContentGenerated"
+    },
+    "NoContentGenerated": {
+      "Type": "Pass",
+      "Comment": "No channels had approved topics - execution complete with no content",
+      "Result": {
+        "message": "No approved topics available for any channel",
+        "generated_content_count": 0
+      },
+      "End": true
+    },
+    "Phase2Start": {
+      "Type": "Pass",
+      "Comment": "PHASE 2: Clean Phase 1 context - forward only phase1Results",
+      "Parameters": {
+        "phase1Results.$": "$.phase1Results"
+      },
+      "Next": "Phase2Parallel"
+    },
+    "Phase2Parallel": {
+      "Type": "Parallel",
+      "Comment": "PHASE 2: Generate Images (Branch A) and Audio (Branch B) SIMULTANEOUSLY",
+      "ResultPath": "$.phase2Results",
+      "Branches": [
+        {
+          "Comment": "Branch A: Image Generation (ec2-zimage-control + content-generate-images)",
+          "StartAt": "CollectAllImagePrompts",
+          "States": {
+            "CollectAllImagePrompts": {
+              "Type": "Task",
+              "Resource": "arn:aws:states:::lambda:invoke",
+              "Comment": "Collect all image prompts from all channels",
+              "Parameters": {
+                "FunctionName": "arn:aws:lambda:eu-central-1:599297130956:function:collect-image-prompts",
+                "Payload": {
+                  "channels_data.$": "$.phase1Results"
+                }
+              },
+              "ResultSelector": {
+                "data.$": "$.Payload"
+              },
+              "ResultPath": "$.collectedPrompts",
+              "Next": "CheckIfAnyImages"
+            },
+            "CheckIfAnyImages": {
+              "Type": "Choice",
+              "Comment": "Skip image generation if no images needed",
+              "Choices": [
+                {
+                  "Variable": "$.collectedPrompts.data.total_images",
+                  "NumericGreaterThan": 0,
+                  "Next": "StartEC2ForImages"
+                }
+              ],
+              "Default": "PreparePhase3WithoutImages"
+            },
+            "StartEC2ForImages": {
+              "Type": "Task",
+              "Resource": "arn:aws:states:::lambda:invoke",
+              "Comment": "Start EC2 Z-Image-Turbo instance ONCE for ALL channels",
+              "Parameters": {
+                "FunctionName": "arn:aws:lambda:eu-central-1:599297130956:function:ec2-zimage-control",
+                "Payload": {
+                  "action": "start"
+                }
+              },
+              "ResultSelector": {
+                "data.$": "$.Payload"
+              },
+              "ResultPath": "$.ec2Endpoint",
+              "Next": "CheckEC2ImageEndpoint",
+              "Retry": [
+                {
+                  "ErrorEquals": ["States.ALL"],
+                  "IntervalSeconds": 10,
+                  "MaxAttempts": 3,
+                  "BackoffRate": 2.0
+                }
+              ],
+              "Catch": [
+                {
+                  "ErrorEquals": ["States.ALL"],
+                  "ResultPath": "$.ec2ImageError",
+                  "Next": "PreparePhase3WithoutImages",
+                  "Comment": "EC2 unavailable (capacity/timeout) - continue without images"
+                }
+              ]
+            },
+            "CheckEC2ImageEndpoint": {
+              "Type": "Choice",
+              "Comment": "Check if EC2 returned a valid endpoint (statusCode 200/202 + endpoint field)",
+              "Choices": [
+                {
+                  "Variable": "$.ec2Endpoint.data.endpoint",
+                  "IsPresent": true,
+                  "Next": "GenerateAllImagesBatched"
+                }
+              ],
+              "Default": "PreparePhase3WithoutImages"
+            },
+            "GenerateAllImagesBatched": {
+              "Type": "Task",
+              "Resource": "arn:aws:states:::lambda:invoke",
+              "Comment": "Generate ALL images for ALL channels in batches",
+              "Parameters": {
+                "FunctionName": "arn:aws:lambda:eu-central-1:599297130956:function:content-generate-images",
+                "Payload": {
+                  "all_prompts.$": "$.collectedPrompts.data.all_image_prompts",
+                  "provider.$": "$.collectedPrompts.data.provider",
+                  "batch_mode": true,
+                  "ec2_endpoint.$": "$.ec2Endpoint.data.endpoint"
+                }
+              },
+              "ResultSelector": {
+                "data.$": "$.Payload"
+              },
+              "ResultPath": "$.allGeneratedImages",
+              "Next": "DistributeImagesToChannels"
+            },
+            "DistributeImagesToChannels": {
+              "Type": "Task",
+              "Resource": "arn:aws:states:::lambda:invoke",
+              "Comment": "Distribute generated images back to respective channels",
+              "Parameters": {
+                "FunctionName": "arn:aws:lambda:eu-central-1:599297130956:function:distribute-images",
+                "Payload": {
+                  "generated_images.$": "$.allGeneratedImages.data.scene_images",
+                  "channels_data.$": "$.phase1Results"
+                }
+              },
+              "ResultSelector": {
+                "data.$": "$.Payload"
+              },
+              "ResultPath": "$.distributedData",
+              "Next": "StopEC2AfterImages"
+            },
+            "StopEC2AfterImages": {
+              "Type": "Task",
+              "Resource": "arn:aws:states:::lambda:invoke",
+              "Comment": "Auto-stop EC2 Z-Image-Turbo after all images generated",
+              "Parameters": {
+                "FunctionName": "arn:aws:lambda:eu-central-1:599297130956:function:ec2-zimage-control",
+                "Payload": {
+                  "action": "stop"
+                }
+              },
+              "ResultSelector": {
+                "data.$": "$.Payload"
+              },
+              "ResultPath": "$.ec2StopResult",
+              "Next": "BranchADone",
+              "Catch": [
+                {
+                  "ErrorEquals": ["States.ALL"],
+                  "ResultPath": "$.ec2StopError",
+                  "Next": "BranchADone",
+                  "Comment": "Continue even if EC2 stop fails"
+                }
+              ]
+            },
+            "PreparePhase3WithoutImages": {
+              "Type": "Map",
+              "Comment": "Add empty scene_images to each channel for no-images path",
+              "ItemsPath": "$.phase1Results",
+              "MaxConcurrency": 0,
+              "Iterator": {
+                "StartAt": "AddEmptySceneImages",
+                "States": {
+                  "AddEmptySceneImages": {
+                    "Type": "Pass",
+                    "Parameters": {
+                      "channel_id.$": "$.channel_id",
+                      "user_id.$": "$.user_id",
+                      "config_id.$": "$.config_id",
+                      "channel_name.$": "$.channel_name",
+                      "genre.$": "$.genre",
+                      "narrativeResult.$": "$.narrativeResult",
+                      "scene_images": [],
+                      "images_count": 0
+                    },
+                    "End": true
+                  }
+                }
+              },
+              "ResultPath": "$.phase1WithImages",
+              "Next": "SetDistributedDataNoImages"
+            },
+            "SetDistributedDataNoImages": {
+              "Type": "Pass",
+              "Comment": "Wrap phase1WithImages in distributedData structure",
+              "Parameters": {
+                "data": {
+                  "channels_with_images.$": "$.phase1WithImages"
+                }
+              },
+              "ResultPath": "$.distributedData",
+              "Next": "BranchADone"
+            },
+            "BranchADone": {
+              "Type": "Pass",
+              "Comment": "Branch A complete - distributedData.data.channels_with_images is populated",
+              "End": true
+            }
+          }
+        },
+        {
+          "Comment": "Branch B: Audio Generation (ec2-qwen3-control + content-audio-qwen3tts)",
+          "StartAt": "CollectAllAudioScenes",
+          "States": {
+            "CollectAllAudioScenes": {
+              "Type": "Task",
+              "Resource": "arn:aws:states:::lambda:invoke",
+              "Comment": "Collect all audio scenes from all channels for batch processing",
+              "Parameters": {
+                "FunctionName": "arn:aws:lambda:eu-central-1:599297130956:function:collect-audio-scenes",
+                "Payload": {
+                  "channels_data.$": "$.phase1Results"
+                }
+              },
+              "ResultSelector": {
+                "data.$": "$.Payload"
+              },
+              "ResultPath": "$.collectedAudio",
+              "Next": "CheckIfAnyAudio"
+            },
+            "CheckIfAnyAudio": {
+              "Type": "Choice",
+              "Comment": "Skip audio generation if no audio scenes collected",
+              "Choices": [
+                {
+                  "Variable": "$.collectedAudio.data.total_audio_files",
+                  "NumericGreaterThan": 0,
+                  "Next": "StartEC2ForAudio"
+                }
+              ],
+              "Default": "PrepareEmptyAudio"
+            },
+            "StartEC2ForAudio": {
+              "Type": "Task",
+              "Resource": "arn:aws:states:::lambda:invoke",
+              "Comment": "Start EC2 Qwen3-TTS instance ONCE for ALL channels audio",
+              "Parameters": {
+                "FunctionName": "arn:aws:lambda:eu-central-1:599297130956:function:ec2-qwen3-control",
+                "Payload": {
+                  "action": "start"
+                }
+              },
+              "ResultSelector": {
+                "data.$": "$.Payload"
+              },
+              "ResultPath": "$.ec2AudioEndpoint",
+              "Next": "GenerateAllAudioBatched",
+              "Retry": [
+                {
+                  "ErrorEquals": ["States.ALL"],
+                  "IntervalSeconds": 10,
+                  "MaxAttempts": 3,
+                  "BackoffRate": 2.0
+                }
+              ]
+            },
+            "GenerateAllAudioBatched": {
+              "Type": "Task",
+              "Resource": "arn:aws:states:::lambda:invoke",
+              "Comment": "Generate ALL audio for ALL channels in one batch via Qwen3-TTS EC2",
+              "Parameters": {
+                "FunctionName": "arn:aws:lambda:eu-central-1:599297130956:function:content-audio-qwen3tts",
+                "Payload": {
+                  "all_audio_scenes.$": "$.collectedAudio.data.all_audio_scenes",
+                  "all_cta_segments.$": "$.collectedAudio.data.all_cta_segments",
+                  "ec2_endpoint.$": "$.ec2AudioEndpoint.data.endpoint"
+                }
+              },
+              "ResultSelector": {
+                "data.$": "$.Payload"
+              },
+              "ResultPath": "$.allGeneratedAudio",
+              "Next": "DistributeAudioToChannels",
+              "Catch": [
+                {
+                  "ErrorEquals": ["States.ALL"],
+                  "ResultPath": "$.audioGenerationError",
+                  "Next": "AudioGenerationFailed",
+                  "Comment": "On failure: set empty audio and stop EC2"
+                }
+              ]
+            },
+            "DistributeAudioToChannels": {
+              "Type": "Task",
+              "Resource": "arn:aws:states:::lambda:invoke",
+              "Comment": "Distribute generated audio files back to respective channels",
+              "Parameters": {
+                "FunctionName": "arn:aws:lambda:eu-central-1:599297130956:function:distribute-audio",
+                "Payload": {
+                  "generated_audio.$": "$.allGeneratedAudio.data.audio_files",
+                  "cta_generated_audio.$": "$.allGeneratedAudio.data.cta_audio_files",
+                  "channels_data.$": "$.phase1Results"
+                }
+              },
+              "ResultSelector": {
+                "data.$": "$.Payload"
+              },
+              "ResultPath": "$.distributedAudio",
+              "Next": "StopEC2AfterAudio",
+              "Catch": [
+                {
+                  "ErrorEquals": ["States.ALL"],
+                  "ResultPath": "$.audioDistributeError",
+                  "Next": "AudioGenerationFailed",
+                  "Comment": "On failure: set empty audio and stop EC2"
+                }
+              ]
+            },
+            "AudioGenerationFailed": {
+              "Type": "Pass",
+              "Comment": "Audio failed - set empty distributedAudio and stop EC2",
+              "Parameters": {
+                "data": {
+                  "channels_with_audio": []
+                }
+              },
+              "ResultPath": "$.distributedAudio",
+              "Next": "StopEC2AfterAudio"
+            },
+            "StopEC2AfterAudio": {
+              "Type": "Task",
+              "Resource": "arn:aws:states:::lambda:invoke",
+              "Comment": "Auto-stop EC2 Qwen3-TTS after all audio generated",
+              "Parameters": {
+                "FunctionName": "arn:aws:lambda:eu-central-1:599297130956:function:ec2-qwen3-control",
+                "Payload": {
+                  "action": "stop"
+                }
+              },
+              "ResultSelector": {
+                "data.$": "$.Payload"
+              },
+              "ResultPath": "$.ec2AudioStopResult",
+              "Next": "BranchBDone",
+              "Catch": [
+                {
+                  "ErrorEquals": ["States.ALL"],
+                  "ResultPath": "$.ec2AudioStopError",
+                  "Next": "BranchBDone",
+                  "Comment": "Continue even if EC2 stop fails"
+                }
+              ]
+            },
+            "PrepareEmptyAudio": {
+              "Type": "Pass",
+              "Comment": "No audio scenes - create empty distributedAudio",
+              "Parameters": {
+                "data": {
+                  "channels_with_audio": []
+                }
+              },
+              "ResultPath": "$.distributedAudio",
+              "End": true
+            },
+            "BranchBDone": {
+              "Type": "Pass",
+              "Comment": "Branch B complete - distributedAudio.data.channels_with_audio is populated",
+              "End": true
+            }
+          }
+        }
+      ],
+      "Next": "MergePhase2Results"
+    },
+    "MergePhase2Results": {
+      "Type": "Pass",
+      "Comment": "Extract channels_with_images (Branch A) and channels_with_audio (Branch B)",
+      "Parameters": {
+        "channels_with_images.$": "$.phase2Results[0].distributedData.data.channels_with_images",
+        "channels_with_audio.$": "$.phase2Results[1].distributedAudio.data.channels_with_audio"
+      },
+      "Next": "MergeChannelData"
+    },
+    "MergeChannelData": {
+      "Type": "Task",
+      "Resource": "arn:aws:states:::lambda:invoke",
+      "Comment": "Merge images and audio data per channel into unified channel objects",
+      "Parameters": {
+        "FunctionName": "arn:aws:lambda:eu-central-1:599297130956:function:merge-channel-data",
+        "Payload": {
+          "channels_with_images.$": "$.channels_with_images",
+          "channels_with_audio.$": "$.channels_with_audio"
+        }
+      },
+      "ResultSelector": {
+        "data.$": "$.Payload"
+      },
+      "ResultPath": "$.mergeResult",
+      "Next": "Phase3Start"
+    },
+    "Phase3Start": {
+      "Type": "Pass",
+      "Comment": "PHASE 3: Clean context - forward only merged channels",
+      "Parameters": {
+        "channels_with_images.$": "$.mergeResult.data.merged_channels"
+      },
+      "Next": "Phase3SaveAndVideo"
+    },
+    "Phase3SaveAndVideo": {
+      "Type": "Map",
+      "Comment": "PHASE 3: Save content, assemble video, and update topic status for each channel in PARALLEL",
+      "ItemsPath": "$.channels_with_images",
+      "MaxConcurrency": 5,
+      "ResultPath": "$.finalResults",
+      "Iterator": {
+        "StartAt": "SaveFinalContent",
+        "States": {
+          "SaveFinalContent": {
+            "Type": "Task",
+            "Resource": "arn:aws:states:::lambda:invoke",
+            "Parameters": {
+              "FunctionName": "arn:aws:lambda:eu-central-1:599297130956:function:content-save-result",
+              "Payload": {
+                "channel_id.$": "$.channel_id",
+                "user_id.$": "$.user_id",
+                "config_id.$": "$.config_id",
+                "content_id.$": "$.narrativeResult.data.narrative_id",
+                "selected_topic": {
+                  "title.$": "$.selected_topic",
+                  "topic_id.$": "$.topic_id"
+                },
+                "narrative_data": {
+                  "story_title.$": "$.narrativeResult.data.story_title",
+                  "scenes.$": "$.narrativeResult.data.scenes",
+                  "total_word_count.$": "$.narrativeResult.data.character_count",
+                  "total_scenes.$": "$.narrativeResult.data.scene_count"
+                },
+                "cta_data": {
+                  "cta_segments.$": "$.narrativeResult.data.cta_data.cta_segments"
+                },
+                "description_data.$": "$.narrativeResult.data.description_data",
+                "metadata": {
+                  "total_scenes.$": "$.narrativeResult.data.scene_count",
+                  "total_word_count.$": "$.narrativeResult.data.character_count",
+                  "topic_id.$": "$.topic_id",
+                  "topic_priority.$": "$.topic_priority"
+                },
+                "audio_files.$": "$.audio_files",
+                "generated_images.$": "$.scene_images",
+                "model.$": "$.narrativeResult.data.model"
+              }
+            },
+            "ResultSelector": {
+              "data.$": "$.Payload"
+            },
+            "ResultPath": "$.saveResult",
+            "Catch": [
+              {
+                "ErrorEquals": ["States.ALL"],
+                "ResultPath": "$.saveError",
+                "Next": "UpdateTopicStatusFailedAfterSave"
+              }
+            ],
+            "Next": "EstimateVideoDuration"
+          },
+          "EstimateVideoDuration": {
+            "Type": "Task",
+            "Resource": "arn:aws:states:::lambda:invoke",
+            "Parameters": {
+              "FunctionName": "arn:aws:lambda:eu-central-1:599297130956:function:content-video-assembly",
+              "Payload": {
+                "content_id.$": "$.narrativeResult.data.narrative_id",
+                "channel_id.$": "$.channel_id",
+                "estimate_only": true
+              }
+            },
+            "ResultSelector": {
+              "data.$": "$.Payload"
+            },
+            "ResultPath": "$.durationEstimate",
+            "Next": "ChooseRenderingMode",
+            "Comment": "Estimate video duration to choose Lambda vs ECS",
+            "Catch": [
+              {
+                "ErrorEquals": ["States.ALL"],
+                "ResultPath": "$.videoError",
+                "Next": "UpdateTopicStatusFailedAfterVideo"
+              }
+            ]
+          },
+          "ChooseRenderingMode": {
+            "Type": "Choice",
+            "Comment": "Choose Lambda (<15 min) or ECS Fargate (15+ min)",
+            "Choices": [
+              {
+                "Variable": "$.durationEstimate.data.status",
+                "StringEquals": "redirect_to_ecs",
+                "Next": "AssembleVideoECS"
+              }
+            ],
+            "Default": "AssembleVideoLambda"
+          },
+          "AssembleVideoLambda": {
+            "Type": "Task",
+            "Resource": "arn:aws:states:::lambda:invoke",
+            "Parameters": {
+              "FunctionName": "arn:aws:lambda:eu-central-1:599297130956:function:content-video-assembly",
+              "Payload": {
+                "content_id.$": "$.narrativeResult.data.narrative_id",
+                "channel_id.$": "$.channel_id",
+                "template_id": "video_template_universal_v2"
+              }
+            },
+            "ResultSelector": {
+              "data.$": "$.Payload"
+            },
+            "ResultPath": "$.videoResult",
+            "TimeoutSeconds": 900,
+            "Comment": "Assemble video using Lambda (fast, <15 min videos)",
+            "Catch": [
+              {
+                "ErrorEquals": ["States.ALL"],
+                "ResultPath": "$.videoError",
+                "Next": "UpdateTopicStatusFailedAfterVideo"
+              }
+            ],
+            "Next": "UpdateTopicStatusPublished"
+          },
+          "AssembleVideoECS": {
+            "Type": "Task",
+            "Resource": "arn:aws:states:::ecs:runTask.sync",
+            "Parameters": {
+              "Cluster": "default",
+              "TaskDefinition": "video-assembly-fargate",
+              "LaunchType": "FARGATE",
+              "NetworkConfiguration": {
+                "AwsvpcConfiguration": {
+                  "Subnets": [
+                    "subnet-062dbf8b6004e315f"
+                  ],
+                  "SecurityGroups": [
+                    "sg-08aee4fb3504062dc"
+                  ],
+                  "AssignPublicIp": "ENABLED"
+                }
+              },
+              "Overrides": {
+                "ContainerOverrides": [
+                  {
+                    "Name": "video-assembler",
+                    "Environment": [
+                      {
+                        "Name": "CONTENT_ID",
+                        "Value.$": "$.phase1Results[0].narrativeResult.data.narrative_id"
+                      },
+                      {
+                        "Name": "CHANNEL_ID",
+                        "Value.$": "$.phase1Results[0].channel_id"
+                      },
+                      {
+                        "Name": "TEMPLATE_ID",
+                        "Value": "video_template_universal_v2"
+                      }
+                    ]
+                  }
+                ]
+              }
+            },
+            "ResultPath": "$.videoResult",
+            "TimeoutSeconds": 10800,
+            "Comment": "Assemble video using ECS Fargate (15 min - 3 hour videos)",
+            "Catch": [
+              {
+                "ErrorEquals": ["States.ALL"],
+                "ResultPath": "$.videoError",
+                "Next": "UpdateTopicStatusFailedAfterVideo"
+              }
+            ],
+            "Next": "UpdateTopicStatusPublished"
+          },
+          "UpdateTopicStatusPublished": {
+            "Type": "Task",
+            "Resource": "arn:aws:states:::lambda:invoke",
+            "Comment": "Mark topic as published after successful video assembly",
+            "Parameters": {
+              "FunctionName": "arn:aws:lambda:eu-central-1:599297130956:function:content-topics-update-status",
+              "Payload": {
+                "topic_id.$": "$.topic_id",
+                "channel_id.$": "$.channel_id",
+                "user_id.$": "$.user_id",
+                "new_status": "published",
+                "content_id.$": "$.saveResult.data.content_id"
+              }
+            },
+            "ResultPath": "$.updateStatusResult",
+            "End": true
+          },
+          "UpdateTopicStatusFailedAfterSave": {
+            "Type": "Task",
+            "Resource": "arn:aws:states:::lambda:invoke",
+            "Comment": "Mark topic as failed if save failed",
+            "Parameters": {
+              "FunctionName": "arn:aws:lambda:eu-central-1:599297130956:function:content-topics-update-status",
+              "Payload": {
+                "topic_id.$": "$.topic_id",
+                "channel_id.$": "$.channel_id",
+                "user_id.$": "$.user_id",
+                "new_status": "failed",
+                "error_message": "Content save failed"
+              }
+            },
+            "ResultPath": "$.updateStatusResult",
+            "End": true
+          },
+          "UpdateTopicStatusFailedAfterVideo": {
+            "Type": "Task",
+            "Resource": "arn:aws:states:::lambda:invoke",
+            "Comment": "Mark topic as failed if video assembly failed",
+            "Parameters": {
+              "FunctionName": "arn:aws:lambda:eu-central-1:599297130956:function:content-topics-update-status",
+              "Payload": {
+                "topic_id.$": "$.topic_id",
+                "channel_id.$": "$.channel_id",
+                "user_id.$": "$.user_id",
+                "new_status": "failed",
+                "error_message": "Video assembly failed"
+              }
+            },
+            "ResultPath": "$.updateStatusResult",
+            "End": true
+          }
+        }
+      },
+      "End": true
+    }
+  }
+}

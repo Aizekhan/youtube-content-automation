@@ -111,7 +111,7 @@ def lambda_handler(event, context):
 
             genre = item.get('genre', 'General')
 
-            # Build channel object with ALL fields including variation_sets
+            # Build channel object with ALL fields
             channel = {
                 'channel_id': channel_id,
                 'config_id': config_id,
@@ -130,10 +130,6 @@ def lambda_handler(event, context):
                 'statistics': item.get('statistics', {}),
                 'token_expiry': item.get('token_expiry', ''),
                 'content_count': item.get('content_count', 0),
-                # FIX 2025-11-30: Include variation_sets for channels.html
-                'variation_sets': item.get('variation_sets', []),
-                'rotation_mode': item.get('rotation_mode', 'sequential'),
-                'generation_count': item.get('generation_count', 0),
                 'factual_mode': item.get('factual_mode', 'fictional'),
                 'language': item.get('language', 'en')
             }
@@ -144,10 +140,6 @@ def lambda_handler(event, context):
 
         # Convert Decimals to int/float for JSON serialization
         channels_json = json.loads(json.dumps(channels, default=decimal_default))
-
-        if channels_json:
-            vs_count = len(channels_json[0].get('variation_sets', []))
-            print(f"First channel variation_sets: {vs_count}")
 
         return channels_json
 

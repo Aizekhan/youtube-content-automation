@@ -1,0 +1,1347 @@
+<!DOCTYPE html>
+<html lang="uk">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Channels Management - n8n Creator Space</title>
+
+    <!-- Bootstrap Icons -->
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.1/font/bootstrap-icons.css" rel="stylesheet">
+
+    <!-- Unified Navigation CSS -->
+    <link rel="stylesheet" href="css/unified-navigation.css">
+
+    <!-- Channels Unified CSS -->
+    <link rel="stylesheet" href="css/channels-unified.css">
+
+    <!-- Base Styles -->
+    <style>
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+            background: linear-gradient(135deg, #0f172a 0%, #1e293b 100%);
+            color: #e5e7eb;
+            min-height: 100vh;
+            padding-bottom: 2rem;
+        }
+
+        .container {
+            max-width: 1400px;
+            margin: 0 auto;
+            padding: 0 1.5rem;
+        }
+
+        .page-header {
+            margin-bottom: 2rem;
+        }
+
+        .page-title {
+            font-size: 2rem;
+            font-weight: 700;
+            color: #e5e7eb;
+            margin-bottom: 0.5rem;
+        }
+
+        .page-subtitle {
+            font-size: 1rem;
+            color: rgba(226, 232, 240, 0.6);
+        }
+
+        /* Modal Styles */
+        .modal {
+            display: none;
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: rgba(0,0,0,0.7);
+            z-index: 10000;
+            overflow-y: auto;
+            padding: 20px;
+        }
+
+        .modal-content {
+            background: white;
+            max-width: 1200px;
+            margin: 40px auto;
+            border-radius: 15px;
+            padding: 40px;
+            position: relative;
+        }
+
+        .close-modal {
+            position: absolute;
+            top: 20px;
+            right: 20px;
+            font-size: 32px;
+            cursor: pointer;
+            color: #a0aec0;
+        }
+
+        .close-modal:hover { color: #667eea; }
+
+        .form-section {
+            margin-bottom: 40px;
+            padding-bottom: 30px;
+            border-bottom: 2px solid #e2e8f0;
+        }
+
+        .form-section:last-child { border-bottom: none; }
+
+        .section-title {
+            font-size: 24px;
+            color: #667eea;
+            margin-bottom: 20px;
+            display: flex;
+            align-items: center;
+        }
+
+        .section-title::before {
+            content: '';
+            width: 5px;
+            height: 24px;
+            background: #667eea;
+            margin-right: 12px;
+            border-radius: 3px;
+        }
+
+        .form-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+            gap: 20px;
+        }
+
+        .form-group {
+            display: flex;
+            flex-direction: column;
+        }
+
+        .form-group.full {
+            grid-column: 1 / -1;
+        }
+
+        /* Generation Mode Toggle */
+        .generation-mode-toggle {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 12px;
+            margin-top: 4px;
+        }
+        .mode-card {
+            display: flex;
+            align-items: center;
+            gap: 12px;
+            padding: 14px 16px;
+            border: 2px solid #e2e8f0;
+            border-radius: 10px;
+            cursor: pointer;
+            background: #f8fafc;
+            transition: all 0.2s ease;
+            position: relative;
+        }
+        .mode-card:hover {
+            border-color: #667eea;
+            background: #f0f4ff;
+        }
+        .mode-card.active {
+            border-color: #667eea;
+            background: linear-gradient(135deg, #f0f4ff 0%, #e8ecff 100%);
+            box-shadow: 0 2px 8px rgba(102,126,234,0.2);
+        }
+        .mode-card-icon {
+            font-size: 26px;
+            flex-shrink: 0;
+        }
+        .mode-card-body {
+            flex: 1;
+        }
+        .mode-card-title {
+            font-weight: 700;
+            font-size: 14px;
+            color: #1a202c;
+            margin-bottom: 2px;
+        }
+        .mode-card-desc {
+            font-size: 12px;
+            color: #718096;
+        }
+        .mode-card-check {
+            font-size: 16px;
+            font-weight: 700;
+            color: #667eea;
+            opacity: 0;
+            transition: opacity 0.2s;
+        }
+        .mode-card.active .mode-card-check {
+            opacity: 1;
+        }
+
+        .modal label {
+            font-weight: 600;
+            color: #2d3748;
+            margin-bottom: 8px;
+            font-size: 14px;
+        }
+
+        .modal input, .modal textarea, .modal select {
+            padding: 12px;
+            border: 2px solid #e2e8f0;
+            border-radius: 8px;
+            font-size: 14px;
+            transition: border 0.3s;
+        }
+
+        .modal input:focus, .modal textarea:focus, .modal select:focus {
+            outline: none;
+            border-color: #667eea;
+        }
+
+        .modal textarea {
+            min-height: 60px;
+            resize: vertical;
+            font-family: inherit;
+        }
+
+        .save-btn {
+            width: 100%;
+            padding: 16px;
+            background: #48bb78;
+            color: white;
+            border: none;
+            border-radius: 8px;
+            font-size: 18px;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.3s;
+            margin-top: 30px;
+        }
+
+        .save-btn:hover {
+            background: #38a169;
+            transform: translateY(-2px);
+        }
+
+        .field-hint {
+            font-size: 12px;
+            color: #718096;
+            margin-top: 4px;
+            font-style: italic;
+        }
+
+        /* Fix text-muted and other Bootstrap classes in modal */
+        .modal .text-muted,
+        .modal p.text-muted {
+            color: #6c757d !important;
+        }
+
+        .modal .small {
+            font-size: 0.875rem;
+        }
+
+        /* Make all modal text dark by default */
+        .modal-content,
+        .modal-content * {
+            color: #1a1d2e;
+        }
+
+        /* Override for specific elements that need different colors */
+        .modal .section-title {
+            color: #667eea;
+        }
+
+        .modal label {
+            color: #2d3748;
+        }
+
+        .modal .field-hint,
+        .modal .text-muted {
+            color: #718096 !important;
+        }
+
+        /* Publish schedule styles in modal */
+        .modal #publishTimesContainer,
+        .modal #publishDaysContainer {
+            color: #2d3748;
+        }
+
+        .modal .time-slot,
+        .modal .day-checkbox {
+            color: #2d3748;
+        }
+
+        /* Form inputs text color */
+        .modal input,
+        .modal textarea,
+        .modal select {
+            color: #1a1d2e;
+            background-color: #ffffff;
+        }
+
+        .modal input::placeholder,
+        .modal textarea::placeholder {
+            color: #a0aec0;
+        }
+
+        /* Override Bootstrap text-secondary for main page (not modal) */
+        body > .container .text-secondary,
+        .text-secondary:not(.modal *) {
+            color: #e5e7eb !important;
+        }
+
+        .form-label:not(.modal *) {
+            color: #e5e7eb;
+        }
+    
+        /* Variation Set Modal Styles */
+        .modal {
+            display: none;
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: rgba(0, 0, 0, 0.7);
+            z-index: 10000;
+            align-items: center;
+            justify-content: center;
+            padding: 20px;
+        }
+
+        .modal-content {
+            background: white;
+            border-radius: 12px;
+            width: 100%;
+            max-width: 800px;
+            box-shadow: 0 10px 40px rgba(0, 0, 0, 0.3);
+            animation: modalSlideIn 0.3s ease;
+        }
+
+        @keyframes modalSlideIn {
+            from {
+                opacity: 0;
+                transform: translateY(-50px);
+            }
+            to {
+                opacity: 1;
+                transform: translateY(0);
+            }
+        }
+
+        .modal-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding: 20px 30px;
+            border-bottom: 2px solid #e0e0e0;
+        }
+
+        .modal-header h2 {
+            margin: 0;
+            color: #2d3748;
+            font-size: 24px;
+        }
+
+        .close-btn {
+            background: none;
+            border: none;
+            font-size: 32px;
+            color: #718096;
+            cursor: pointer;
+            padding: 0;
+            width: 40px;
+            height: 40px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            border-radius: 50%;
+            transition: all 0.2s;
+        }
+
+        .close-btn:hover {
+            background: #f7fafc;
+            color: #2d3748;
+        }
+
+        .modal-body {
+            padding: 30px;
+            max-height: 60vh;
+            overflow-y: auto;
+        }
+
+        .modal-footer {
+            padding: 20px 30px;
+            border-top: 2px solid #e0e0e0;
+            display: flex;
+            justify-content: flex-end;
+            gap: 12px;
+        }
+
+        .btn-secondary {
+            background: #e2e8f0;
+            color: #2d3748;
+            border: none;
+            padding: 10px 24px;
+            border-radius: 6px;
+            cursor: pointer;
+            font-weight: 500;
+            transition: all 0.2s;
+        }
+
+        .btn-secondary:hover {
+            background: #cbd5e0;
+        }
+
+        /* Advanced Settings Toggle */
+        .advanced-settings {
+            border: 1px solid #e2e8f0;
+            border-radius: 10px;
+            margin-bottom: 30px;
+            overflow: hidden;
+        }
+
+        .advanced-settings > summary {
+            padding: 16px 20px;
+            background: #f8fafc;
+            cursor: pointer;
+            font-weight: 600;
+            font-size: 15px;
+            color: #4a5568;
+            list-style: none;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            user-select: none;
+            border-radius: 10px;
+            transition: background 0.2s;
+        }
+
+        .advanced-settings > summary:hover {
+            background: #edf2f7;
+        }
+
+        .advanced-settings[open] > summary {
+            border-radius: 10px 10px 0 0;
+            border-bottom: 1px solid #e2e8f0;
+        }
+
+        .advanced-settings > summary::after {
+            content: '▼';
+            margin-left: auto;
+            font-size: 12px;
+            transition: transform 0.2s;
+        }
+
+        .advanced-settings[open] > summary::after {
+            transform: rotate(180deg);
+        }
+
+        .advanced-settings-body {
+            padding: 24px;
+        }
+
+        .advanced-settings .form-section {
+            border-bottom: 1px solid #f0f4f8;
+            margin-bottom: 24px;
+            padding-bottom: 20px;
+        }
+
+        .advanced-settings .form-section:last-child {
+            border-bottom: none;
+            margin-bottom: 0;
+        }
+
+        .advanced-settings .section-title {
+            font-size: 16px;
+        }
+
+        /* Filter button styles */
+        .filter-btn {
+            transition: all 0.3s ease !important;
+        }
+
+        .filter-btn:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
+        }
+
+        .filter-btn.active {
+            transform: scale(1.05);
+            box-shadow: 0 4px 16px rgba(102, 126, 234, 0.4);
+        }
+
+        .filter-btn[data-filter="all"].active {
+            background: rgba(102, 126, 234, 0.9) !important;
+            color: white !important;
+            border: none !important;
+        }
+
+        .filter-btn[data-filter="active"].active {
+            background: #10b981 !important;
+            color: white !important;
+            border: 1px solid #10b981 !important;
+        }
+
+        .filter-btn[data-filter="inactive"].active {
+            background: #ef4444 !important;
+            color: white !important;
+            border: 1px solid #ef4444 !important;
+        }
+
+        .filter-btn[data-filter="all"]:not(.active):hover {
+            background: rgba(102, 126, 234, 0.25) !important;
+        }
+
+        .filter-btn[data-filter="active"]:not(.active):hover {
+            background: rgba(16, 185, 129, 0.25) !important;
+        }
+
+        .filter-btn[data-filter="inactive"]:not(.active):hover {
+            background: rgba(239, 68, 68, 0.25) !important;
+        }
+
+        /* Story Engine Archetype Cards */
+        .archetype-card {
+            display: flex;
+            align-items: start;
+            padding: 12px;
+            background: #f7fafc;
+            border-radius: 8px;
+            cursor: pointer;
+            border: 2px solid transparent;
+            transition: all 0.2s;
+        }
+        .archetype-card:hover {
+            border-color: #667eea;
+            background: #ebf4ff;
+        }
+        .archetype-card input[type="checkbox"] {
+            margin-right: 10px;
+            margin-top: 2px;
+            width: 18px;
+            height: 18px;
+            cursor: pointer;
+        }
+        .archetype-card input[type="checkbox"]:checked ~ .archetype-content {
+            color: #667eea;
+        }
+        .archetype-card input[type="checkbox"]:checked {
+            accent-color: #667eea;
+        }
+        .archetype-content {
+            flex: 1;
+        }
+        .archetype-content strong {
+            color: #2d3748;
+            display: block;
+            margin-bottom: 2px;
+        }
+        .archetype-content span {
+            font-size: 12px;
+            color: #718096;
+        }
+    </style>
+</head>
+<body>
+    <!-- Unified Navigation -->
+    <!-- Unified Navigation (loaded from js/navigation.js?v=20260221-0500) -->
+    <div id="navigation-placeholder"></div>
+
+    <div class="container">
+        <!-- Page Header -->
+        <div class="page-header">
+            <h1 class="page-title">
+                <i class="bi bi-collection"></i> Channels Management
+            </h1>
+            <p class="page-subtitle">Manage your YouTube channels and configurations</p>
+        </div>
+
+        <!-- Action Buttons -->
+        <div class="action-buttons" style="margin-bottom: 2rem; display: flex; gap: 1rem; flex-wrap: wrap;">
+            <button class="btn btn-primary" onclick="window.location.href='/oauth/start.html'">
+                <i class="bi bi-plus-circle"></i> Додати YouTube Канал
+            </button>
+            <button class="btn btn-secondary" onclick="updateAllStats()">
+                <i class="bi bi-arrow-clockwise"></i> Оновити статистику
+            </button>
+            <button class="btn btn-secondary" onclick="window.open('/api/generate-oauth-urls.php', '_blank')" title="Реавторизація токенів">
+                <i class="bi bi-key"></i> Реавторизація токенів
+            </button>
+        </div>
+
+        <!-- Filter Buttons -->
+        <div style="margin-bottom: 1.5rem; display: flex; gap: 0.75rem; flex-wrap: wrap; padding: 1rem; background: rgba(102, 126, 234, 0.1); border-radius: 12px; border: 1px solid rgba(102, 126, 234, 0.2);">
+            <button class="filter-btn active" data-filter="all" onclick="applyChannelFilter('all')"
+                    style="padding: 0.6rem 1.2rem; background: rgba(102, 126, 234, 0.9); color: white; border: none; border-radius: 8px; cursor: pointer; font-weight: 500; transition: all 0.3s; display: flex; align-items: center; gap: 0.5rem;">
+                <i class="bi bi-collection"></i> Всі (0)
+            </button>
+            <button class="filter-btn" data-filter="active" onclick="applyChannelFilter('active')"
+                    style="padding: 0.6rem 1.2rem; background: rgba(16, 185, 129, 0.15); color: #10b981; border: 1px solid rgba(16, 185, 129, 0.3); border-radius: 8px; cursor: pointer; font-weight: 500; transition: all 0.3s; display: flex; align-items: center; gap: 0.5rem;">
+                <i class="bi bi-check-circle-fill"></i> Активні (0)
+            </button>
+            <button class="filter-btn" data-filter="inactive" onclick="applyChannelFilter('inactive')"
+                    style="padding: 0.6rem 1.2rem; background: rgba(239, 68, 68, 0.15); color: #ef4444; border: 1px solid rgba(239, 68, 68, 0.3); border-radius: 8px; cursor: pointer; font-weight: 500; transition: all 0.3s; display: flex; align-items: center; gap: 0.5rem;">
+                <i class="bi bi-dash-circle"></i> Неактивні (0)
+            </button>
+        </div>
+
+        <!-- Channels Container -->
+        <div id="channels-container">
+            <div class="loading">
+                <i class="bi bi-arrow-repeat"></i>
+                <p>Loading channels...</p>
+            </div>
+        </div>
+    </div>
+
+    <!-- Configuration Modal -->
+    <div id="editModal" class="modal">
+        <div class="modal-content">
+            <span class="close-modal" onclick="closeModal()">&times;</span>
+            <h2 id="modalTitle" style="color: #667eea; margin-bottom: 30px;">Редагування каналу</h2>
+
+            <form id="configForm">
+                <input type="hidden" id="channel_id">
+
+                <!-- ═══ SECTION 1: ОСНОВНЕ ═══ -->
+                <details class="advanced-settings" open>
+                    <summary>📺 Основне</summary>
+                    <div class="advanced-settings-body">
+                        <div class="form-grid">
+                            <div class="form-group">
+                                <label>Назва каналу</label>
+                                <input type="text" id="channel_name" placeholder="My Awesome Channel">
+                            </div>
+
+                            <div class="form-group">
+                                <label>Жанр</label>
+                                <input type="text" id="genre" placeholder="Mythology / Fantasy / True Crime">
+                                <span class="field-hint">Жанр визначає тематику, тон і стиль контенту</span>
+                            </div>
+
+                            <div class="form-group">
+                                <label>Мова контенту <span style="color:#a0aec0; font-weight:400;">(Qwen3-TTS)</span></label>
+                                <select id="language">
+                                    <!-- Populated dynamically from QWEN3_LANGUAGES config -->
+                                </select>
+                                <span class="field-hint">Тільки мови що підтримує Qwen3-TTS</span>
+                            </div>
+
+                            <div class="form-group">
+                                <label>Тривалість відео (хвилини)</label>
+                                <input type="number" id="video_duration_target" min="5" max="20" value="10">
+                                <span class="field-hint">Ціль: 5–20 хвилин</span>
+                            </div>
+                        </div>
+                    </div>
+                </details>
+
+                <!-- ═══ SECTION 2: ГОЛОС І СТИЛЬ ═══ -->
+                <details class="advanced-settings" open>
+                    <summary>🎙️ Голос і Стиль</summary>
+                    <div class="advanced-settings-body">
+                        <div class="form-grid">
+                            <div class="form-group full">
+                                <label>Голос диктора <span style="color:#667eea; font-weight:600;">(TTS Speaker)</span></label>
+                                <select id="tts_voice_speaker">
+                                    <!-- Populated dynamically from QWEN3_SPEAKERS config -->
+                                </select>
+                                <span class="field-hint">Базовий голос для всіх сцен — тільки голоси Qwen3-TTS</span>
+                            </div>
+                        </div>
+                    </div>
+                </details>
+
+                <!-- ═══ SECTION 3: MANUAL INPUT MODE ═══ -->
+                <details class="advanced-settings">
+                    <summary>✍️ Manual Input Mode</summary>
+                    <div class="advanced-settings-body">
+
+                        <!-- Enable Manual Mode -->
+                        <div class="form-group full">
+                            <label>
+                                <input type="checkbox" id="manual_mode_enabled" style="margin-right: 8px; width: auto;">
+                                Enable Manual Input (skip AI generation)
+                            </label>
+                            <span class="field-hint">
+                                ⚠️ Коли увімкнено - пропускаються AI етапи генерації theme/planning/narrative.
+                                Система одразу переходить до audio/images/video з вашого готового narrative.
+                            </span>
+                        </div>
+
+                        <!-- Manual Input Fields -->
+                        <div id="manual-input-fields" style="display: none;">
+
+                            <!-- Story Title -->
+                            <div class="form-group full">
+                                <label>📌 Story Title / Theme</label>
+                                <input type="text" id="manual_theme"
+                                       placeholder="Example: The Last Samurai's Secret">
+                                <span class="field-hint">Назва історії або тема відео</span>
+                            </div>
+
+                            <!-- Narrative JSON -->
+                            <div class="form-group full">
+                                <label>📝 Story Narrative (JSON format)</label>
+                                <textarea id="manual_narrative" rows="15"
+                                          style="font-family: monospace; font-size: 12px;"
+                                          placeholder="Paste narrative JSON here..."></textarea>
+                                <span class="field-hint">
+                                    <strong>Формат JSON має містити:</strong> story_title, scenes (array)<br>
+                                    <strong>Кожна scene має містити:</strong> scene_number, scene_title, scene_narration, image_prompt
+                                    <br><br>
+                                    <details style="margin-top: 10px;">
+                                        <summary style="cursor: pointer; color: #667eea; font-weight: 600;">📋 Показати приклад структури JSON</summary>
+                                        <pre style="background: #f5f5f5; padding: 15px; border-radius: 8px; font-size: 11px; overflow-x: auto; margin-top: 10px;">{
+  "story_title": "The Last Samurai's Secret",
+  "scenes": [
+    {
+      "scene_number": 1,
+      "scene_title": "The Village Burns",
+      "scene_narration": "In fifteen eighty-seven, a quiet village in feudal Japan faced an unimaginable horror...",
+      "image_prompt": "Japanese feudal village on fire at night, cinematic wide shot, dramatic orange lighting, smoke rising, wooden houses burning...",
+      "negative_prompt": "blurry, low quality, distorted, anime",
+      "music_track": "dramatic_japanese.mp3",
+      "sfx_cues": ["fire_crackling.mp3", "wind_howling.mp3"],
+      "timing_estimates": [0, 5, 10, 15]
+    },
+    {
+      "scene_number": 2,
+      "scene_title": "The Survivor",
+      "scene_narration": "Among the ashes, one man remained standing...",
+      "image_prompt": "Lone samurai standing in burning village ruins, backlit by flames...",
+      "negative_prompt": "blurry, low quality",
+      "music_track": "epic_orchestral.mp3",
+      "sfx_cues": ["sword_unsheath.mp3"],
+      "timing_estimates": [0, 8]
+    }
+  ],
+  "metadata": {
+    "total_scenes": 2,
+    "estimated_duration_seconds": 120
+  }
+}</pre>
+                                    </details>
+                                </span>
+                            </div>
+
+                            <!-- Buttons -->
+                            <div class="form-group full">
+                                <button type="button" class="btn btn-secondary"
+                                        onclick="generateManualNarrativeTemplate()"
+                                        style="margin-right: 10px;">
+                                    📋 Generate Empty Template
+                                </button>
+                                <button type="button" class="btn btn-secondary"
+                                        onclick="validateManualNarrative()">
+                                    ✅ Validate JSON
+                                </button>
+                            </div>
+
+                            <!-- Preview -->
+                            <div class="form-group full">
+                                <label>👁️ Preview</label>
+                                <div id="manual-narrative-preview"
+                                     style="background: #f5f5f5; padding: 15px; border-radius: 8px;
+                                            max-height: 300px; overflow-y: auto; font-size: 13px; line-height: 1.6;">
+                                    <em style="color: #718096;">Preview will appear after validation...</em>
+                                </div>
+                            </div>
+
+                        </div>
+
+                    </div>
+                </details>
+
+                <!-- ═══ SECTION 4: STORY MODE ═══ -->
+                <details class="advanced-settings">
+                    <summary>🎭 Story Mode (Fiction / Real Events / Hybrid)</summary>
+                    <div class="advanced-settings-body">
+
+                        <div class="form-group full">
+                            <label>Режим створення історії</label>
+                            <div id="story-mode-cards" style="display: grid; grid-template-columns: repeat(3, 1fr); gap: 15px; margin-top: 10px;">
+
+                                <!-- Fiction Mode -->
+                                <div class="mode-card" data-value="fiction" onclick="setStoryMode('fiction')"
+                                     style="cursor: pointer; padding: 20px; border: 2px solid #e0e0e0; border-radius: 10px; text-align: center; transition: all 0.3s; background: white;">
+                                    <div style="font-size: 48px; margin-bottom: 12px;">✨</div>
+                                    <h4 style="margin: 0 0 8px 0; color: #2d3748; font-size: 16px;">Fiction</h4>
+                                    <p style="margin: 0; font-size: 13px; color: #718096; line-height: 1.4;">Повна творча свобода AI. Вигадані персонажі та сюжети.</p>
+                                </div>
+
+                                <!-- Real Events Mode -->
+                                <div class="mode-card" data-value="real_events" onclick="setStoryMode('real_events')"
+                                     style="cursor: pointer; padding: 20px; border: 2px solid #e0e0e0; border-radius: 10px; text-align: center; transition: all 0.3s; background: white;">
+                                    <div style="font-size: 48px; margin-bottom: 12px;">📚</div>
+                                    <h4 style="margin: 0 0 8px 0; color: #2d3748; font-size: 16px;">Real Events</h4>
+                                    <p style="margin: 0; font-size: 13px; color: #718096; line-height: 1.4;">Тільки реальні факти з Wikipedia. Без вигадки.</p>
+                                </div>
+
+                                <!-- Hybrid Mode -->
+                                <div class="mode-card" data-value="hybrid" onclick="setStoryMode('hybrid')"
+                                     style="cursor: pointer; padding: 20px; border: 2px solid #e0e0e0; border-radius: 10px; text-align: center; transition: all 0.3s; background: white;">
+                                    <div style="font-size: 48px; margin-bottom: 12px;">🎬</div>
+                                    <h4 style="margin: 0 0 8px 0; color: #2d3748; font-size: 16px;">Hybrid</h4>
+                                    <p style="margin: 0; font-size: 13px; color: #718096; line-height: 1.4;">Реальні факти + кінематографічна подача.</p>
+                                </div>
+
+                            </div>
+
+                            <!-- Hidden select for form submission -->
+                            <select id="story_mode" style="display: none;">
+                                <option value="fiction">fiction</option>
+                                <option value="real_events">real_events</option>
+                                <option value="hybrid">hybrid</option>
+                            </select>
+
+                            <span class="field-hint" style="display: block; margin-top: 15px;">
+                                <strong>Fiction:</strong> AI повністю вигадує історії<br>
+                                <strong>Real Events:</strong> AI використовує лише факти з Wikipedia<br>
+                                <strong>Hybrid:</strong> 80% фактів + 20% драматична подача
+                            </span>
+                        </div>
+
+                    </div>
+                </details>
+<!-- ═══ SECTION 5: A/B TESTING (Sprint 3) ═══ -->                <details class="advanced-settings">                    <summary>🧪 A/B Testing - Quality Measurement</summary>                    <div class="advanced-settings-body">                        <!-- Enable A/B Testing -->                        <div class="form-group full">                            <label>                                <input type="checkbox" id="enrichment_ab_enabled" style="margin-right: 8px; width: auto;">                                Enable A/B Testing (50% enriched, 50% baseline)                            </label>                            <span class="field-hint">                                When enabled, half of content will use full enrichment (topic analysis + story DNA),                                and half will skip enrichment for comparison.                            </span>                        </div>                        <!-- A/B Group Assignment -->                        <div class="form-group">                            <label>Current A/B Group</label>                            <select id="enrichment_ab_group">                                <option value="auto">Auto (Random 50/50)</option>                                <option value="A">Force Group A (Enriched)</option>                                <option value="B">Force Group B (Baseline)</option>                            </select>                            <span class="field-hint">Auto = Random assignment per generation</span>                        </div>                        <div class="info-box" style="margin-top: 15px;">                            <strong>📊 How it works:</strong>                            <ul style="margin: 10px 0 0 20px; line-height: 1.8;">                                <li><strong>Group A (Enriched):</strong> Full AI enrichment (genre analysis, story DNA, anti-cliché guards)</li>                                <li><strong>Group B (Baseline):</strong> Simple topic → narrative (no enrichment layers)</li>                                <li><strong>Metrics tracked:</strong> cliché score, vocabulary richness, twist count, engagement</li>                                <li><strong>Purpose:</strong> Measure real impact of enrichment on content quality</li>                            </ul>                        </div>                    </div>                </details>
+
+                <!-- ═══ SECTION 5: STORY ENGINE v4.0 ═══ -->
+                <details class="advanced-settings" open>
+                    <summary>🎯 Story Engine (Механіки наративу)</summary>
+                    <div class="advanced-settings-body">
+
+                        <div class="info-box" style="margin-bottom: 20px; background: #ebf4ff; border-left: 4px solid #667eea;">
+                            <strong>📘 Story Engine v4.0 - Three Phase System</strong><br>
+                            Трифазна система генерації з обов'язковими механіками історії:<br>
+                            • Phase 1a: Вибір архетипу + створення механік<br>
+                            • Phase 1b: Генерація наративу на основі механік<br>
+                            • Phase 1c: Створення image/audio промптів<br>
+                            <span style="color: #667eea; font-weight: 600;">→ Ці налаштування реально впливають на генерацію!</span>
+                        </div>
+
+                        <div class="form-grid">
+
+                            <!-- Complexity Level -->
+                            <div class="form-group full">
+                                <label>📊 Complexity Level (Складність наративу)</label>
+                                <input type="range" id="complexity_level" min="1" max="10" value="5" step="1"
+                                       oninput="updateComplexityHint(this.value)">
+                                <div style="display: flex; justify-content: space-between; margin-top: 8px; font-size: 12px; color: #718096;">
+                                    <span>1 (Простий)</span>
+                                    <span id="complexity_value" style="font-weight: 700; color: #667eea; font-size: 18px;">5</span>
+                                    <span>10 (Складний)</span>
+                                </div>
+                                <div id="complexity_hint" style="margin-top: 10px; padding: 12px; background: #f7fafc; border-radius: 6px; font-size: 13px; color: #2d3748; border-left: 3px solid #667eea;">
+                                    <strong>Рівень 5:</strong> Стандартна глибина з психологічними елементами. Модель: GPT-4o-mini
+                                </div>
+                                <span class="field-hint" style="margin-top: 10px; display: block;">
+                                    <strong>1-3:</strong> Прості зрозумілі історії (GPT-4o-mini, швидко, дешево)<br>
+                                    <strong>4-6:</strong> Психологічна глибина, емоційні дуги (GPT-4o-mini)<br>
+                                    <strong>7-10:</strong> Складні багатошарові наративи з підтекстом (GPT-4o, дорожче але глибше)
+                                </span>
+                            </div>
+
+                            <!-- Archetype Pool -->
+                            <div class="form-group full">
+                                <label>🎭 Archetype Pool (Дозволені архетипи історій)</label>
+                                <div id="archetype-checkboxes" style="display: grid; grid-template-columns: 1fr 1fr; gap: 12px; margin-top: 10px;">
+
+                                    <label class="archetype-card" data-archetype="inversion_of_source">
+                                        <input type="checkbox" class="archetype-checkbox" value="inversion_of_source">
+                                        <div class="archetype-content">
+                                            <strong>Інверсія джерела</strong><br>
+                                            <span>Рішення проблеми стає проблемою</span>
+                                        </div>
+                                    </label>
+
+                                    <label class="archetype-card" data-archetype="mistaken_identity_of_evil">
+                                        <input type="checkbox" class="archetype-checkbox" value="mistaken_identity_of_evil">
+                                        <div class="archetype-content">
+                                            <strong>Помилкова ідентифікація зла</strong><br>
+                                            <span>Ворог насправді потрібен герою</span>
+                                        </div>
+                                    </label>
+
+                                    <label class="archetype-card" data-archetype="cost_of_winning">
+                                        <input type="checkbox" class="archetype-checkbox" value="cost_of_winning">
+                                        <div class="archetype-content">
+                                            <strong>Ціна перемоги</strong><br>
+                                            <span>Успіх перетворює на ворога</span>
+                                        </div>
+                                    </label>
+
+                                    <label class="archetype-card" data-archetype="inherited_sin">
+                                        <input type="checkbox" class="archetype-checkbox" value="inherited_sin">
+                                        <div class="archetype-content">
+                                            <strong>Успадкований гріх</strong><br>
+                                            <span>Виправлення минулого повторює помилку</span>
+                                        </div>
+                                    </label>
+
+                                    <label class="archetype-card" data-archetype="catalyst_sacrifice">
+                                        <input type="checkbox" class="archetype-checkbox" value="catalyst_sacrifice">
+                                        <div class="archetype-content">
+                                            <strong>Жертва каталізатора</strong><br>
+                                            <span>Вчитель жертвує тим чому навчає</span>
+                                        </div>
+                                    </label>
+
+                                    <label class="archetype-card" data-archetype="reluctant_transformation">
+                                        <input type="checkbox" class="archetype-checkbox" value="reluctant_transformation">
+                                        <div class="archetype-content">
+                                            <strong>Небажана трансформація</strong><br>
+                                            <span>Зміна якій опираєшся вже відбулась</span>
+                                        </div>
+                                    </label>
+
+                                    <label class="archetype-card" data-archetype="protector_paradox">
+                                        <input type="checkbox" class="archetype-checkbox" value="protector_paradox">
+                                        <div class="archetype-content">
+                                            <strong>Парадокс захисника</strong><br>
+                                            <span>Безпека створює небезпеку</span>
+                                        </div>
+                                    </label>
+
+                                    <label class="archetype-card" data-archetype="delayed_consequence">
+                                        <input type="checkbox" class="archetype-checkbox" value="delayed_consequence">
+                                        <div class="archetype-content">
+                                            <strong>Відкладені наслідки</strong><br>
+                                            <span>Ціна з'являється набагато пізніше</span>
+                                        </div>
+                                    </label>
+
+                                </div>
+                                <span class="field-hint" style="margin-top: 12px; display: block;">
+                                    <strong>Оберіть 2-4 архетипи</strong> для цього каналу. AI обиратиме найбільш підходящий для кожної теми.<br>
+                                    Якщо нічого не обрано - використовуються дефолтні архетипи для вашого жанру.
+                                </span>
+                            </div>
+
+                            <!-- Narrative Tone -->
+                            <div class="form-group full">
+                                <label>🎨 Narrative Tone (Емоційна тональність)</label>
+                                <select id="narrative_tone">
+                                    <option value="neutral">Neutral - Збалансований, об'єктивний, аналітичний</option>
+                                    <option value="dark">Dark - Темний, похмурий, драматичний</option>
+                                    <option value="inspiring">Inspiring - Надихаючий, оптимістичний, мотивуючий</option>
+                                </select>
+                                <span class="field-hint">Впливає на вибір архетипу та емоційну подачу наративу</span>
+                            </div>
+
+                        </div>
+
+                    </div>
+                </details>
+
+                <!-- ═══ SECTION 7: STORY STRUCTURE ═══ -->
+                <details class="advanced-settings">
+                    <summary>📖 Story Structure (Структура історії)</summary>
+                    <div class="advanced-settings-body">
+
+                        <div class="form-grid">
+
+                            <!-- Story Mode -->
+                            <div class="form-group full">
+                                <label>Режим оповідання</label>
+                                <select id="story_structure_mode">
+                                    <option value="one_shot">One-Shot Story (завершена історія за 1 відео)</option>
+                                    <option value="episodic">Episodic Series (серіал з епізодами)</option>
+                                    <option value="infinite">Infinite Narrative (нескінченна історія)</option>
+                                </select>
+                                <span class="field-hint">
+                                    One-Shot = історія починається і закінчується в одному відео<br>
+                                    Episodic = кожне відео - епізод з cliffhanger<br>
+                                    Infinite = історія тягнеться нескінченно
+                                </span>
+                            </div>
+
+                            <!-- Structure Template -->
+                            <div class="form-group full">
+                                <label>Шаблон структури (можна редагувати)</label>
+                                <textarea id="story_structure_template" rows="10"
+                                          style="font-family: monospace; font-size: 13px;">1. Hook (емоційний гачок перші 5 секунд)
+2. World introduction (покажи світ)
+3. Protagonist (представ головного героя)
+4. Conflict (конфлікт або проблема)
+5. Rising tension (наростання напруги)
+6. Twist (несподіваний поворот)
+7. Cliffhanger (закінчення що змушує хотіти продовження)</textarea>
+                                <span class="field-hint">
+                                    Базова структура для AI. Можна змінювати під ваші потреби.
+                                </span>
+                            </div>
+
+                        </div>
+
+                    </div>
+                </details>
+
+                <!-- ═══ SECTION 8: LOGIC & CONSISTENCY ═══ -->
+                <details class="advanced-settings">
+                    <summary>🧠 Logic & Consistency (Логіка та послідовність)</summary>
+                    <div class="advanced-settings-body">
+
+                        <div class="form-grid">
+
+                            <!-- Logic Checkboxes -->
+                            <div class="form-group full">
+                                <label style="display: block; margin-bottom: 10px;">AI Логіка та перевірки</label>
+
+                                <label style="display: block; margin-bottom: 8px; cursor: pointer;">
+                                    <input type="checkbox" id="generate_plan_before_writing" checked style="margin-right: 8px; width: auto;">
+                                    Generate Plan Before Writing (спочатку план, потім narrative)
+                                </label>
+
+                                <label style="display: block; margin-bottom: 8px; cursor: pointer;">
+                                    <input type="checkbox" id="auto_consistency_check" checked style="margin-right: 8px; width: auto;">
+                                    Auto Consistency Check (перевірка логічних суперечностей)
+                                </label>
+
+                                <label style="display: block; margin-bottom: 8px; cursor: pointer;">
+                                    <input type="checkbox" id="character_motivation_validation" checked style="margin-right: 8px; width: auto;">
+                                    Character Motivation Validation (перевірка мотивації персонажів)
+                                </label>
+
+                                <label style="display: block; margin-bottom: 8px; cursor: pointer;">
+                                    <input type="checkbox" id="no_cliches_mode" style="margin-right: 8px; width: auto;">
+                                    No Clichés Mode (уникати кліше та банальностей)
+                                </label>
+
+                                <span class="field-hint">
+                                    Увімкнені опції покращують якість, але збільшують час генерації
+                                </span>
+                            </div>
+
+                            <!-- Surprise Injection Level -->
+                            <div class="form-group full">
+                                <label>🎲 Surprise Injection Level (Рівень несподіванок)</label>
+                                <input type="range" id="surprise_injection_level" min="1" max="5" value="3" step="1"
+                                       oninput="updateSliderValue(this, 'surprise_injection_level_value')">
+                                <div style="display: flex; justify-content: space-between; margin-top: 8px; font-size: 12px; color: #718096;">
+                                    <span>1 (Передбачувано)</span>
+                                    <span id="surprise_injection_level_value" style="font-weight: 700; color: #667eea; font-size: 16px;">3</span>
+                                    <span>5 (Максимум несподіванок)</span>
+                                </div>
+                                <span class="field-hint">
+                                    1 = класичний передбачуваний сюжет<br>
+                                    5 = максимум несподіваних поворотів та сюрпризів
+                                </span>
+                            </div>
+
+                        </div>
+
+                    </div>
+                </details>
+
+                <!-- ═══ SECTION 9: ГРАФІК ПУБЛІКАЦІЙ ═══ -->
+                <details class="advanced-settings" open>
+                    <summary>📅 Графік Публікацій</summary>
+                    <div class="advanced-settings-body">
+                        <div class="form-group full" style="margin-bottom: 20px;">
+                            <label style="display: block; margin-bottom: 8px; font-weight: 500;">⏰ Час публікацій</label>
+                            <div id="publishTimesList" style="display: flex; flex-wrap: wrap; gap: 8px; margin-bottom: 10px;"></div>
+                            <div style="display: flex; gap: 8px; align-items: center;">
+                                <input type="time" id="newPublishTime" style="padding: 8px; border: 1px solid #ddd; border-radius: 4px;">
+                                <button type="button" onclick="addPublishTime()" style="padding: 8px 16px; background: #3b82f6; color: white; border: none; border-radius: 4px; cursor: pointer;">
+                                    <i class="bi bi-plus-circle"></i> Додати час
+                                </button>
+                            </div>
+                        </div>
+
+                        <div class="form-group full" style="margin-bottom: 20px;">
+                            <label style="display: block; margin-bottom: 12px; font-weight: 500;">📆 Дні публікацій</label>
+                            <div style="display: flex; gap: 12px; flex-wrap: wrap;">
+                                <label style="display: flex; align-items: center; gap: 6px; cursor: pointer; padding: 8px 12px; border: 1px solid #ddd; border-radius: 4px; background: white;">
+                                    <input type="checkbox" class="publish-day" value="Mon" style="cursor: pointer;"><span>Пн</span>
+                                </label>
+                                <label style="display: flex; align-items: center; gap: 6px; cursor: pointer; padding: 8px 12px; border: 1px solid #ddd; border-radius: 4px; background: white;">
+                                    <input type="checkbox" class="publish-day" value="Tue" style="cursor: pointer;"><span>Вт</span>
+                                </label>
+                                <label style="display: flex; align-items: center; gap: 6px; cursor: pointer; padding: 8px 12px; border: 1px solid #ddd; border-radius: 4px; background: white;">
+                                    <input type="checkbox" class="publish-day" value="Wed" style="cursor: pointer;"><span>Ср</span>
+                                </label>
+                                <label style="display: flex; align-items: center; gap: 6px; cursor: pointer; padding: 8px 12px; border: 1px solid #ddd; border-radius: 4px; background: white;">
+                                    <input type="checkbox" class="publish-day" value="Thu" style="cursor: pointer;"><span>Чт</span>
+                                </label>
+                                <label style="display: flex; align-items: center; gap: 6px; cursor: pointer; padding: 8px 12px; border: 1px solid #ddd; border-radius: 4px; background: white;">
+                                    <input type="checkbox" class="publish-day" value="Fri" style="cursor: pointer;"><span>Пт</span>
+                                </label>
+                                <label style="display: flex; align-items: center; gap: 6px; cursor: pointer; padding: 8px 12px; border: 1px solid #ddd; border-radius: 4px; background: white;">
+                                    <input type="checkbox" class="publish-day" value="Sat" style="cursor: pointer;"><span>Сб</span>
+                                </label>
+                                <label style="display: flex; align-items: center; gap: 6px; cursor: pointer; padding: 8px 12px; border: 1px solid #ddd; border-radius: 4px; background: white;">
+                                    <input type="checkbox" class="publish-day" value="Sun" style="cursor: pointer;"><span>Нд</span>
+                                </label>
+                            </div>
+                        </div>
+
+                        <div class="form-grid">
+                            <div class="form-group">
+                                <label>Відео на день</label>
+                                <input type="number" id="daily_upload_count" min="0" max="10" value="1">
+                            </div>
+                            <div class="form-group">
+                                <label>Часовий пояс</label>
+                                <select id="timezone">
+                                    <option>Europe/Kyiv</option>
+                                    <option>Europe/London</option>
+                                    <option>Europe/Berlin</option>
+                                    <option>America/New_York</option>
+                                    <option>UTC</option>
+                                </select>
+                            </div>
+                        </div>
+
+                        <input type="hidden" id="publish_times">
+                        <input type="hidden" id="publish_days">
+                    </div>
+                </details>
+
+                <!-- ═══ РОЗШИРЕНІ НАЛАШТУВАННЯ ═══ -->
+                <details class="advanced-settings">
+                    <summary>⚙️ Розширені налаштування</summary>
+                    <div class="advanced-settings-body">
+
+                        <!-- AI Parameters -->
+                        <div class="form-section">
+                            <h3 class="section-title">⚙️ Параметри AI генерації</h3>
+                            <div class="form-grid">
+                                <div class="form-group">
+                                    <label>Цільова кількість символів</label>
+                                    <input type="number" id="target_character_count" min="5000" max="16000" value="8000">
+                                    <span class="field-hint">Для 10 хв: slow≈7700, medium≈8800, fast≈9900</span>
+                                </div>
+                                <div class="form-group">
+                                    <label>Кількість сцен</label>
+                                    <input type="number" id="scene_count_target" min="10" max="30" value="18">
+                                </div>
+                                <div class="form-group">
+                                    <label>Max Tokens (OpenAI)</label>
+                                    <input type="number" id="max_tokens" min="8000" max="16000" step="1000" value="16000">
+                                    <span class="field-hint">Максимум 16000</span>
+                                </div>
+                                
+                                
+                                <div class="form-group full">
+                                    <label>Режим генерації контенту</label>
+                                    <div class="generation-mode-toggle">
+                                        <div class="mode-card active" data-value="fictional" onclick="setGenerationMode('fictional')">
+                                            <div class="mode-card-icon">✨</div>
+                                            <div class="mode-card-body">
+                                                <div class="mode-card-title">Вигадані історії</div>
+                                                <div class="mode-card-desc">AI вигадує унікальні сюжети та персонажів</div>
+                                            </div>
+                                            <div class="mode-card-check">✓</div>
+                                        </div>
+                                        <div class="mode-card" data-value="factual" onclick="setGenerationMode('factual')">
+                                            <div class="mode-card-icon">📚</div>
+                                            <div class="mode-card-body">
+                                                <div class="mode-card-title">На основі реальних фактів</div>
+                                                <div class="mode-card-desc">Пошук реальних даних у Wikipedia</div>
+                                            </div>
+                                            <div class="mode-card-check">✓</div>
+                                        </div>
+                                    </div>
+                                    <!-- Hidden select — зчитується JS для збереження -->
+                                    <select id="factual_mode" style="display:none">
+                                        <option value="fictional">fictional</option>
+                                        <option value="factual">factual</option>
+                                    </select>
+                                </div>
+                            </div>
+                        </div>
+
+
+                    </div>
+                </details>
+
+                <button type="button" class="save-btn" onclick="saveModalConfig()">💾 Зберегти зміни</button>
+            </form>
+        </div>
+    </div>
+
+    <!-- Navigation -->
+    <script src="js/navigation.js?v=20260221-0500"></script>
+
+    <!-- Валідація для max_tokens та target_character_count -->
+    <script>
+        document.addEventListener('DOMContentLoaded', function() {
+            // Валідація для max_tokens - максимум 16000
+            const maxTokensInput = document.getElementById('max_tokens');
+            if (maxTokensInput) {
+                maxTokensInput.addEventListener('input', function() {
+                    const value = parseInt(this.value);
+                    if (value > 16000) {
+                        this.value = 16000;
+                        alert('⚠️ ПОМИЛКА: Максимум 16000 токенів!\n\nGPT-4o підтримує максимум 16384 токенів.\nВстановлено безпечне значення: 16000');
+                    }
+                });
+
+                maxTokensInput.addEventListener('blur', function() {
+                    const value = parseInt(this.value);
+                    if (value > 16000) {
+                        this.value = 16000;
+                    }
+                });
+            }
+
+            // Валідація для target_character_count - максимум 16000
+            const targetCharCountInput = document.getElementById('target_character_count');
+            if (targetCharCountInput) {
+                targetCharCountInput.addEventListener('input', function() {
+                    const value = parseInt(this.value);
+                    if (value > 16000) {
+                        this.value = 16000;
+                        alert('⚠️ Максимальна кількість символів: 16000 (обмеження моделі GPT-4o)');
+                    }
+                });
+
+                targetCharCountInput.addEventListener('blur', function() {
+                    const value = parseInt(this.value);
+                    if (value > 16000) {
+                        this.value = 16000;
+                    }
+                });
+            }
+        });
+
+        // Story Engine: Update complexity hint
+        function updateComplexityHint(value) {
+            const hints = {
+                1: '<strong>Рівень 1:</strong> Максимально проста подача, без підтексту. Модель: GPT-4o-mini',
+                2: '<strong>Рівень 2:</strong> Проста історія з базовою емоційною дугою. Модель: GPT-4o-mini',
+                3: '<strong>Рівень 3:</strong> Зрозуміла історія з одним twist. Модель: GPT-4o-mini',
+                4: '<strong>Рівень 4:</strong> Помірна психологічна глибина. Модель: GPT-4o-mini',
+                5: '<strong>Рівень 5:</strong> Стандартна глибина з психологічними елементами. Модель: GPT-4o-mini',
+                6: '<strong>Рівень 6:</strong> Глибока історія з емоційним підтекстом. Модель: GPT-4o',
+                7: '<strong>Рівень 7:</strong> Складний наратив з багатошаровим twist. Модель: GPT-4o',
+                8: '<strong>Рівень 8:</strong> Дуже глибока історія з філософськими темами. Модель: GPT-4o',
+                9: '<strong>Рівень 9:</strong> Майже максимальна складність, вимагає уваги. Модель: GPT-4o',
+                10: '<strong>Рівень 10:</strong> Максимальна складність для досвідченої аудиторії. Модель: GPT-4o'
+            };
+
+            const valueElem = document.getElementById('complexity_value');
+            const hintElem = document.getElementById('complexity_hint');
+
+            if (valueElem) valueElem.textContent = value;
+            if (hintElem) hintElem.innerHTML = hints[value] || hints[5];
+        }
+    </script>
+
+    <!-- Auth Manager -->
+    <script src="js/auth.js"></script>
+
+    <!-- Channels Unified JavaScript -->
+    <script src="js/channels-unified.js?v=1771901600"></script>
+    <!-- VARIATION SET EDITOR MODAL -->
+    <div id="variationSetModal" class="modal" style="display: none;">
+        <div class="modal-content" style="max-width: 900px; max-height: 90vh; overflow-y: auto;">
+            <div class="modal-header">
+                <h2>➕ Новий Variation Set</h2>
+                <button class="close-btn" onclick="closeVariationSetModal()">&times;</button>
+            </div>
+
+            <div class="modal-body">
+                <div style="background: #fff3cd; padding: 15px; border-radius: 8px; margin-bottom: 20px; color: #856404;">
+                    <strong>💡 Підказка:</strong> Кожен variation set - це унікальний візуальний стиль для вашого контенту.
+                    Система автоматично чергуватиме їх для різноманітності.
+                </div>
+
+                <!-- Set Name -->
+                <div class="form-group">
+                    <label>
+                        Назва Set <span style="color: red;">*</span>
+                        <span class="field-hint">Наприклад: "Ancient Egypt", "Medieval Europe", "Cyberpunk Future"</span>
+                    </label>
+                    <input type="text" id="set_name" placeholder="Введіть унікальну назву для цього стилю...">
+                </div>
+
+                <hr style="margin: 30px 0; border: none; border-top: 2px solid #e0e0e0;">
+
+                <h3 style="color: #667eea; margin-bottom: 20px;">🎨 Візуальні Параметри</h3>
+
+                <!-- Visual Keywords -->
+                <div class="form-group">
+                    <label>
+                        Visual Keywords <span style="color: red;">*</span>
+                        <span class="field-hint">Ключові слова для стилю (через кому). Наприклад: "ancient temples, hieroglyphs, golden artifacts, desert landscapes"</span>
+                    </label>
+                    <textarea id="set_visual_keywords" rows="3" placeholder="ancient temples, hieroglyphs, golden artifacts..."></textarea>
+                </div>
+
+                <!-- Visual Atmosphere -->
+                <div class="form-group">
+                    <label>
+                        Visual Atmosphere
+                        <span class="field-hint">Загальна атмосфера. Наприклад: "Mysterious and ancient, golden warm tones, timeless grandeur"</span>
+                    </label>
+                    <textarea id="set_visual_atmosphere" rows="2" placeholder="Mysterious and ancient, golden warm tones..."></textarea>
+                </div>
+
+                <!-- Image Style Variants -->
+                <div class="form-group">
+                    <label>
+                        Image Style Variants
+                        <span class="field-hint">Варіанти стилів зображень. Наприклад: "Cinematic photography, photorealistic Ancient Egypt, National Geographic style"</span>
+                    </label>
+                    <textarea id="set_image_style_variants" rows="2" placeholder="Cinematic photography, photorealistic..."></textarea>
+                </div>
+
+                <!-- Color Palettes -->
+                <div class="form-group">
+                    <label>
+                        Color Palettes
+                        <span class="field-hint">Колірні палітри. Наприклад: "Warm golden tones, sandy beige, deep blue accents, bronze highlights"</span>
+                    </label>
+                    <textarea id="set_color_palettes" rows="2" placeholder="Warm golden tones, sandy beige..."></textarea>
+                </div>
+
+                <!-- Lighting Variants -->
+                <div class="form-group">
+                    <label>
+                        Lighting Variants
+                        <span class="field-hint">Варіанти освітлення. Наприклад: "Dramatic desert sunlight, golden hour, torch-lit interiors, mysterious shadows"</span>
+                    </label>
+                    <textarea id="set_lighting_variants" rows="2" placeholder="Dramatic desert sunlight, golden hour..."></textarea>
+                </div>
+
+                <!-- Composition Variants -->
+                <div class="form-group">
+                    <label>
+                        Composition Variants
+                        <span class="field-hint">Варіанти композиції. Наприклад: "Monumental scale, rule of thirds, symmetrical temple architecture, epic perspectives"</span>
+                    </label>
+                    <textarea id="set_composition_variants" rows="2" placeholder="Monumental scale, rule of thirds..."></textarea>
+                </div>
+
+                <!-- Visual Reference Type -->
+                <div class="form-group">
+                    <label>
+                        Visual Reference Type
+                        <span class="field-hint">Тип візуального референсу. Наприклад: "Ancient Egypt Historical / Cinematic"</span>
+                    </label>
+                    <input type="text" id="set_visual_reference_type" placeholder="Ancient Egypt Historical / Cinematic">
+                </div>
+
+                <!-- Negative Prompt -->
+                <div class="form-group">
+                    <label>
+                        Negative Prompt
+                        <span class="field-hint">Що НЕ показувати в зображеннях. Наприклад: "modern elements, cars, digital devices, contemporary clothing"</span>
+                    </label>
+                    <textarea id="set_negative_prompt" rows="2" placeholder="modern elements, cars, digital devices..."></textarea>
+                </div>
+            </div>
+
+            <div class="modal-footer">
+                <button class="btn-secondary" onclick="closeVariationSetModal()">❌ Скасувати</button>
+                <button class="btn-primary" onclick="saveVariationSet()">💾 Зберегти Variation Set</button>
+            </div>
+        </div>
+    </div>
+
+</body>
+</html>
+

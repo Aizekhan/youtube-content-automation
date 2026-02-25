@@ -84,8 +84,9 @@ def lambda_handler(event, context):
         return cors_response(200, {})
 
     user_id = extract_user_id(event)
-    http_method = event.get('httpMethod', 'GET')
-    path = event.get('path', '')
+    http_method = event.get('httpMethod') or event.get('requestContext', {}).get('http', {}).get('method', 'GET')
+    # Support both API Gateway (path) and Function URL (rawPath)
+    path = event.get('path') or event.get('rawPath', '')
     query_params = event.get('queryStringParameters') or {}
     query_params['user_id'] = user_id
 

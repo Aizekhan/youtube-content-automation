@@ -154,12 +154,12 @@ def build_series_context_section(series_context):
     if not series_context:
         return ""
 
-    tension_level = series_context.get('tension_level', 5)
+    tension_level = int(series_context.get('tension_level', 5))
     archetypes_used = series_context.get('archetypes_used', [])
     open_threads = series_context.get('open_threads', [])
     characters = series_context.get('characters', {})
-    episode_number = series_context.get('episode_number', 1)
-    total_episodes = series_context.get('total_episodes', 10)
+    episode_number = int(series_context.get('episode_number', 1))
+    total_episodes = int(series_context.get('total_episodes', 10))
     arc_goal = series_context.get('season_arc', {}).get('arc_goal', '')
 
     # Build archetypes already used list
@@ -273,7 +273,12 @@ def generate_phase1a_mechanics(api_key, topic, complexity_level, genre, archetyp
                           .replace('{COMPLEXITY_LEVEL}', str(complexity_level)) \
                           .replace('{GENRE_CONTEXT}', genre) \
                           .replace('{ARCHETYPE_POOL}', archetype_descriptions) \
-                          .replace('{SERIES_CONTEXT_SECTION}', series_context_section)
+                          .replace('{SERIES_CONTEXT_SECTION}', series_context_section) \
+                          .replace('{SERIES_TITLE}', series_context.get('series_title', '') if series_context else '') \
+                          .replace('{SEASON_ARC_GOAL}', series_context.get('season_arc', {}).get('arc_goal', '') if series_context else '') \
+                          .replace('{PROTAGONIST_NAME}', next((v.get('name', '') for v in series_context.get('characters', {}).values() if v.get('role') == 'protagonist'), '') if series_context else '') \
+                          .replace('{EPISODE_NUMBER}', str(series_context.get('episode_number', '')) if series_context else '') \
+                          .replace('{ARCHETYPES_USED}', ', '.join([a.get('archetype', '') for a in series_context.get('archetypes_used', [])]) if series_context else '')
 
     system_message = "You are a Story Mechanics Architect."
 
@@ -349,8 +354,8 @@ def generate_phase1b_narrative(api_key, topic, mechanics, channel_config, num_sc
     genre = channel_config.get('genre', 'general')
     tone = channel_config.get('narrative_tone', channel_config.get('tone', 'neutral'))
     language = channel_config.get('language', 'en')
-    duration = channel_config.get('target_duration_seconds', 180)
-    complexity = channel_config.get('complexity_level', 5)
+    duration = int(channel_config.get('target_duration_seconds', 180))
+    complexity = int(channel_config.get('complexity_level', 5))
 
     # Build voice instructions
     voice_instructions = build_voice_instructions(series_context)

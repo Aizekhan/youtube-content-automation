@@ -15,6 +15,8 @@ INPUT CHANNEL CONTEXT:
 TOPIC:
 {TOPIC}
 
+{VOICE_INSTRUCTIONS}
+
 CRITICAL RULES:
 1. You MUST use the exact protagonist_frozen and mirror_character_frozen from mechanics
 2. The surface_truth MUST be established in scenes 1-2
@@ -62,7 +64,8 @@ For each scene, generate:
 {
   "scene_number": 1,
   "scene_title": "Brief title (3-5 words)",
-  "scene_narration": "The actual narration text with <break time='1s'/> SSML tags for pauses. Write in {LANGUAGE}. This should be engaging storytelling, not exposition.",
+  "scene_narration": "The actual narration text. Write in {LANGUAGE}. This should be engaging storytelling, not exposition. Use punctuation (periods, commas, ellipses) to control pacing naturally.",
+  "variation_used": "normal by default. Use 'whisper' only for secrets/confessions. Use 'dramatic' maximum 1 time per episode for the climax moment only. Use 'action' only for chase/fight scenes. Default is ALWAYS 'normal'.",
   "emotional_beat": "What the viewer should feel in this scene",
   "visual_note": "Key visual elements needed (will be used in Phase 1c for image prompts)",
   "duration_estimate": 20
@@ -73,7 +76,7 @@ NARRATION WRITING STYLE:
 ✓ Show, don't tell - Use specific details, not abstractions
 ✓ Present tense for immediacy
 ✓ Short sentences for pacing in narration
-✓ Use SSML <break> tags for dramatic pauses
+✓ Use punctuation for dramatic pauses (periods, commas, ellipses)
 ✓ Concrete sensory details (what can be seen/heard)
 ✓ Character actions over explanations
 ✓ Subtext over explicit statements
@@ -128,7 +131,8 @@ Before returning, verify:
 ✓ Recontextualization moment happens as specified
 ✓ All 8 scenes present and properly structured
 ✓ Narration is in correct language
-✓ SSML tags used for pacing
+✓ Natural punctuation used for pacing (no SSML tags)
+✓ variation_used is 'normal' for most scenes (dramatic max 1x per episode)
 
 Remember: The mechanics are LAW. Your creativity is in HOW you execute them, not WHETHER you follow them.
 

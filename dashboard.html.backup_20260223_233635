@@ -1,0 +1,2839 @@
+<!DOCTYPE html>
+<html lang="uk">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Dashboard - YouTube Automation</title>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.0/font/bootstrap-icons.css">
+    <link rel="stylesheet" href="css/unified-navigation.css">
+    <link rel="stylesheet" href="css/workflow.css">
+    <style>
+        :root {
+            --primary-color: #667eea;
+            --secondary-color: #764ba2;
+            --success-color: #10b981;
+            --warning-color: #f59e0b;
+            --danger-color: #ef4444;
+            --dark-bg: #1a1d2e;
+            --card-bg: #22263a;
+            --text-primary: #f3f4f6;
+            --text-secondary: #d1d5db;
+        }
+
+        body {
+            background: linear-gradient(135deg, var(--dark-bg) 0%, #16213e 100%);
+            color: var(--text-primary);
+            min-height: 100vh;
+            font-family: 'Inter', -apple-system, BlinkMacSystemFont, sans-serif;
+        }
+
+        /* Dashboard tab panes */
+        .dashboard-tab-pane {
+            display: none;
+        }
+        .dashboard-tab-pane.active {
+            display: block;
+        }
+
+        /* Sub-tabs styling */
+        .nav-tabs {
+            border-bottom: 2px solid rgba(102, 126, 234, 0.3);
+            margin-bottom: 2rem;
+        }
+
+        .nav-tabs .nav-link {
+            color: var(--text-secondary);
+            border: none;
+            border-bottom: 3px solid transparent;
+            padding: 1rem 1.5rem;
+            transition: all 0.3s ease;
+            background: transparent;
+        }
+
+        .nav-tabs .nav-link:hover {
+            color: var(--text-primary);
+            border-bottom-color: rgba(102, 126, 234, 0.5);
+        }
+
+        .nav-tabs .nav-link.active {
+            color: var(--primary-color);
+            background: transparent;
+            border-bottom-color: var(--primary-color);
+            font-weight: 600;
+        }
+
+        .card {
+            background: var(--card-bg);
+            border: 1px solid rgba(102, 126, 234, 0.2);
+            border-radius: 16px;
+            margin-bottom: 1.5rem;
+        }
+
+        .card-header {
+            background: transparent;
+            border-bottom: 1px solid rgba(102, 126, 234, 0.2);
+            padding: 1.25rem;
+            font-weight: 600;
+            font-size: 1.1rem;
+            color: var(--text-primary);
+        }
+
+        .status-badge {
+            padding: 0.5rem 1rem;
+            border-radius: 8px;
+            font-size: 0.85rem;
+            font-weight: 600;
+        }
+
+        .status-running {
+            background: linear-gradient(135deg, #3b82f6, #2563eb);
+            color: white;
+        }
+
+        .status-succeeded {
+            background: linear-gradient(135deg, var(--success-color), #059669);
+            color: white;
+        }
+
+        .status-failed {
+            background: linear-gradient(135deg, var(--danger-color), #dc2626);
+            color: white;
+        }
+
+        .status-pending {
+            background: linear-gradient(135deg, var(--warning-color), #d97706);
+            color: white;
+        }
+
+        .execution-item {
+            padding: 1rem;
+            border-bottom: 1px solid rgba(102, 126, 234, 0.1);
+            transition: background 0.2s ease;
+            cursor: pointer;
+        }
+
+        .execution-item:hover {
+            background: rgba(102, 126, 234, 0.05);
+        }
+
+        .execution-item:last-child {
+            border-bottom: none;
+        }
+
+        .log-viewer {
+            background: #0d1117;
+            border: 1px solid rgba(102, 126, 234, 0.2);
+            border-radius: 8px;
+            padding: 1rem;
+            max-height: 400px;
+            overflow-y: auto;
+            font-family: 'Monaco', 'Courier New', monospace;
+            font-size: 0.85rem;
+        }
+
+        .log-entry {
+            padding: 0.25rem 0;
+            border-left: 3px solid transparent;
+            padding-left: 0.5rem;
+            margin-bottom: 0.25rem;
+        }
+
+        .log-entry.log-info {
+            border-left-color: #3b82f6;
+            color: #93c5fd;
+        }
+
+        .log-entry.log-error {
+            border-left-color: #ef4444;
+            color: #fca5a5;
+        }
+
+        .log-entry.log-warning {
+            border-left-color: #f59e0b;
+            color: #fcd34d;
+        }
+
+        .log-entry.log-success {
+            border-left-color: #10b981;
+            color: #6ee7b7;
+        }
+
+        .stat-card {
+            background: var(--card-bg);
+            border: 1px solid rgba(102, 126, 234, 0.2);
+            border-radius: 12px;
+            padding: 1.5rem;
+            text-align: center;
+        }
+
+        .stat-value {
+            font-size: 2rem;
+            font-weight: 700;
+            background: linear-gradient(135deg, var(--primary-color), var(--secondary-color));
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            background-clip: text;
+        }
+
+        .stat-label {
+            color: var(--text-secondary);
+            font-size: 0.85rem;
+            margin-top: 0.5rem;
+        }
+
+        .btn-primary {
+            background: linear-gradient(135deg, var(--primary-color), var(--secondary-color));
+            border: none;
+            transition: all 0.3s ease;
+        }
+
+        .btn-primary:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 4px 12px rgba(102, 126, 234, 0.4);
+        }
+
+        .refresh-btn {
+            animation: rotate 1s linear infinite;
+        }
+
+        @keyframes rotate {
+            from { transform: rotate(0deg); }
+            to { transform: rotate(360deg); }
+        }
+
+        .timestamp {
+            color: var(--text-secondary);
+            font-size: 0.85rem;
+        }
+
+        /* Debug Tab Styles */
+        .process-step {
+            background: var(--card-bg);
+            border: 2px solid rgba(102, 126, 234, 0.3);
+            border-radius: 12px;
+            padding: 1.5rem;
+            margin-bottom: 1rem;
+            transition: all 0.3s ease;
+            position: relative;
+        }
+
+        .process-step.pending {
+            border-color: #6b7280;
+            opacity: 0.6;
+        }
+
+        .process-step.running {
+            border-color: #3b82f6;
+            box-shadow: 0 0 20px rgba(59, 130, 246, 0.3);
+            animation: pulse 2s infinite;
+        }
+
+        .process-step.completed {
+            border-color: var(--success-color);
+        }
+
+        .process-step.failed {
+            border-color: var(--danger-color);
+        }
+
+        @keyframes pulse {
+            0%, 100% { box-shadow: 0 0 20px rgba(59, 130, 246, 0.3); }
+            50% { box-shadow: 0 0 30px rgba(59, 130, 246, 0.6); }
+        }
+
+        .step-header {
+            display: flex;
+            align-items: center;
+            gap: 1rem;
+            margin-bottom: 1rem;
+        }
+
+        .step-icon {
+            width: 48px;
+            height: 48px;
+            border-radius: 12px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 1.5rem;
+            background: linear-gradient(135deg, var(--primary-color), var(--secondary-color));
+        }
+
+        .step-icon.pending { background: #6b7280; }
+        .step-icon.running {
+            background: linear-gradient(135deg, #3b82f6, #2563eb);
+            animation: rotate 2s linear infinite;
+        }
+        .step-icon.completed { background: linear-gradient(135deg, var(--success-color), #059669); }
+        .step-icon.failed { background: linear-gradient(135deg, var(--danger-color), #dc2626); }
+
+        .step-title {
+            flex: 1;
+        }
+
+        .step-title h4 {
+            margin: 0;
+            font-size: 1.2rem;
+            color: var(--text-primary);
+        }
+
+        .step-title p {
+            margin: 0;
+            font-size: 0.85rem;
+            color: var(--text-secondary);
+        }
+
+        .step-status {
+            padding: 0.5rem 1rem;
+            border-radius: 8px;
+            font-size: 0.85rem;
+            font-weight: 600;
+        }
+
+        .step-status.pending { background: #374151; color: #9ca3af; }
+        .step-status.running { background: #1e40af; color: white; }
+        .step-status.completed { background: #065f46; color: white; }
+        .step-status.failed { background: #991b1b; color: white; }
+
+        .step-body {
+            padding: 1rem;
+            background: rgba(0, 0, 0, 0.3);
+            border-radius: 8px;
+            margin-top: 1rem;
+        }
+
+        .data-section {
+            margin-bottom: 1rem;
+        }
+
+        .data-section h6 {
+            font-size: 0.9rem;
+            color: var(--warning-color);
+            margin-bottom: 0.5rem;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+        }
+
+        .data-content {
+            background: #0d1117;
+            border: 1px solid rgba(102, 126, 234, 0.2);
+            border-radius: 6px;
+            padding: 0.75rem;
+            font-family: 'Monaco', 'Courier New', monospace;
+            font-size: 0.85rem;
+            color: #93c5fd;
+            max-height: 300px;
+            overflow-y: auto;
+            white-space: pre-wrap;
+            word-break: break-word;
+        }
+
+        .expand-toggle {
+            cursor: pointer;
+            color: var(--primary-color);
+            font-size: 0.85rem;
+            margin-top: 0.5rem;
+            display: inline-block;
+        }
+
+        .expand-toggle:hover {
+            color: var(--secondary-color);
+        }
+
+        .btn-test {
+            background: linear-gradient(135deg, var(--primary-color), var(--secondary-color));
+            border: none;
+            padding: 0.75rem 2rem;
+            font-weight: 600;
+            transition: all 0.3s ease;
+        }
+
+        .btn-test:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 4px 12px rgba(102, 126, 234, 0.4);
+        }
+
+        .test-controls {
+            background: var(--card-bg);
+            border: 1px solid rgba(102, 126, 234, 0.2);
+            border-radius: 12px;
+            padding: 1.5rem;
+            margin-bottom: 2rem;
+        }
+
+        .form-select, .form-control {
+            background: rgba(0, 0, 0, 0.3);
+            border: 1px solid rgba(102, 126, 234, 0.3);
+            color: var(--text-primary);
+        }
+
+        .form-select:focus, .form-control:focus {
+            background: rgba(0, 0, 0, 0.4);
+            border-color: var(--primary-color);
+            color: var(--text-primary);
+            box-shadow: 0 0 0 0.2rem rgba(102, 126, 234, 0.25);
+        }
+
+        .form-select option {
+            background: var(--card-bg);
+            color: var(--text-primary);
+        }
+
+        .form-label {
+            color: var(--text-primary);
+            font-size: 0.9rem;
+            font-weight: 600;
+            margin-bottom: 0.5rem;
+        }
+
+        /* Channel selection styles */
+        .channel-item {
+            padding: 0.75rem;
+            border-bottom: 1px solid rgba(102, 126, 234, 0.1);
+            display: flex;
+            align-items: center;
+            gap: 0.75rem;
+            transition: background 0.2s ease;
+        }
+
+        .channel-item:hover {
+            background: rgba(102, 126, 234, 0.05);
+        }
+
+        .channel-item label {
+            flex: 1;
+            margin-bottom: 0;
+            color: var(--text-primary);
+        }
+
+        .channel-item label strong {
+            color: var(--text-primary);
+        }
+
+        .channel-item label small {
+            color: var(--text-secondary);
+        }
+
+        .channel-checkbox {
+            width: 20px;
+            height: 20px;
+            min-width: 20px;
+            min-height: 20px;
+            cursor: pointer;
+            accent-color: var(--primary-color);
+            pointer-events: auto;
+            z-index: 10;
+            position: relative;
+            margin: 0;
+            flex-shrink: 0;
+        }
+
+        .channel-checkbox:disabled {
+            cursor: not-allowed;
+            opacity: 0.5;
+        }
+
+        .channel-checkbox:hover:not(:disabled) {
+            transform: scale(1.1);
+        }
+
+        .duration-info {
+            font-size: 0.85rem;
+            color: var(--text-secondary);
+            margin-top: 0.5rem;
+        }
+
+        .arrow-down {
+            text-align: center;
+            color: var(--primary-color);
+            font-size: 2rem;
+            margin: 0.5rem 0;
+            animation: bounce 2s infinite;
+        }
+
+        @keyframes bounce {
+            0%, 100% { transform: translateY(0); }
+            50% { transform: translateY(-10px); }
+        }
+
+        /* Override Bootstrap text-secondary to be light on dark background */
+        .text-secondary {
+            color: #d1d5db !important;
+        }
+
+        .form-label {
+            color: #e5e7eb;
+        }
+
+        .card-header {
+            color: #ffffff;
+        }
+    </style>
+</head>
+<body>
+    <!-- Unified Navigation (loaded from js/navigation.js?v=20260221-0500) -->
+    <div id="navigation-placeholder"></div>
+
+    <div class="container-fluid mt-4 px-4">
+        <!-- Dashboard Tabs -->
+        <ul class="nav nav-tabs" id="dashboardTabs" role="tablist">
+            <li class="nav-item" role="presentation">
+                <button class="nav-link active" id="control-tab" onclick="switchTab('control')" type="button">
+                    <i class="bi bi-play-circle-fill"></i> Control Center
+                </button>
+            </li>
+            <li class="nav-item" role="presentation">
+                <button class="nav-link" id="monitoring-tab" onclick="switchTab('monitoring')" type="button">
+                    <i class="bi bi-activity"></i> Monitoring
+                </button>
+            </li>
+            <li class="nav-item" role="presentation">
+                <button class="nav-link" id="debug-tab" onclick="switchTab('debug')" type="button">
+                    <i class="bi bi-bug"></i> Debug & Test
+                </button>
+            </li>
+        </ul>
+
+        <!-- Tab Content -->
+        <div class="tab-content" id="dashboardTabContent" style="display: block !important;">
+
+            <!-- CONTROL CENTER TAB -->
+            <div class="dashboard-tab-pane active" id="control">
+                <div class="mb-4">
+                    <h2><i class="bi bi-rocket-takeoff-fill"></i> Control Center</h2>
+                    <p class="text-secondary">
+                        Централізований запуск генерації контенту для YouTube каналів
+                    </p>
+                </div>
+
+                <!-- Quick Actions -->
+                <div class="row mb-4">
+                    <div class="col-md-6">
+                        <div class="card" style="background: linear-gradient(135deg, rgba(16, 185, 129, 0.15) 0%, rgba(102, 126, 234, 0.1) 100%); border: 2px solid var(--success-color);">
+                            <div class="card-body text-center" style="padding: 2rem;">
+                                <div style="font-size: 3rem; margin-bottom: 1rem;">🚀</div>
+                                <h4 style="color: var(--text-primary); margin-bottom: 1rem;">Запустити для всіх активних каналів</h4>
+                                <p style="color: var(--text-secondary); margin-bottom: 1.5rem;">
+                                    Генерація контенту для всіх активних каналів одночасно
+                                </p>
+                                <!-- Test/Production Mode Toggle -->
+                                <div class="mb-3 p-3" style="background: rgba(0,0,0,0.2); border-radius: 8px;">
+                                    <div class="d-flex justify-content-between align-items-center mb-2">
+                                        <div>
+                                            <strong style="color: var(--text-primary);">Режим генерації</strong>
+                                            <div style="font-size: 0.85rem; color: var(--text-secondary); margin-top: 4px;">
+                                                <span id="modeDescription">Тестування (необмежені запуски)</span>
+                                            </div>
+                                        </div>
+                                        <div>
+                                            <span id="modeIndicator" class="badge bg-warning" style="font-size: 0.9rem; padding: 6px 12px;">
+                                                🧪 TEST
+                                            </span>
+                                        </div>
+                                    </div>
+                                    <div class="form-check form-switch" style="font-size: 1.1rem;">
+                                        <input class="form-check-input" type="checkbox" id="productionModeToggle" onchange="toggleProductionMode()" style="cursor: pointer;">
+                                        <label class="form-check-label" for="productionModeToggle" style="cursor: pointer; color: var(--text-primary);">
+                                            <span id="toggleLabel">Увімкнути Production Mode</span>
+                                        </label>
+                                    </div>
+                                </div>
+                                <button class="btn btn-success btn-lg" onclick="startAllChannels()" id="startAllBtn">
+                                    <i class="bi bi-play-circle-fill"></i> Запустити всі канали
+                                </button>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="col-md-6">
+                        <div class="card" style="background: linear-gradient(135deg, rgba(102, 126, 234, 0.15) 0%, rgba(118, 75, 162, 0.1) 100%); border: 2px solid var(--primary-color);">
+                            <div class="card-body text-center" style="padding: 2rem;">
+                                <div style="font-size: 3rem; margin-bottom: 1rem;">🎯</div>
+                                <h4 style="color: var(--text-primary); margin-bottom: 1rem;">Вибрати конкретні канали</h4>
+                                <p style="color: var(--text-secondary); margin-bottom: 1.5rem;">
+                                    Запуск генерації тільки для обраних каналів
+                                </p>
+                                <button class="btn btn-primary btn-lg" onclick="showChannelSelector()">
+                                    <i class="bi bi-list-check"></i> Вибрати канали
+                                </button>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Channel Selector (hidden by default) -->
+                <div id="channelSelectorCard" class="card mb-4" style="display: none;">
+                    <div class="card-header">
+                        <i class="bi bi-list-ul"></i> Вибір каналів для генерації
+                    </div>
+                    <div class="card-body">
+                        <div class="mb-3">
+                            <input type="text" class="form-control" id="channelSearchInput" placeholder="🔍 Пошук каналів..." onkeyup="filterChannels()">
+                        </div>
+                        <div id="channelsList" style="max-height: 400px; overflow-y: auto;">
+                            <div class="text-center py-3">
+                                <i class="bi bi-hourglass-split" style="font-size: 2rem;"></i>
+                                <p class="mt-2">Завантаження каналів...</p>
+                            </div>
+                        </div>
+                        <div class="d-flex gap-3 mt-3">
+                            <button class="btn btn-primary" onclick="startSelectedChannels()" id="startSelectedBtn" disabled>
+                                <i class="bi bi-play-circle-fill"></i> Запустити вибрані (<span id="selectedCount">0</span>)
+                            </button>
+                            <button class="btn btn-secondary" onclick="selectAllChannels()">
+                                <i class="bi bi-check-all"></i> Вибрати всі
+                            </button>
+                            <button class="btn btn-secondary" onclick="deselectAllChannels()">
+                                <i class="bi bi-x-circle"></i> Скасувати всі
+                            </button>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Recent Executions -->
+                <div class="card">
+                    <div class="card-header d-flex justify-content-between align-items-center">
+                        <span><i class="bi bi-clock-history"></i> Останні запуски</span>
+                        <button class="btn btn-sm btn-primary" onclick="refreshRecentExecutions()">
+                            <i class="bi bi-arrow-clockwise"></i> Оновити
+                        </button>
+                    </div>
+                    <div class="card-body">
+                        <div id="recentExecutionsList">
+                            <div class="text-center py-3">
+                                <i class="bi bi-hourglass-split" style="font-size: 2rem;"></i>
+                                <p class="mt-2">Завантаження...</p>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Stats -->
+                <div class="row mt-4">
+                    <div class="col-md-3">
+                        <div class="stat-card">
+                            <div class="stat-value" id="totalChannelsCount">-</div>
+                            <div class="stat-label">Всього каналів</div>
+                        </div>
+                    </div>
+                    <div class="col-md-3">
+                        <div class="stat-card">
+                            <div class="stat-value text-success" id="activeChannelsCount">-</div>
+                            <div class="stat-label">Активні канали</div>
+                        </div>
+                    </div>
+                    <div class="col-md-3">
+                        <div class="stat-card">
+                            <div class="stat-value" id="todayExecutionsCount">-</div>
+                            <div class="stat-label">Запусків сьогодні</div>
+                        </div>
+                    </div>
+                    <div class="col-md-3">
+                        <div class="stat-card">
+                            <div class="stat-value" id="contentGeneratedToday">-</div>
+                            <div class="stat-label">Контенту сьогодні</div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- MONITORING TAB -->
+            <div class="dashboard-tab-pane" id="monitoring">
+                <!-- Stats Row -->
+                <div class="row mb-4">
+                    <div class="col-md-3">
+                        <div class="stat-card">
+                            <div class="stat-value" id="runningExecutions">-</div>
+                            <div class="stat-label">Running</div>
+                        </div>
+                    </div>
+                    <div class="col-md-3">
+                        <div class="stat-card">
+                            <div class="stat-value text-success" id="succeededExecutions">-</div>
+                            <div class="stat-label">Succeeded Today</div>
+                        </div>
+                    </div>
+                    <div class="col-md-3">
+                        <div class="stat-card">
+                            <div class="stat-value text-danger" id="failedExecutions">-</div>
+                            <div class="stat-label">Failed Today</div>
+                        </div>
+                    </div>
+                    <div class="col-md-3">
+                        <div class="stat-card">
+                            <div class="stat-value" id="avgDuration">-</div>
+                            <div class="stat-label">Avg Duration (min)</div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- FLUX EC2 Health Monitoring -->
+                <div class="card mb-4">
+                    <div class="card-header d-flex justify-content-between align-items-center">
+                        <span>
+                            <i class="bi bi-gpu-card"></i> FLUX EC2 Instance Status
+                        </span>
+                        <span id="sd35-health-timestamp" style="font-size: 0.85rem; color: var(--text-secondary);">
+                            Last checked: -
+                        </span>
+                    </div>
+                    <div class="card-body">
+                        <div class="row">
+                            <!-- EC2 Instance Status -->
+                            <div class="col-md-3">
+                                <div class="stat-card">
+                                    <div style="font-size: 0.9rem; color: var(--text-secondary); margin-bottom: 0.5rem;">EC2 Instance</div>
+                                    <div id="sd35-ec2-status" class="stat-value" style="font-size: 1.2rem;">
+                                        <i class="bi bi-hourglass-split"></i> Loading...
+                                    </div>
+                                    <div id="sd35-ec2-id" style="font-size: 0.75rem; color: var(--text-secondary); margin-top: 0.5rem;">-</div>
+                                </div>
+                            </div>
+
+                            <!-- FLUX Model Status -->
+                            <div class="col-md-3">
+                                <div class="stat-card">
+                                    <div style="font-size: 0.9rem; color: var(--text-secondary); margin-bottom: 0.5rem;">FLUX Model</div>
+                                    <div id="sd35-model-status" class="stat-value" style="font-size: 1.2rem;">
+                                        <i class="bi bi-hourglass-split"></i> Checking...
+                                    </div>
+                                    <div id="sd35-model-details" style="font-size: 0.75rem; color: var(--text-secondary); margin-top: 0.5rem;">-</div>
+                                </div>
+                            </div>
+
+                            <!-- GPU Info -->
+                            <div class="col-md-3">
+                                <div class="stat-card">
+                                    <div style="font-size: 0.9rem; color: var(--text-secondary); margin-bottom: 0.5rem;">GPU</div>
+                                    <div id="sd35-gpu-info" class="stat-value" style="font-size: 1.2rem;">
+                                        <i class="bi bi-gpu-card"></i> -
+                                    </div>
+                                    <div id="sd35-gpu-memory" style="font-size: 0.75rem; color: var(--text-secondary); margin-top: 0.5rem;">-</div>
+                                </div>
+                            </div>
+
+                            <!-- API Endpoint -->
+                            <div class="col-md-3">
+                                <div class="stat-card">
+                                    <div style="font-size: 0.9rem; color: var(--text-secondary); margin-bottom: 0.5rem;">API Endpoint</div>
+                                    <div id="sd35-api-url" class="stat-value" style="font-size: 0.9rem; word-break: break-all;">
+                                        -
+                                    </div>
+                                    <div style="font-size: 0.75rem; margin-top: 0.5rem;">
+                                        <a href="#" id="sd35-health-link" target="_blank" style="display: none;">
+                                            <i class="bi bi-box-arrow-up-right"></i> Test Health
+                                        </a>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Dynamic Workflow Visualization -->
+                <div class="card mt-4">
+                    <div class="card-header" style="background: linear-gradient(135deg, rgba(75, 192, 192, 0.2) 0%, rgba(75, 192, 192, 0.05) 100%); border-bottom: 2px solid rgba(75, 192, 192, 0.3);">
+                        <span style="font-size: 1.1rem; font-weight: 600;">
+                            <i class="bi bi-diagram-3"></i> Workflow Steps
+                            <small class="text-muted ms-2" id="workflow-step-count"></small>
+                        </span>
+                    </div>
+                    <div class="card-body">
+                        <div id="workflow-steps-container" style="max-height: 600px; overflow-y: auto;">
+                            <div class="text-muted text-center py-5">
+                                <i class="bi bi-info-circle" style="font-size: 2rem;"></i>
+                                <p class="mt-2">Click on an execution above to see workflow steps</p>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Step Functions Executions -->
+                <div class="card" style="margin-top: 2rem;">
+                    <div class="card-header d-flex justify-content-between align-items-center" style="background: linear-gradient(135deg, rgba(102, 126, 234, 0.2) 0%, rgba(102, 126, 234, 0.05) 100%); border-bottom: 2px solid rgba(102, 126, 234, 0.3);">
+                        <span style="font-size: 1.1rem; font-weight: 600; color: var(--text-primary);">
+                            <i class="bi bi-diagram-3"></i> Step Functions Executions
+                            <small style="display: block; font-size: 0.75rem; color: var(--text-secondary); font-weight: normal; margin-top: 0.25rem;">
+                                Клікніть на виконання щоб побачити деталі кроків
+                            </small>
+                        </span>
+                        <button class="btn btn-sm btn-primary" onclick="refreshExecutions()">
+                            <i class="bi bi-arrow-clockwise" id="refreshIcon"></i> Refresh
+                        </button>
+                    </div>
+                    <div class="card-body">
+                        <div id="executionsList">
+                            <div class="text-center text-secondary py-5">
+                                <i class="bi bi-hourglass-split" style="font-size: 3rem;"></i>
+                                <p class="mt-3">Loading executions...</p>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- CloudWatch Logs -->
+                <div class="card">
+                    <div class="card-header d-flex justify-content-between align-items-center">
+                        <span><i class="bi bi-terminal"></i> CloudWatch Logs (Latest 50)</span>
+                        <button class="btn btn-sm btn-primary" onclick="refreshLogs()">
+                            <i class="bi bi-arrow-clockwise"></i> Refresh
+                        </button>
+                    </div>
+                    <div class="card-body">
+                        <div class="log-viewer" id="logsViewer">
+                            <div class="text-secondary">Loading logs...</div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- DEBUG & TEST TAB -->
+            <div class="dashboard-tab-pane" id="debug" style="display: none;">
+                <div class="mb-4">
+                    <h2><i class="bi bi-bug-fill"></i> Debug & Test Dashboard</h2>
+                    <p class="text-secondary">
+                        Запустіть тестову генерацію контенту та відслідковуйте кожен крок процесу в реальному часі
+                    </p>
+                </div>
+
+                <!-- Schema Validation Section -->
+                <div class="card mb-4">
+                    <div class="card-header">
+                        <i class="bi bi-shield-check"></i> Валідація Схеми Системи
+                    </div>
+                    <div class="card-body">
+                        <p class="text-secondary mb-3">
+                            Перевірте сумісність між DynamoDB схемою, Lambda API, та Frontend очікуваннями для MEGA MODE
+                        </p>
+                        <button class="btn btn-primary" id="validateSchemaBtn" onclick="runSchemaValidation()">
+                            <i class="bi bi-check-circle"></i> Запустити валідацію
+                        </button>
+
+                        <!-- Validation Results -->
+                        <div id="validationResults" style="display: none; margin-top: 1.5rem;">
+                            <div class="alert" id="validationAlert" role="alert">
+                                <h5 id="validationStatus">-</h5>
+                                <p id="validationSummary" class="mb-0">-</p>
+                            </div>
+
+                            <!-- Frontend Expectations -->
+                            <div class="data-section">
+                                <h6>Frontend Functions</h6>
+                                <div id="frontendFunctions" class="data-content">-</div>
+                            </div>
+
+                            <!-- Lambda Checks -->
+                            <div class="data-section mt-3">
+                                <h6>Lambda API Checks</h6>
+                                <div id="lambdaChecks" class="data-content">-</div>
+                            </div>
+
+                            <!-- Raw Response -->
+                            <details class="mt-3">
+                                <summary style="cursor: pointer; color: var(--primary-color);">
+                                    <i class="bi bi-code-square"></i> View Raw Response
+                                </summary>
+                                <div class="data-content mt-2" id="rawValidationResponse" style="max-height: 400px;">-</div>
+                            </details>
+                        </div>
+                    </div>
+                </div>
+
+
+                <div class="test-controls">
+                    <h4 class="mb-3"><i class="bi bi-sliders"></i> Налаштування тесту</h4>
+                    <div class="row">
+                        <div class="col-md-6 mb-3">
+                            <label class="form-label">Оберіть канал</label>
+                            <select class="form-select" id="channelSelect">
+                                <option value="">Завантаження каналів...</option>
+                            </select>
+                        </div>
+                        <div class="col-md-6 mb-3">
+                            <label class="form-label">Тема (опціонально)</label>
+                            <input type="text" class="form-control" id="topicInput" placeholder="Залиште порожнім для авто-генерації">
+                        </div>
+                    </div>
+                    <div class="d-flex gap-3 align-items-center">
+                        <button class="btn btn-primary btn-test" id="startTestBtn" onclick="startTest()">
+                            <i class="bi bi-play-circle-fill"></i> Запустити тест
+                        </button>
+                        <button class="btn btn-secondary" id="resetBtn" onclick="resetTest()" style="display: none;">
+                            <i class="bi bi-arrow-clockwise"></i> Скинути
+                        </button>
+                        <div id="totalDuration" class="duration-info" style="display: none;">
+                            Загальний час: <strong>0s</strong>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Process Steps -->
+                <div id="processSteps">
+
+                    <!-- Step 1: Get Channel Config -->
+                    <div class="process-step pending" id="step-get-channel">
+                        <div class="step-header">
+                            <div class="step-icon pending">
+                                <i class="bi bi-database"></i>
+                            </div>
+                            <div class="step-title">
+                                <h4>1. Отримання конфігурації каналу</h4>
+                                <p>Lambda: content-get-channels → ChannelConfigs</p>
+                            </div>
+                            <div class="step-status pending">Очікування</div>
+                        </div>
+                        <div class="step-body" id="step-get-channel-body" style="display: none;">
+                            <div class="data-section">
+                                <h6>📥 Input</h6>
+                                <div class="data-content" id="step-get-channel-input">-</div>
+                            </div>
+                            <div class="data-section">
+                                <h6>📤 Output</h6>
+                                <div class="data-content" id="step-get-channel-output">-</div>
+                                <span class="expand-toggle" onclick="toggleExpand('step-get-channel-output')">
+                                    <i class="bi bi-arrows-expand"></i> Розгорнути
+                                </span>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="arrow-down">
+                        <i class="bi bi-arrow-down-circle-fill"></i>
+                    </div>
+
+                    <!-- Step 2: Generate Theme -->
+                    <div class="process-step pending" id="step-theme">
+                        <div class="step-header">
+                            <div class="step-icon pending">
+                                <i class="bi bi-lightbulb"></i>
+                            </div>
+                            <div class="step-title">
+                                <h4>2. Генерація теми контенту</h4>
+                                <p>Lambda: content-theme-agent → OpenAI API</p>
+                            </div>
+                            <div class="step-status pending">Очікування</div>
+                        </div>
+                        <div class="step-body" id="step-theme-body" style="display: none;">
+                            <div class="data-section">
+                                <h6>📥 Input (Merged Config)</h6>
+                                <div class="data-content" id="step-theme-input">-</div>
+                            </div>
+                            <div class="data-section">
+                                <h6>📤 Output (Generated Theme)</h6>
+                                <div class="data-content" id="step-theme-output">-</div>
+                            </div>
+                            <div class="data-section">
+                                <h6>💰 Cost & Tokens</h6>
+                                <div class="data-content" id="step-theme-cost">-</div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="arrow-down">
+                        <i class="bi bi-arrow-down-circle-fill"></i>
+                    </div>
+
+                    <!-- Step 3: Generate Narrative -->
+                    <div class="process-step pending" id="step-narrative">
+                        <div class="step-header">
+                            <div class="step-icon pending">
+                                <i class="bi bi-file-text"></i>
+                            </div>
+                            <div class="step-title">
+                                <h4>3. Генерація наративу та сцен</h4>
+                                <p>Lambda: content-narrative → OpenAI API → GeneratedContent</p>
+                            </div>
+                            <div class="step-status pending">Очікування</div>
+                        </div>
+                        <div class="step-body" id="step-narrative-body" style="display: none;">
+                            <div class="data-section">
+                                <h6>📥 Input (Theme + Channel Config)</h6>
+                                <div class="data-content" id="step-narrative-input">-</div>
+                            </div>
+                            <div class="data-section">
+                                <h6>📤 Output (Scenes with SSML)</h6>
+                                <div class="data-content" id="step-narrative-output">-</div>
+                            </div>
+                            <div class="data-section">
+                                <h6>📊 Stats</h6>
+                                <div class="data-content" id="step-narrative-stats">-</div>
+                            </div>
+                            <div class="data-section">
+                                <h6>💰 Cost & Tokens</h6>
+                                <div class="data-content" id="step-narrative-cost">-</div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="arrow-down">
+                        <i class="bi bi-arrow-down-circle-fill"></i>
+                    </div>
+
+                    <!-- Step 4: Generate SSML -->
+                    <div class="process-step pending" id="step-ssml">
+                        <div class="step-header">
+                            <div class="step-icon pending">
+                                <i class="bi bi-code-square"></i>
+                            </div>
+                            <div class="step-title">
+                                <h4>4. Генерація SSML розмітки</h4>
+                                <p>Lambda: ssml-generator → SSML markup</p>
+                            </div>
+                            <div class="step-status pending">Очікування</div>
+                        </div>
+                        <div class="step-body" id="step-ssml-body" style="display: none;">
+                            <div class="data-section">
+                                <h6>📥 Input (Plain Text Scenes)</h6>
+                                <div class="data-content" id="step-ssml-input">-</div>
+                            </div>
+                            <div class="data-section">
+                                <h6>🎨 Genre Rules Applied</h6>
+                                <div class="data-content" id="step-ssml-rules">-</div>
+                            </div>
+                            <div class="data-section">
+                                <h6>📤 Output (SSML Markup)</h6>
+                                <div class="data-content" id="step-ssml-output">-</div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="arrow-down">
+                        <i class="bi bi-arrow-down-circle-fill"></i>
+                    </div>
+
+                    <!-- Step 5: Generate Audio -->
+                    <div class="process-step pending" id="step-audio">
+                        <div class="step-header">
+                            <div class="step-icon pending">
+                                <i class="bi bi-mic"></i>
+                            </div>
+                            <div class="step-title">
+                                <h4>5. Генерація аудіо (TTS)</h4>
+                                <p>Lambda: content-audio-polly → AWS Polly → S3</p>
+                            </div>
+                            <div class="step-status pending">Очікування</div>
+                        </div>
+                        <div class="step-body" id="step-audio-body" style="display: none;">
+                            <div class="data-section">
+                                <h6>📥 Input (Scenes with SSML)</h6>
+                                <div class="data-content" id="step-audio-input">-</div>
+                            </div>
+                            <div class="data-section">
+                                <h6>🎤 TTS Configuration</h6>
+                                <div class="data-content" id="step-audio-config">-</div>
+                            </div>
+                            <div class="data-section">
+                                <h6>📤 Output (Audio Files)</h6>
+                                <div class="data-content" id="step-audio-output">-</div>
+                            </div>
+                            <div class="data-section">
+                                <h6>💰 Cost</h6>
+                                <div class="data-content" id="step-audio-cost">-</div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="arrow-down">
+                        <i class="bi bi-arrow-down-circle-fill"></i>
+                    </div>
+
+                    <!-- Step 6: Generate Images -->
+                    <div class="process-step pending" id="step-images">
+                        <div class="step-header">
+                            <div class="step-icon pending">
+                                <i class="bi bi-image"></i>
+                            </div>
+                            <div class="step-title">
+                                <h4>6. Генерація зображень</h4>
+                                <p>Lambda: content-generate-images → AI Image API → S3</p>
+                            </div>
+                            <div class="step-status pending">Очікування</div>
+                        </div>
+                        <div class="step-body" id="step-images-body" style="display: none;">
+                            <div class="data-section">
+                                <h6>📥 Input (Scenes with image_prompt)</h6>
+                                <div class="data-content" id="step-images-input">-</div>
+                            </div>
+                            <div class="data-section">
+                                <h6>🎨 Image Configuration</h6>
+                                <div class="data-content" id="step-images-config">-</div>
+                            </div>
+                            <div class="data-section">
+                                <h6>📤 Output (Image URLs)</h6>
+                                <div class="data-content" id="step-images-output">-</div>
+                            </div>
+                            <div class="data-section">
+                                <h6>💰 Cost</h6>
+                                <div class="data-content" id="step-images-cost">-</div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="arrow-down">
+                        <i class="bi bi-arrow-down-circle-fill"></i>
+                    </div>
+
+                    <!-- Step 7: Save Result -->
+                    <div class="process-step pending" id="step-save">
+                        <div class="step-header">
+                            <div class="step-icon pending">
+                                <i class="bi bi-check-circle"></i>
+                            </div>
+                            <div class="step-title">
+                                <h4>7. Збереження результату</h4>
+                                <p>Lambda: content-save-result → GeneratedContent (final)</p>
+                            </div>
+                            <div class="step-status pending">Очікування</div>
+                        </div>
+                        <div class="step-body" id="step-save-body" style="display: none;">
+                            <div class="data-section">
+                                <h6>📥 Input (All Data)</h6>
+                                <div class="data-content" id="step-save-input">-</div>
+                            </div>
+                            <div class="data-section">
+                                <h6>📤 Output (Final Result)</h6>
+                                <div class="data-content" id="step-save-output">-</div>
+                            </div>
+                        </div>
+                    </div>
+
+                </div>
+
+                <!-- Summary -->
+                <div id="testSummary" class="card mt-4" style="display: none;">
+                    <div class="card-header">
+                        <i class="bi bi-clipboard-check"></i> Підсумок тесту
+                    </div>
+                    <div class="card-body">
+                        <div class="row">
+                            <div class="col-md-3">
+                                <h6 class="text-secondary">Статус</h6>
+                                <h4 id="summaryStatus">-</h4>
+                            </div>
+                            <div class="col-md-3">
+                                <h6 class="text-secondary">Загальний час</h6>
+                                <h4 id="summaryDuration">-</h4>
+                            </div>
+                            <div class="col-md-3">
+                                <h6 class="text-secondary">Загальна вартість</h6>
+                                <h4 id="summaryCost">-</h4>
+                            </div>
+                            <div class="col-md-3">
+                                <h6 class="text-secondary">Сцени</h6>
+                                <h4 id="summaryScenes">-</h4>
+                            </div>
+                            <div class="col-md-3">
+                                <h6 class="text-secondary">Зображення</h6>
+                                <h4 id="summaryImages">-</h4>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+        </div>
+    </div>
+
+    <!-- Execution Details Modal -->
+    <div id="executionModal" style="display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.7); z-index: 9999; align-items: center; justify-content: center;">
+        <div style="background: var(--card-bg); border-radius: 16px; padding: 2rem; max-width: 600px; width: 90%; max-height: 80vh; overflow-y: auto; border: 1px solid rgba(102, 126, 234, 0.3);">
+            <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 1.5rem;">
+                <h3 style="margin: 0; color: var(--text-primary);">
+                    <i class="bi bi-info-circle"></i> Execution Details
+                </h3>
+                <button onclick="closeExecutionModal()" style="background: none; border: none; color: var(--text-secondary); font-size: 1.5rem; cursor: pointer; padding: 0; line-height: 1;">
+                    &times;
+                </button>
+            </div>
+
+            <div id="executionDetailsContent">
+                <!-- Content will be populated by JavaScript -->
+            </div>
+        </div>
+    </div>
+
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+    <script src="js/auth.js"></script>
+    <script src="js/navigation.js?v=20260221-0500"></script>
+    <script>
+        // API URLs
+        const API_URL = 'https://7jc3xyyugq6bknqzr7viz2vd4q0qwlet.lambda-url.eu-central-1.on.aws';
+        const CHANNELS_API_URL = 'https://ywsop7xk36ir7r3a66fqcphdy40esadg.lambda-url.eu-central-1.on.aws/';
+        const DEBUG_API_URL = 'https://huooyve5uullyeh7safuexpawm0jidlu.lambda-url.eu-central-1.on.aws/';
+        const SCHEMA_VALIDATOR_URL = 'https://qweb5zj34pftappyn3bqxt77qa0rkyii.lambda-url.eu-central-1.on.aws/';
+        const TRIGGER_API_URL = 'https://qqlkgo62xbfcrsatii2g464dby0ibchd.lambda-url.eu-central-1.on.aws/';
+        const SD35_HEALTH_API_URL = 'https://dteaeahrmufib6yzhanlf2euoy0jkkrl.lambda-url.eu-central-1.on.aws/';
+
+        let currentExecutions = [];
+        let currentLogs = [];
+        let currentExecutionDetails = null; // Stores step-by-step details
+        let testStartTime = null;
+        let testData = {};
+        let allChannels = [];
+        let selectedChannelIds = [];
+
+        // ====== CONTROL CENTER TAB FUNCTIONS ======
+
+        async function loadControlCenterData() {
+            console.log('🔄 Loading Control Center data...');
+            await loadChannelsForControl();
+            await refreshRecentExecutions();
+            await loadControlStats();
+        }
+
+        async function loadChannelsForControl() {
+            try {
+                console.log('📞 Loading channels from:', CHANNELS_API_URL);
+                // Get user_id from localStorage
+                const cognitoUser = JSON.parse(localStorage.getItem('cognito_user') || '{}');
+                const userId = cognitoUser.user_id || 'c334d862-4031-7097-4207-84856b59d3ed';
+                const url = `${CHANNELS_API_URL}?user_id=${userId}&active_only=false`;
+                console.log('Fetching with user_id:', userId);
+                const response = await fetch(url);
+                const data = await response.json();
+
+                allChannels = data.channels || [];
+                console.log(`✅ Loaded ${allChannels.length} channels`);
+
+                displayChannelsForSelection();
+                updateChannelStats();
+
+                // Setup event delegation for checkboxes
+                setupChannelCheckboxListeners();
+
+            } catch (error) {
+                console.error('❌ Error loading channels:', error);
+            }
+        }
+
+        function setupChannelCheckboxListeners() {
+            console.log('🔧 Setting up checkbox listeners...');
+
+            // Wait a bit for DOM to be ready
+            setTimeout(() => {
+                const checkboxes = document.querySelectorAll('.channel-checkbox');
+                console.log(`📌 Found ${checkboxes.length} checkboxes`);
+
+                checkboxes.forEach((checkbox, index) => {
+                    checkbox.addEventListener('change', function() {
+                        console.log(`✓ Checkbox ${index} changed:`, this.checked);
+                        updateSelectedCount();
+                    });
+
+                    checkbox.addEventListener('click', function(e) {
+                        console.log(`🖱️ Checkbox ${index} clicked`);
+                        e.stopPropagation();
+                    });
+                });
+
+                console.log('✅ Event listeners attached to all checkboxes');
+            }, 100);
+        }
+
+        function displayChannelsForSelection() {
+            const list = document.getElementById('channelsList');
+            if (!list || allChannels.length === 0) {
+                list.innerHTML = '<div class="text-center py-3" style="color: var(--text-secondary);">Канали не знайдено</div>';
+                return;
+            }
+
+            const html = allChannels.map(channel => {
+                const isActive = channel.is_active;
+                const statusIcon = isActive ? '🟢' : '⚫';
+                const displayName = channel.channel_name.startsWith('Channel_')
+                    ? `${channel.genre} (${channel.channel_id.substring(0, 12)}...)`
+                    : `${channel.channel_name} - ${channel.genre}`;
+
+                return `
+                    <div class="channel-item ${!isActive ? 'disabled' : ''}" data-channel-id="${channel.channel_id}">
+                        <input type="checkbox"
+                               class="channel-checkbox"
+                               id="ch-${channel.channel_id}"
+                               value="${channel.channel_id}"
+                               ${!isActive ? 'disabled' : ''}>
+                        <label for="ch-${channel.channel_id}" style="cursor: ${isActive ? 'pointer' : 'not-allowed'}; opacity: ${isActive ? '1' : '0.5'};">
+                            ${statusIcon} <strong>${displayName}</strong>
+                            <br>
+                            <small>ID: ${channel.channel_id}</small>
+                        </label>
+                    </div>
+                `;
+            }).join('');
+
+            list.innerHTML = html;
+
+            console.log('✅ Channels rendered:', allChannels.length);
+        }
+
+        function showChannelSelector() {
+            const card = document.getElementById('channelSelectorCard');
+            card.style.display = 'block';
+            card.scrollIntoView({ behavior: 'smooth' });
+
+            // Setup listeners when showing the selector
+            console.log('👀 Showing channel selector, setting up listeners...');
+            setupChannelCheckboxListeners();
+        }
+
+        function updateSelectedCount() {
+            const checkboxes = document.querySelectorAll('.channel-checkbox:checked');
+            selectedChannelIds = Array.from(checkboxes).map(cb => cb.value);
+
+            document.getElementById('selectedCount').textContent = selectedChannelIds.length;
+            document.getElementById('startSelectedBtn').disabled = selectedChannelIds.length === 0;
+
+            console.log('📊 Selected channels:', selectedChannelIds.length);
+        }
+
+        function selectAllChannels() {
+            document.querySelectorAll('.channel-checkbox:not([disabled])').forEach(cb => {
+                cb.checked = true;
+            });
+            updateSelectedCount();
+        }
+
+        function deselectAllChannels() {
+            document.querySelectorAll('.channel-checkbox').forEach(cb => {
+                cb.checked = false;
+            });
+            updateSelectedCount();
+        }
+
+        function filterChannels() {
+            const search = document.getElementById('channelSearchInput').value.toLowerCase();
+            document.querySelectorAll('.channel-item').forEach(item => {
+                const text = item.textContent.toLowerCase();
+                item.style.display = text.includes(search) ? 'flex' : 'none';
+            });
+        }
+
+
+        // Test/Production Mode Toggle State
+        let isProductionMode = false;
+
+        function getForceMode() {
+            // Test mode = force: true (bypasses rate limiting)
+            // Production mode = force: false (respects publishing frequency)
+            return !isProductionMode;
+        }
+
+        function toggleProductionMode() {
+            const toggle = document.getElementById('productionModeToggle');
+            const indicator = document.getElementById('modeIndicator');
+            const description = document.getElementById('modeDescription');
+            const label = document.getElementById('toggleLabel');
+
+            isProductionMode = toggle.checked;
+
+            if (isProductionMode) {
+                // Production Mode - respects publishing schedule
+                indicator.className = 'badge bg-success';
+                indicator.textContent = '✅ PRODUCTION';
+                description.textContent = 'Production (дотримується графіку публікацій)';
+                label.textContent = 'Production Mode активний';
+                console.log('🏭 Production Mode: force=false (respects publishing frequency)');
+            } else {
+                // Test Mode - unlimited runs
+                indicator.className = 'badge bg-warning';
+                indicator.textContent = '🧪 TEST';
+                description.textContent = 'Тестування (необмежені запуски)';
+                label.textContent = 'Увімкнути Production Mode';
+                console.log('🧪 Test Mode: force=true (bypasses rate limiting)');
+            }
+        }
+
+        async function startAllChannels() {
+            if (!confirm('Запустити генерацію контенту для ВСІХ активних каналів?\n\nЦе може зайняти багато часу та коштів.')) {
+                return;
+            }
+
+            const authManager = new AuthManager();
+            await authManager.initialize();  // ← ВИПРАВЛЕНО: ініціалізуємо перед getUserId()
+            const userId = authManager.getUserId();
+            if (!userId) {
+                alert('Помилка: не знайдено user_id. Будь ласка, увійдіть знову.');
+                window.location.href = '/login.html';
+                return;
+            }
+
+            const btn = document.getElementById('startAllBtn');
+            btn.disabled = true;
+            btn.innerHTML = '<i class="bi bi-hourglass-split"></i> Запуск...';
+
+            try {
+                console.log('🚀 Starting all channels...');
+                const response = await fetch(TRIGGER_API_URL, {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({
+                        user_id: userId,
+                        channels: 'all',
+                        options: { force: getForceMode(), dry_run: false }
+                    })
+                });
+
+                const result = await response.json();
+                console.log('📦 Result:', result);
+
+                if (result.success) {
+                    alert(`✅ Успішно!\n\nЗапущено генерацію для ${result.channels_count} каналів\n\nExecution ARN:\n${result.execution_arn}`);
+                    await refreshRecentExecutions();
+
+                    // Switch to monitoring tab
+                    switchTab('monitoring');
+                } else {
+                    throw new Error(result.error || 'Unknown error');
+                }
+
+            } catch (error) {
+                console.error('❌ Error:', error);
+                alert(`❌ Помилка запуску:\n${error.message}`);
+            } finally {
+                btn.disabled = false;
+                btn.innerHTML = '<i class="bi bi-play-circle-fill"></i> Запустити всі канали';
+            }
+        }
+
+        async function startSelectedChannels() {
+            if (selectedChannelIds.length === 0) {
+                alert('Оберіть хоча б один канал');
+                return;
+            }
+
+            if (!confirm(`Запустити генерацію контенту для ${selectedChannelIds.length} вибраних каналів?`)) {
+                return;
+            }
+            const authManager = new AuthManager();
+            await authManager.initialize();  // ← ВИПРАВЛЕНО: ініціалізуємо перед getUserId()
+            const userId = authManager.getUserId();
+            if (!userId) {
+                alert('Помилка: не знайдено user_id. Будь ласка, увійдіть знову.');
+                window.location.href = '/login.html';
+                return;
+            }
+
+
+            const btn = document.getElementById('startSelectedBtn');
+            btn.disabled = true;
+            btn.innerHTML = '<i class="bi bi-hourglass-split"></i> Запуск...';
+
+            try {
+                console.log('🚀 Starting selected channels:', selectedChannelIds);
+                const response = await fetch(TRIGGER_API_URL, {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({
+                        user_id: userId,
+                        channels: selectedChannelIds,
+                        options: { force: false, dry_run: false }
+                    })
+                });
+
+                const result = await response.json();
+                console.log('📦 Result:', result);
+
+                if (result.success) {
+                    alert(`✅ Успішно!\n\nЗапущено генерацію для ${result.channels_count} каналів\n\nExecution ARN:\n${result.execution_arn}`);
+                    await refreshRecentExecutions();
+
+                    // Reset selection
+                    deselectAllChannels();
+
+                    // Switch to monitoring tab
+                    switchTab('monitoring');
+                } else {
+                    throw new Error(result.error || 'Unknown error');
+                }
+
+            } catch (error) {
+                console.error('❌ Error:', error);
+                alert(`❌ Помилка запуску:\n${error.message}`);
+            } finally {
+                btn.disabled = false;
+                btn.innerHTML = `<i class="bi bi-play-circle-fill"></i> Запустити вибрані (<span id="selectedCount">${selectedChannelIds.length}</span>)`;
+            }
+        }
+        // Helper: Get Authorization header with Cognito token
+        function getAuthHeaders() {
+            function getCookie(name) {
+                const nameEQ = name + "=";
+                const ca = document.cookie.split(';');
+                for(let i = 0; i < ca.length; i++) {
+                    let c = ca[i];
+                    while (c.charAt(0) === ' ') c = c.substring(1, c.length);
+                    if (c.indexOf(nameEQ) === 0) return c.substring(nameEQ.length, c.length);
+                }
+                return null;
+            }
+
+            const idToken = getCookie('auth_id_token');
+            if (!idToken) {
+                console.warn('No ID token found - user may need to log in');
+                return {};
+            }
+
+            return {
+                'Authorization': `Bearer ${idToken}`
+            };
+        }
+
+
+        async function refreshRecentExecutions() {
+            try {
+                console.log('🔄 Loading recent executions...');
+                const response = await fetch(`${API_URL}/monitoring/executions?limit=10`, { headers: getAuthHeaders() });
+                const data = await response.json();
+
+                displayRecentExecutions(data.executions || []);
+                updateTodayExecutionsCount(data.executions || []);
+
+            } catch (error) {
+                console.error('❌ Error loading recent executions:', error);
+                document.getElementById('recentExecutionsList').innerHTML = `
+                    <div class="alert alert-danger">Помилка завантаження: ${error.message}</div>
+                `;
+            }
+        }
+
+        function displayRecentExecutions(executions) {
+            const list = document.getElementById('recentExecutionsList');
+
+            if (executions.length === 0) {
+                list.innerHTML = '<div class="text-center py-3 text-secondary">Запусків ще немає</div>';
+                return;
+            }
+
+            const html = executions.slice(0, 10).map(exec => {
+                const statusClass = exec.status.toLowerCase();
+                const statusIcon = getStatusIcon(exec.status);
+                const duration = exec.stopDate ? calculateDuration(exec.startDate, exec.stopDate) : 'В процесі...';
+
+                return `
+                    <div class="execution-item ${statusClass}" onclick="showExecutionDetails(${JSON.stringify(exec).replace(/"/g, '&quot;')})">
+                        <div class="d-flex justify-content-between align-items-center">
+                            <div>
+                                <strong>${exec.name || 'Unnamed'}</strong>
+                                <br>
+                                <small class="timestamp">
+                                    <i class="bi bi-clock"></i> ${formatDate(exec.startDate)}
+                                </small>
+                            </div>
+                            <div class="text-end">
+                                <span class="status-badge status-${statusClass}">
+                                    ${statusIcon} ${exec.status}
+                                </span>
+                                <br>
+                                <small class="text-secondary">${duration}</small>
+                            </div>
+                        </div>
+                    </div>
+                `;
+            }).join('');
+
+            list.innerHTML = html;
+        }
+
+        function updateTodayExecutionsCount(executions) {
+            const today = new Date().toDateString();
+            const todayExecs = executions.filter(e => new Date(e.startDate).toDateString() === today);
+            document.getElementById('todayExecutionsCount').textContent = todayExecs.length;
+        }
+
+        function updateChannelStats() {
+            const total = allChannels.length;
+            const active = allChannels.filter(ch => ch.is_active).length;
+
+            document.getElementById('totalChannelsCount').textContent = total;
+            document.getElementById('activeChannelsCount').textContent = active;
+        }
+
+        async function loadControlStats() {
+            try {
+                // TODO: Fix CORS issue with dashboard-content Lambda
+                // For now, just show a placeholder
+                document.getElementById('contentGeneratedToday').textContent = '-';
+
+            } catch (error) {
+                console.error('❌ Error loading content stats:', error);
+                document.getElementById('contentGeneratedToday').textContent = '-';
+            }
+        }
+
+        // ====== MONITORING TAB FUNCTIONS ======
+
+        async function refreshExecutions() {
+            console.log('🔄 Refreshing executions...');
+            const icon = document.getElementById('refreshIcon');
+            if (icon) icon.classList.add('refresh-btn');
+
+            try {
+                console.log('📞 Calling:', `${API_URL}/monitoring/executions`);
+                const response = await fetch(`${API_URL}/monitoring/executions`, { headers: getAuthHeaders() });
+                console.log('📦 Response status:', response.status);
+                const data = await response.json();
+                console.log('📊 Executions data:', data);
+
+                displayExecutions(data.executions || []);
+                updateStats(data.stats || {});
+            } catch (error) {
+                console.error('❌ Error loading executions:', error);
+                const list = document.getElementById('executionsList');
+                if (list) {
+                    list.innerHTML = `
+                        <div class="alert alert-danger">
+                            <i class="bi bi-exclamation-triangle"></i> Failed to load executions: ${error.message}
+                        </div>
+                    `;
+                }
+            } finally {
+                if (icon) icon.classList.remove('refresh-btn');
+            }
+        }
+
+        function displayExecutions(executions) {
+            console.log('📋 displayExecutions called with', executions.length, 'executions');
+            currentExecutions = executions;
+
+            const list = document.getElementById('executionsList');
+            console.log('🎯 Found executionsList element:', list);
+
+            if (!list) {
+                console.error('❌ executionsList element not found!');
+                return;
+            }
+
+            if (executions.length === 0) {
+                console.log('ℹ️ No executions to display');
+                list.innerHTML = `
+                    <div class="text-center text-secondary py-5">
+                        <i class="bi bi-inbox" style="font-size: 3rem;"></i>
+                        <p class="mt-3">No executions found</p>
+                    </div>
+                `;
+                return;
+            }
+
+            const html = executions.map((exec, index) => {
+                const formattedDate = formatDate(exec.startDate);
+                const statusIcon = getStatusIcon(exec.status);
+                const statusLower = exec.status ? exec.status.toLowerCase() : 'unknown';
+
+                return `
+                <div class="execution-item ${statusLower}" onclick="showExecutionDetails(currentExecutions[${index}])">
+                    <div class="d-flex justify-content-between align-items-center">
+                        <div>
+                            <strong>${exec.name || 'Unnamed Execution'}</strong>
+                            <br>
+                            <small class="timestamp">
+                                <i class="bi bi-clock"></i> ${formattedDate}
+                            </small>
+                        </div>
+                        <div>
+                            <span class="status-badge status-${statusLower}">
+                                ${statusIcon} ${exec.status}
+                            </span>
+                        </div>
+                    </div>
+                    ${exec.stopDate ? `
+                        <div class="mt-2">
+                            <small class="text-secondary">
+                                Duration: ${calculateDuration(exec.startDate, exec.stopDate)}
+                            </small>
+                        </div>
+                    ` : ''}
+                </div>
+                `;
+            }).join('');
+
+            list.innerHTML = html;
+            console.log('✅ Executions displayed!');
+        
+            // AUTO-LOAD: Automatically load the first (most recent) execution's details
+            // so the workflow visualization has data immediately without requiring a click
+            if (executions.length > 0 && executions[0].executionArn) {
+                console.log('🔄 Auto-loading first execution details:', executions[0].name);
+                loadExecutionDetails(executions[0].executionArn).then(() => {
+                    console.log('✅ First execution details loaded automatically');
+                });
+            }
+        }
+
+        function updateStats(stats) {
+            console.log('📊 updateStats called with:', stats);
+            document.getElementById('runningExecutions').textContent = stats.running || 0;
+            document.getElementById('succeededExecutions').textContent = stats.succeeded || 0;
+            document.getElementById('failedExecutions').textContent = stats.failed || 0;
+            document.getElementById('avgDuration').textContent = stats.avgDuration || '-';
+        }
+
+        async function refreshLogs() {
+            try {
+                const response = await fetch(`${API_URL}/monitoring/logs?limit=50`, { headers: getAuthHeaders() });
+                const data = await response.json();
+
+                displayLogs(data.logs || []);
+            } catch (error) {
+                console.error('Error loading logs:', error);
+                document.getElementById('logsViewer').innerHTML = `
+                    <div class="log-entry log-error">
+                        ERROR: Failed to load logs - ${error.message}
+                    </div>
+                `;
+            }
+        }
+
+        function displayLogs(logs) {
+            currentLogs = logs;
+
+            if (logs.length === 0) {
+                document.getElementById('logsViewer').innerHTML = `
+                    <div class="text-secondary">No logs available</div>
+                `;
+                return;
+            }
+
+            const html = logs.map((log, index) => {
+                const logClass = getLogClass(log.message);
+                const preview = log.message.length > 150 ? log.message.substring(0, 150) + '...' : log.message;
+                return `<div class="log-entry ${logClass}" style="cursor: pointer;" onclick="showLogDetails(${index})">
+                    <strong>${escapeHtml(log.timestamp)}</strong><br>
+                    ${escapeHtml(preview)}
+                </div>`;
+            }).join('');
+
+            document.getElementById('logsViewer').innerHTML = html;
+        }
+
+        async function checkSD35Health() {
+            try {
+                console.log('🔍 Checking SD 3.5 Medium EC2 health...');
+                const response = await fetch(SD35_HEALTH_API_URL);
+                const data = await response.json();
+                
+                console.log('📊 SD35 Health data:', data);
+                
+                // Update timestamp
+                const now = new Date().toLocaleString('uk-UA');
+                document.getElementById('sd35-health-timestamp').textContent = 'Last checked: ' + now;
+                
+                // Update EC2 status
+                const ec2Status = document.getElementById('sd35-ec2-status');
+                const ec2Id = document.getElementById('sd35-ec2-id');
+                
+                if (data.ec2_status === 'running') {
+                    ec2Status.innerHTML = '<i class="bi bi-check-circle-fill text-success"></i> Running';
+                    ec2Id.textContent = data.instance_id || '-';
+                } else if (data.ec2_status === 'stopped') {
+                    ec2Status.innerHTML = '<i class="bi bi-x-circle-fill text-danger"></i> Stopped';
+                    ec2Id.textContent = data.instance_id || '-';
+                } else if (data.ec2_status === 'not-found') {
+                    ec2Status.innerHTML = '<i class="bi bi-question-circle text-warning"></i> Not Found';
+                    ec2Id.textContent = 'Instance not found';
+                } else {
+                    ec2Status.innerHTML = '<i class="bi bi-hourglass-split"></i> ' + data.ec2_status;
+                    ec2Id.textContent = data.instance_id || '-';
+                }
+                
+                // Update model status
+                const modelStatus = document.getElementById('sd35-model-status');
+                const modelDetails = document.getElementById('sd35-model-details');
+                
+                if (data.sd35_health && data.sd35_health.status === 'ready') {
+                    modelStatus.innerHTML = '<i class="bi bi-check-circle-fill text-success"></i> Ready';
+                    modelDetails.textContent = 'Model loaded and ready';
+                } else if (data.sd35_health && data.sd35_health.error) {
+                    modelStatus.innerHTML = '<i class="bi bi-exclamation-triangle text-warning"></i> Error';
+                    modelDetails.textContent = 'Service unreachable';
+                } else if (data.ec2_status === 'stopped' || data.ec2_status === 'not-found') {
+                    modelStatus.innerHTML = '<i class="bi bi-dash-circle text-secondary"></i> N/A';
+                    modelDetails.textContent = 'EC2 not running';
+                } else {
+                    modelStatus.innerHTML = '<i class="bi bi-hourglass-split"></i> Checking...';
+                    modelDetails.textContent = '-';
+                }
+                
+                // Update GPU info
+                const gpuInfo = document.getElementById('sd35-gpu-info');
+                const gpuMemory = document.getElementById('sd35-gpu-memory');
+                
+                if (data.sd35_health && data.sd35_health.gpu) {
+                    gpuInfo.innerHTML = '<i class="bi bi-gpu-card"></i> ' + (data.sd35_health.gpu.name || 'GPU Available');
+                    const memUsed = data.sd35_health.gpu.memory_used || 0;
+                    const memTotal = data.sd35_health.gpu.memory_total || 0;
+                    gpuMemory.textContent = memUsed + ' / ' + memTotal + ' MB';
+                } else if (data.ec2_status === 'running') {
+                    gpuInfo.innerHTML = '<i class="bi bi-gpu-card"></i> Checking...';
+                    gpuMemory.textContent = '-';
+                } else {
+                    gpuInfo.innerHTML = '<i class="bi bi-dash-circle text-secondary"></i> N/A';
+                    gpuMemory.textContent = '-';
+                }
+                
+                // Update API endpoint
+                const apiUrl = document.getElementById('sd35-api-url');
+                const healthLink = document.getElementById('sd35-health-link');
+                
+                if (data.public_ip && data.ec2_status === 'running') {
+                    const endpoint = 'http://' + data.public_ip + ':5000';
+                    apiUrl.textContent = endpoint;
+                    healthLink.href = endpoint + '/health';
+                    healthLink.style.display = 'inline-block';
+                } else {
+                    apiUrl.textContent = 'Not available';
+                    healthLink.style.display = 'none';
+                }
+                
+            } catch (error) {
+                console.error('❌ Error checking SD35 health:', error);
+                document.getElementById('sd35-ec2-status').innerHTML = '<i class="bi bi-exclamation-triangle text-danger"></i> Error';
+                document.getElementById('sd35-model-status').innerHTML = '<i class="bi bi-x-circle text-danger"></i> Failed';
+            }
+        }
+
+        function getLogClass(message) {
+            if (message.includes('ERROR') || message.includes('❌')) return 'log-error';
+            if (message.includes('WARNING') || message.includes('⚠️')) return 'log-warning';
+            if (message.includes('SUCCESS') || message.includes('✅')) return 'log-success';
+            return 'log-info';
+        }
+
+        function getStatusIcon(status) {
+            const icons = {
+                'RUNNING': '<i class="bi bi-arrow-clockwise"></i>',
+                'SUCCEEDED': '<i class="bi bi-check-circle"></i>',
+                'FAILED': '<i class="bi bi-x-circle"></i>',
+                'PENDING': '<i class="bi bi-hourglass"></i>'
+            };
+            return icons[status] || '<i class="bi bi-question-circle"></i>';
+        }
+
+        function formatDate(dateString) {
+            const date = new Date(dateString);
+            return date.toLocaleString('uk-UA');
+        }
+
+        function calculateDuration(start, end) {
+            const duration = (new Date(end) - new Date(start)) / 1000;
+            const minutes = Math.floor(duration / 60);
+            const seconds = Math.floor(duration % 60);
+            return `${minutes}m ${seconds}s`;
+        }
+
+        function escapeHtml(text) {
+            const div = document.createElement('div');
+            div.textContent = text;
+            return div.innerHTML;
+        }
+
+        async function showExecutionDetails(exec) {
+            const modal = document.getElementById('executionModal');
+            const content = document.getElementById('executionDetailsContent');
+
+            // Show loading state
+            content.innerHTML = `
+                <div style="text-align: center; padding: 3rem;">
+                    <i class="bi bi-hourglass-split" style="font-size: 3rem; color: var(--primary-color);"></i>
+                    <p style="color: var(--text-secondary); margin-top: 1rem;">Завантаження деталей виконання...</p>
+                </div>
+            `;
+            modal.style.display = 'flex';
+
+            // Load execution details with step-by-step breakdown
+            if (exec.executionArn) {
+                await loadExecutionDetails(exec.executionArn);
+
+                // Scroll to workflow visualization
+                setTimeout(() => {
+                    document.querySelector('.workflow-container')?.scrollIntoView({ behavior: 'smooth', block: 'center' });
+                }, 300);
+            }
+
+            const duration = exec.stopDate ? calculateDuration(exec.startDate, exec.stopDate) : 'Still running...';
+            const errorInfo = exec.error ? `
+                <div style="margin-top: 1rem; padding: 1rem; background: rgba(239, 68, 68, 0.1); border-left: 3px solid #ef4444; border-radius: 8px;">
+                    <div style="font-weight: 600; color: #fca5a5; margin-bottom: 0.5rem;">
+                        <i class="bi bi-exclamation-triangle"></i> Error Details
+                    </div>
+                    <div style="color: var(--text-secondary); font-size: 0.9rem; font-family: monospace;">
+                        ${escapeHtml(exec.error)}
+                    </div>
+                </div>
+            ` : '';
+
+            const stepsInfo = currentExecutionDetails && currentExecutionDetails.steps ? `
+                <div style="margin-top: 1.5rem; padding: 1.25rem; background: linear-gradient(135deg, rgba(16, 185, 129, 0.15) 0%, rgba(102, 126, 234, 0.1) 100%); border: 2px solid var(--success-color); border-radius: 12px;">
+                    <div style="font-weight: 600; color: var(--success-color); margin-bottom: 0.75rem; font-size: 1rem;">
+                        <i class="bi bi-check-circle-fill"></i> Виконання завантажено!
+                    </div>
+                    <div style="font-size: 0.9rem; color: var(--text-primary); margin-bottom: 0.5rem;">
+                        📊 Знайдено ${currentExecutionDetails.steps.length} кроків виконання
+                    </div>
+                    <div style="font-size: 0.85rem; color: var(--text-secondary); padding: 0.75rem; background: rgba(0,0,0,0.2); border-radius: 6px; margin-top: 0.75rem;">
+                        <i class="bi bi-hand-index"></i> <strong>Що робити далі:</strong><br>
+                        1. Закрийте це вікно<br>
+                        2. Прокрутіть вгору до workflow візуалізації<br>
+                        3. Клікайте на блоки (GetActiveChannels, ThemeAgent, тощо)<br>
+                        4. Переглядайте Input/Output JSON для кожного кроку!
+                    </div>
+                </div>
+            ` : '';
+
+            content.innerHTML = `
+                <div style="display: grid; gap: 1rem;">
+                    <div>
+                        <div style="color: var(--text-secondary); font-size: 0.85rem; margin-bottom: 0.25rem;">Execution Name</div>
+                        <div style="color: var(--text-primary); font-weight: 500;">${exec.name || 'Unnamed Execution'}</div>
+                    </div>
+
+                    <div>
+                        <div style="color: var(--text-secondary); font-size: 0.85rem; margin-bottom: 0.25rem;">Status</div>
+                        <div>
+                            <span class="status-badge status-${exec.status.toLowerCase()}">
+                                ${getStatusIcon(exec.status)} ${exec.status}
+                            </span>
+                        </div>
+                    </div>
+
+                    <div>
+                        <div style="color: var(--text-secondary); font-size: 0.85rem; margin-bottom: 0.25rem;">Execution ARN</div>
+                        <div style="color: var(--text-primary); font-size: 0.85rem; word-break: break-all; font-family: monospace;">
+                            ${exec.executionArn || 'N/A'}
+                        </div>
+                    </div>
+
+                    <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 1rem;">
+                        <div>
+                            <div style="color: var(--text-secondary); font-size: 0.85rem; margin-bottom: 0.25rem;">
+                                <i class="bi bi-play-circle"></i> Start Time
+                            </div>
+                            <div style="color: var(--text-primary);">${formatDate(exec.startDate)}</div>
+                        </div>
+                        ${exec.stopDate ? `
+                        <div>
+                            <div style="color: var(--text-secondary); font-size: 0.85rem; margin-bottom: 0.25rem;">
+                                <i class="bi bi-stop-circle"></i> End Time
+                            </div>
+                            <div style="color: var(--text-primary);">${formatDate(exec.stopDate)}</div>
+                        </div>
+                        ` : ''}
+                    </div>
+
+                    <div>
+                        <div style="color: var(--text-secondary); font-size: 0.85rem; margin-bottom: 0.25rem;">
+                            <i class="bi bi-clock-history"></i> Duration
+                        </div>
+                        <div style="color: var(--text-primary); font-weight: 600;">${duration}</div>
+                    </div>
+
+                    ${errorInfo}
+
+                    ${stepsInfo}
+                </div>
+            `;
+
+            modal.style.display = 'flex';
+        }
+
+        function showLogDetails(index) {
+            const log = currentLogs[index];
+            if (!log) return;
+
+            const modal = document.getElementById('executionModal');
+            const content = document.getElementById('executionDetailsContent');
+
+            content.innerHTML = `
+                <div style="display: grid; gap: 1rem;">
+                    <div>
+                        <div style="color: var(--text-secondary); font-size: 0.85rem; margin-bottom: 0.25rem;">
+                            <i class="bi bi-clock"></i> Timestamp
+                        </div>
+                        <div style="color: var(--text-primary);">${escapeHtml(log.timestamp)}</div>
+                    </div>
+
+                    <div>
+                        <div style="color: var(--text-secondary); font-size: 0.85rem; margin-bottom: 0.25rem;">
+                            <i class="bi bi-file-text"></i> Full Log Message
+                        </div>
+                        <div style="background: #0d1117; border: 1px solid rgba(102, 126, 234, 0.2); border-radius: 8px; padding: 1rem; color: #93c5fd; font-family: monospace; font-size: 0.9rem; max-height: 400px; overflow-y: auto; white-space: pre-wrap; word-break: break-word;">
+                            ${escapeHtml(log.message)}
+                        </div>
+                    </div>
+
+                    ${log.logStreamName ? `
+                    <div>
+                        <div style="color: var(--text-secondary); font-size: 0.85rem; margin-bottom: 0.25rem;">
+                            <i class="bi bi-diagram-3"></i> Log Stream
+                        </div>
+                        <div style="color: var(--text-primary); font-size: 0.85rem; word-break: break-all;">
+                            ${escapeHtml(log.logStreamName)}
+                        </div>
+                    </div>
+                    ` : ''}
+                </div>
+            `;
+
+            modal.style.display = 'flex';
+        }
+
+        function closeExecutionModal() {
+            document.getElementById('executionModal').style.display = 'none';
+        }
+
+        // Load execution details with step-by-step breakdown
+
+        // Render workflow steps dynamically
+        function renderWorkflowSteps(steps) {
+            const container = document.getElementById('workflow-steps-container');
+            const stepCount = document.getElementById('workflow-step-count');
+            
+            if (!steps || steps.length === 0) {
+                container.innerHTML = '<div class="text-muted text-center py-5"><i class="bi bi-info-circle" style="font-size: 2rem;"></i><p class="mt-2">No steps found</p></div>';
+                stepCount.textContent = '';
+                return;
+            }
+
+            stepCount.textContent = `(${steps.length} steps)`;
+
+            // Generate HTML for all steps
+            let html = '<div style="display: flex; flex-direction: column; gap: 0.5rem;">';
+
+            steps.forEach((step, index) => {
+                // Icon based on type
+                const icon = step.type === 'Task' ? 'bi-gear' : 
+                             step.type === 'Map' ? 'bi-collection' :
+                             step.type === 'Choice' ? 'bi-signpost-split' :
+                             step.type === 'Pass' ? 'bi-arrow-right-circle' : 'bi-circle';
+                
+                // Status color
+                const statusColor = step.status === 'succeeded' ? '#28a745' :
+                                   step.status === 'failed' ? '#dc3545' :
+                                   step.status === 'running' ? '#ffc107' : '#6c757d';
+                
+                // Status icon
+                const statusIcon = step.status === 'succeeded' ? 'check-circle-fill' :
+                                  step.status === 'failed' ? 'x-circle-fill' :
+                                  step.status === 'running' ? 'arrow-clockwise' : 'circle';
+
+                html += `
+                    <div class="workflow-node clickable" onclick="showStepDetails('${step.name}')" 
+                         style="padding: 1rem; border: 2px solid #e0e0e0; border-radius: 8px; background: white; cursor: pointer; transition: all 0.2s;"
+                         onmouseover="this.style.borderColor='#667eea'; this.style.boxShadow='0 4px 12px rgba(102,126,234,0.15)'"
+                         onmouseout="this.style.borderColor='#e0e0e0'; this.style.boxShadow='none'">
+                        <div style="display: flex; align-items: center; justify-content: space-between;">
+                            <div style="display: flex; align-items: center; gap: 1rem; flex: 1;">
+                                <div style="font-size: 1.5rem; color: #667eea;">
+                                    <i class="bi ${icon}"></i>
+                                </div>
+                                <div style="flex: 1;">
+                                    <div style="font-weight: 600; font-size: 1rem; color: #2d3748;">
+                                        ${step.name}
+                                    </div>
+                                    <div style="font-size: 0.85rem; color: #718096; margin-top: 0.25rem;">
+                                        ${step.type}
+                                        ${step.startTime ? ` • ${new Date(step.startTime).toLocaleTimeString()}` : ''}
+                                    </div>
+                                </div>
+                            </div>
+                            <div style="display: flex; align-items: center; gap: 0.5rem;">
+                                <span style="color: ${statusColor}; font-size: 1.2rem;">
+                                    <i class="bi bi-${statusIcon}"></i>
+                                </span>
+                                <span style="font-size: 0.9rem; color: ${statusColor}; font-weight: 500; text-transform: capitalize;">
+                                    ${step.status}
+                                </span>
+                            </div>
+                        </div>
+                    </div>
+                `;
+
+                // Add arrow between steps (except last)
+                if (index < steps.length - 1) {
+                    html += '<div style="text-align: center; color: #cbd5e0; font-size: 1.2rem; margin: 0;"><i class="bi bi-arrow-down"></i></div>';
+                }
+            });
+
+            html += '</div>';
+            container.innerHTML = html;
+        }
+
+        async function loadExecutionDetails(executionArn) {
+            try {
+                console.log('🔍 Loading execution details for:', executionArn);
+                const response = await fetch(`${API_URL}/monitoring/execution-details?executionArn=${encodeURIComponent(executionArn)}`, { headers: getAuthHeaders() });
+                const data = await response.json();
+
+                console.log('📊 Execution details:', data);
+                currentExecutionDetails = data;
+
+                // Render dynamic workflow visualization
+                if (data.steps) {
+                    renderWorkflowSteps(data.steps);
+                }
+
+                return data;
+            } catch (error) {
+                console.error('❌ Error loading execution details:', error);
+                return null;
+            }
+        }
+
+        // Step metadata with merge information
+        const STEP_METADATA = {
+            'GetActiveChannels': {
+                description: 'Отримує список активних каналів з DynamoDB',
+                dataFlow: {
+                    loads: ['ChannelConfigs таблиця'],
+                    merges: [],
+                    outputs: ['channel_id', 'config_id', 'channel_name', 'genre']
+                }
+            },
+            'QueryTitles': {
+                description: 'Запитує популярні відео з YouTube API',
+                dataFlow: {
+                    loads: [],
+                    merges: [],
+                    outputs: ['video_titles[]', 'view_counts[]']
+                }
+            },
+            'ThemeAgent': {
+                description: 'Генерує теми контенту через OpenAI',
+                dataFlow: {
+                    loads: [
+                        'ChannelConfigs (genre, tone, keywords, target_audience)',
+                        'AIPromptConfigs (Theme Template via selected_theme_template)'
+                    ],
+                    merges: [
+                        'Merge: Channel Config + Theme Template → OpenAI system_prompt + user_message',
+                        'Формується JSON з channel info + titles для GPT'
+                    ],
+                    outputs: ['generated_titles[] (4 теми)', 'selected_topic']
+                }
+            },
+            'SelectTopic': {
+                description: 'Випадковий вибір однієї теми з згенерованих',
+                dataFlow: {
+                    loads: [],
+                    merges: ['random.choice() з generated_titles'],
+                    outputs: ['selected_topic', 'all_titles[]']
+                }
+            },
+            'NarrativeArchitect': {
+                description: 'Генерує повний narrative через OpenAI',
+                dataFlow: {
+                    loads: [
+                        'ChannelConfigs (genre, target_audience, style, character_count)',
+                        'AIPromptConfigs (Narrative Template via selected_narrative_template)'
+                    ],
+                    merges: [
+                        'Merge: Channel Config + Narrative Template + selected_topic → OpenAI request',
+                        'Формується prompt з structure guidelines, tone, SSML settings',
+                        'system_prompt містить: role_definition + genre + style',
+                        'user_prompt містить: selected_topic + character_count'
+                    ],
+                    outputs: ['narrative_text (PLAIN TEXT)', 'scenes[] з variation_used', 'metadata', 'scene_count']
+                }
+            },
+            'GenerateSSML': {
+                description: 'Генерує SSML розмітку з plain text narrative',
+                dataFlow: {
+                    loads: [
+                        'Scenes[] з plain text narration',
+                        'Genre rules (Horror: slow rate, long pauses, whisper effects)',
+                        'Variation settings (normal, dramatic, whisper, action)'
+                    ],
+                    merges: [
+                        'Apply genre-specific SSML rules (pause_multiplier, default_rate, pitch)',
+                        'Add <break> tags: 450ms після речення, 225ms після коми, 675ms після ...',
+                        'Add <prosody> tags: rate, pitch, volume based on variation',
+                        'Add <amazon:effect phonation="soft"> for whisper variation',
+                        'Wrap in <speak> tags для AWS Polly'
+                    ],
+                    outputs: [
+                        'scenes[] з scene_narration_ssml (повна SSML розмітка)',
+                        'scenes[] з scene_narration_plain (оригінальний текст)',
+                        'ssml_generated: true'
+                    ]
+                }
+            },
+            'GenerateAudio': {
+                description: 'Генерує аудіо через AWS Polly з SSML розмітки',
+                dataFlow: {
+                    loads: [
+                        'ChannelConfigs ТІЛЬКИ (tts_service, tts_voice_profile)',
+                        'SSML markup з GenerateSSML Lambda'
+                    ],
+                    merges: [
+                        'Map voice_profile → AWS Polly voice_id (Brian, Emma, Matthew...)',
+                        'Validate and fix SSML markup',
+                        'scenes + voice settings → AWS Polly API'
+                    ],
+                    outputs: ['audio_urls[] (S3)', 'total_duration_sec', 'voice_id', 'tts_service']
+                }
+            },
+            'GenerateImages': {
+                description: 'Генерує зображення для кожної сцени через AI (Replicate / Bedrock / Vast.ai)',
+                dataFlow: {
+                    loads: [
+                        'ChannelConfigs (image_generation_service, image_model, image_resolution)',
+                        'ImageTemplates (image prompts, negative prompts, style settings)',
+                        'Narrative scenes[] (image_prompt для кожної сцени)'
+                    ],
+                    merges: [
+                        'Merge: Channel Config + Image Template → provider settings',
+                        'For each scene: image_prompt + negative_prompt → AI Image API',
+                        'Batching support: процес 6 сцен за раз для уникнення timeout'
+                    ],
+                    outputs: ['scene_images[] (S3 URLs)', 'total_cost_usd', 'images_generated', 'provider']
+                }
+            },
+            'SaveResult': {
+                description: 'Зберігає фінальний результат в DynamoDB',
+                dataFlow: {
+                    loads: [],
+                    merges: ['Збір всіх даних з попередніх кроків'],
+                    outputs: ['Запис в GeneratedContent table']
+                }
+            }
+        };
+
+        // Show details for a specific step
+        function showStepDetails(stepName) {
+            const modal = document.getElementById('executionModal');
+            const content = document.getElementById('executionDetailsContent');
+
+            // Get metadata for this step (завжди показуємо)
+            const metadata = STEP_METADATA[stepName] || { description: '', dataFlow: { loads: [], merges: [], outputs: [] } };
+
+            // Check if we have real execution data
+            let step = null;
+            let hasExecutionData = false;
+
+            if (currentExecutionDetails && currentExecutionDetails.steps) {
+                step = currentExecutionDetails.steps.find(s => s.name.includes(stepName));
+                hasExecutionData = !!step;
+            }
+
+            const inputJson = hasExecutionData ? JSON.stringify(step.input || {}, null, 2) : 'No execution selected';
+            const outputJson = hasExecutionData ? JSON.stringify(step.output || {}, null, 2) : 'No execution selected';
+
+            content.innerHTML = `
+                <div style="display: grid; gap: 1.5rem;">
+                    <div>
+                        <h5 style="color: var(--primary-color); margin-bottom: 0.5rem;">
+                            <i class="bi bi-box"></i> ${stepName}
+                        </h5>
+                        <p style="color: var(--text-secondary); font-size: 0.9rem; margin: 0;">${metadata.description}</p>
+                    </div>
+
+                    <!-- Data Flow Section -->
+                    <div style="background: rgba(234, 179, 8, 0.05); border: 1px solid rgba(234, 179, 8, 0.2); border-radius: 8px; padding: 1rem;">
+                        <h6 style="color: #fbbf24; margin-bottom: 0.75rem;">
+                            <i class="bi bi-diagram-3"></i> Data Flow
+                        </h6>
+
+                        ${metadata.dataFlow.loads.length > 0 ? `
+                        <div style="margin-bottom: 0.75rem;">
+                            <div style="color: #93c5fd; font-size: 0.85rem; font-weight: 600; margin-bottom: 0.25rem;">
+                                📥 Завантажує з DynamoDB:
+                            </div>
+                            ${metadata.dataFlow.loads.map(item => `
+                                <div style="color: var(--text-secondary); font-size: 0.8rem; padding-left: 1rem;">→ ${item}</div>
+                            `).join('')}
+                        </div>
+                        ` : ''}
+
+                        ${metadata.dataFlow.merges.length > 0 ? `
+                        <div style="margin-bottom: 0.75rem;">
+                            <div style="color: #fbbf24; font-size: 0.85rem; font-weight: 600; margin-bottom: 0.25rem;">
+                                🔄 Merge & Processing:
+                            </div>
+                            ${metadata.dataFlow.merges.map(item => `
+                                <div style="color: var(--text-secondary); font-size: 0.8rem; padding-left: 1rem;">→ ${item}</div>
+                            `).join('')}
+                        </div>
+                        ` : ''}
+
+                        ${metadata.dataFlow.outputs.length > 0 ? `
+                        <div>
+                            <div style="color: #a3e635; font-size: 0.85rem; font-weight: 600; margin-bottom: 0.25rem;">
+                                📤 Output:
+                            </div>
+                            ${metadata.dataFlow.outputs.map(item => `
+                                <div style="color: var(--text-secondary); font-size: 0.8rem; padding-left: 1rem;">→ ${item}</div>
+                            `).join('')}
+                        </div>
+                        ` : ''}
+                    </div>
+
+                    ${!hasExecutionData ? `
+                    <div style="background: rgba(102, 126, 234, 0.1); border: 1px solid rgba(102, 126, 234, 0.3); border-radius: 8px; padding: 1rem; text-align: center;">
+                        <i class="bi bi-info-circle" style="font-size: 1.5rem; color: var(--primary-color); margin-bottom: 0.5rem;"></i>
+                        <p style="color: var(--text-secondary); margin: 0;">
+                            Щоб побачити реальні Input/Output дані - клікніть на виконання в списку "Step Functions Executions" нижче
+                        </p>
+                    </div>
+                    ` : ''}
+
+                    ${hasExecutionData ? `
+                    <div>
+                        <div style="color: var(--text-secondary); font-size: 0.85rem; margin-bottom: 0.5rem;">
+                            <i class="bi bi-info-circle"></i> Status
+                        </div>
+                        <span class="status-badge status-${step.status.toLowerCase()}">${step.status.toUpperCase()}</span>
+                    </div>
+
+                    ${step.startTime ? `
+                    <div>
+                        <div style="color: var(--text-secondary); font-size: 0.85rem; margin-bottom: 0.5rem;">
+                            <i class="bi bi-clock"></i> Start Time
+                        </div>
+                        <div style="color: var(--text-primary); font-family: monospace;">${step.startTime}</div>
+                    </div>
+                    ` : ''}
+
+                    ${step.endTime ? `
+                    <div>
+                        <div style="color: var(--text-secondary); font-size: 0.85rem; margin-bottom: 0.5rem;">
+                            <i class="bi bi-clock-history"></i> End Time
+                        </div>
+                        <div style="color: var(--text-primary); font-family: monospace;">${step.endTime}</div>
+                    </div>
+                    ` : ''}
+
+                    <div>
+                        <div style="color: var(--text-secondary); font-size: 0.85rem; margin-bottom: 0.5rem;">
+                            <i class="bi bi-arrow-down-circle"></i> Input
+                        </div>
+                        <div style="background: #0d1117; border: 1px solid rgba(102, 126, 234, 0.2); border-radius: 8px; padding: 1rem; max-height: 300px; overflow-y: auto;">
+                            <pre style="color: #93c5fd; font-size: 0.85rem; margin: 0;">${escapeHtml(inputJson)}</pre>
+                        </div>
+                    </div>
+
+                    ${step.output ? `
+                    <div>
+                        <div style="color: var(--text-secondary); font-size: 0.85rem; margin-bottom: 0.5rem;">
+                            <i class="bi bi-arrow-up-circle"></i> Output
+                        </div>
+                        <div style="background: #0d1117; border: 1px solid rgba(102, 126, 234, 0.2); border-radius: 8px; padding: 1rem; max-height: 300px; overflow-y: auto;">
+                            <pre style="color: #a3e635; font-size: 0.85rem; margin: 0;">${escapeHtml(outputJson)}</pre>
+                        </div>
+                    </div>
+                    ` : ''}
+
+                    ${step.error ? `
+                    <div>
+                        <div style="color: var(--text-secondary); font-size: 0.85rem; margin-bottom: 0.5rem;">
+                            <i class="bi bi-exclamation-triangle"></i> Error
+                        </div>
+                        <div style="background: rgba(239, 68, 68, 0.1); border: 1px solid #ef4444; border-radius: 8px; padding: 1rem;">
+                            <pre style="color: #fca5a5; font-size: 0.85rem; margin: 0;">${escapeHtml(step.error)}\n${escapeHtml(step.cause || '')}</pre>
+                        </div>
+                    </div>
+                    ` : ''}
+                    ` : ''}
+                </div>
+            `;
+
+            modal.style.display = 'flex';
+        }
+
+        // ====== DEBUG TAB FUNCTIONS ======
+
+        // Load channels on page load
+        async function loadChannels() {
+            try {
+                console.log('🔄 Loading channels from:', CHANNELS_API_URL);
+                // Get user_id from localStorage
+                const cognitoUser = JSON.parse(localStorage.getItem('cognito_user') || '{}');
+                const userId = cognitoUser.user_id || 'c334d862-4031-7097-4207-84856b59d3ed';
+                const url = `${CHANNELS_API_URL}?user_id=${userId}&active_only=false`;
+                console.log('🔑 Fetching with user_id:', userId);
+                const response = await fetch(url, {
+                    method: 'GET',
+                    headers: {
+                        'Content-Type': 'application/json'
+                    }
+                });
+
+                console.log('📦 Response status:', response.status);
+                const data = await response.json();
+                console.log('📊 Channels data:', data);
+
+                const select = document.getElementById('channelSelect');
+                console.log('🎯 Found select element:', select);
+
+                if (!select) {
+                    console.error('❌ channelSelect element not found!');
+                    return;
+                }
+
+                select.innerHTML = '<option value="">-- Оберіть канал --</option>';
+
+                // Handle different response formats
+                let channels = [];
+                if (Array.isArray(data)) {
+                    channels = data;
+                } else if (data.channels && Array.isArray(data.channels)) {
+                    channels = data.channels;
+                } else if (data.Items && Array.isArray(data.Items)) {
+                    channels = data.Items;
+                } else {
+                    console.error('❌ Unexpected data format:', data);
+                    select.innerHTML = '<option value="">Невідомий формат даних</option>';
+                    return;
+                }
+
+                console.log('📝 Populating select with', channels.length, 'channels');
+
+                channels.forEach((channel, index) => {
+                    const option = document.createElement('option');
+                    option.value = channel.channel_id;
+
+                    // Show genre if channel name is just "Channel_XXX"
+                    const displayName = channel.channel_name.startsWith('Channel_')
+                        ? `${channel.genre} (${channel.channel_id.substring(0, 10)}...)`
+                        : `${channel.channel_name} - ${channel.genre}`;
+
+                    option.textContent = displayName;
+                    select.appendChild(option);
+                    console.log(`  ${index + 1}. ${displayName}`);
+                });
+
+                console.log('✅ Channels loaded successfully!');
+            } catch (error) {
+                console.error('❌ Error loading channels:', error);
+                const select = document.getElementById('channelSelect');
+                if (select) {
+                    select.innerHTML = '<option value="">Помилка завантаження</option>';
+                }
+            }
+        }
+
+        // Start test
+        async function startTest() {
+            const channelId = document.getElementById('channelSelect').value;
+            const topic = document.getElementById('topicInput').value.trim();
+
+            if (!channelId) {
+                alert('Будь ласка, оберіть канал');
+                return;
+            }
+
+            // Reset UI
+            resetTest(false);
+            testStartTime = Date.now();
+            document.getElementById('startTestBtn').disabled = true;
+            document.getElementById('resetBtn').style.display = 'inline-block';
+            document.getElementById('totalDuration').style.display = 'block';
+
+            // Update duration timer
+            const durationInterval = setInterval(() => {
+                const elapsed = Math.round((Date.now() - testStartTime) / 1000);
+                document.getElementById('totalDuration').innerHTML = `Загальний час: <strong>${elapsed}s</strong>`;
+            }, 1000);
+
+            testData = { channelId, topic, durationInterval };
+
+            try {
+                // Mark all steps as running
+                ['step-get-channel', 'step-theme', 'step-narrative', 'step-audio', 'step-images', 'step-save'].forEach(stepId => {
+                    updateStepStatus(stepId, 'running', 'Виконується...');
+                });
+
+                console.log('🚀 Calling debug-test-runner Lambda...');
+
+                // Call debug-test-runner Lambda function
+                const response = await fetch(DEBUG_API_URL, {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json'
+                    },
+                    body: JSON.stringify({
+                        channel_id: channelId,
+                        topic: topic || undefined
+                    })
+                });
+
+                const result = await response.json();
+                console.log('📦 Result:', result);
+
+                // Parse response (check if it's wrapped in 'body')
+                let testResult;
+                if (result.body) {
+                    testResult = typeof result.body === 'string' ? JSON.parse(result.body) : result.body;
+                } else {
+                    testResult = result;
+                }
+
+                if (!testResult.success) {
+                    throw new Error(testResult.error || 'Test failed');
+                }
+
+                // Display results for each step
+                displayStepResults(testResult.steps);
+
+                // Store final data
+                testData = {
+                    ...testData,
+                    result: testResult
+                };
+
+                // Show summary
+                showSummaryFromResult(testResult);
+
+            } catch (error) {
+                console.error('Test failed:', error);
+
+                // Mark all running steps as failed
+                ['step-get-channel', 'step-theme', 'step-narrative', 'step-audio', 'step-save'].forEach(stepId => {
+                    const step = document.getElementById(stepId);
+                    if (step.classList.contains('running')) {
+                        updateStepStatus(stepId, 'failed', 'Помилка');
+                    }
+                });
+
+                showSummary('failed', error.message);
+            } finally {
+                clearInterval(durationInterval);
+                document.getElementById('startTestBtn').disabled = false;
+            }
+        }
+
+        // Display results from debug-test-runner response
+        function displayStepResults(steps) {
+            const stepMapping = {
+                'get-channel-config': 'step-get-channel',
+                'generate-theme': 'step-theme',
+                'generate-narrative': 'step-narrative',
+                'generate-audio': 'step-audio',
+                'generate-images': 'step-images',
+                'save-result': 'step-save',
+                'generate-images': 'step-images',
+                'save-result': 'step-save'
+            };
+
+            steps.forEach(step => {
+                const stepId = stepMapping[step.step_name];
+                if (!stepId) return;
+
+                // Update status
+                updateStepStatus(
+                    stepId,
+                    step.status,
+                    step.status === 'completed' ? `Завершено (${step.duration_ms}ms)` : 'Помилка'
+                );
+
+                // Show body
+                document.getElementById(stepId + '-body').style.display = 'block';
+
+                // Display input
+                const inputEl = document.getElementById(stepId + '-input');
+                if (inputEl) {
+                    inputEl.textContent = JSON.stringify(step.input, null, 2);
+                }
+
+                // Display output
+                const outputEl = document.getElementById(stepId + '-output');
+                if (outputEl && step.output) {
+                    outputEl.textContent = JSON.stringify(step.output, null, 2);
+                }
+
+                // Display stats and cost if available
+                if (step.output) {
+                    // For narrative step
+                    if (stepId === 'step-narrative') {
+                        const statsEl = document.getElementById('step-narrative-stats');
+                        if (statsEl && step.output.scene_count !== undefined) {
+                            statsEl.textContent = `Scenes: ${step.output.scene_count}\nCharacters: ${step.output.character_count || 0}`;
+                        }
+                        const costEl = document.getElementById('step-narrative-cost');
+                        if (costEl && step.output.cost_usd !== undefined) {
+                            costEl.textContent = `Cost: $${step.output.cost_usd}\nTokens: ${step.output.tokens_used || 0}`;
+                        }
+                    }
+
+                    // For theme step
+                    if (stepId === 'step-theme') {
+                        const costEl = document.getElementById('step-theme-cost');
+                        if (costEl && step.output.cost_usd !== undefined) {
+                            costEl.textContent = `Cost: $${step.output.cost_usd}\nTokens: ${step.output.tokens_used || 0}`;
+                        }
+                    }
+
+                    // For audio step
+                    if (stepId === 'step-audio') {
+                        const configEl = document.getElementById('step-audio-config');
+                        if (configEl && step.output.voice_id) {
+                            configEl.textContent = `Voice: ${step.output.voice_id}\nService: ${step.output.tts_service || 'AWS Polly Neural'}`;
+                        }
+                        const costEl = document.getElementById('step-audio-cost');
+                        if (costEl && step.output.cost_usd !== undefined) {
+                            costEl.textContent = `Cost: $${step.output.cost_usd}\nDuration: ${step.output.total_duration_sec || 0}s`;
+                        }
+                    }
+
+                    // For images step
+                    if (stepId === 'step-images') {
+                        const configEl = document.getElementById('step-images-config');
+                        if (configEl && step.output.provider) {
+                            configEl.textContent = `Provider: ${step.output.provider || 'Unknown'}\nImages: ${step.output.images_generated || 0}`;
+                        }
+                        const costEl = document.getElementById('step-images-cost');
+                        if (costEl && step.output.total_cost_usd !== undefined) {
+                            costEl.textContent = `Cost: $${step.output.total_cost_usd}\nImages Generated: ${step.output.images_generated || 0}`;
+                        }
+                    }
+                }
+            });
+        }
+
+        // Show summary from test result
+        function showSummaryFromResult(testResult) {
+            const summary = document.getElementById('testSummary');
+            summary.style.display = 'block';
+
+            const summ = testResult.summary;
+
+            document.getElementById('summaryStatus').textContent = '✅ Успішно';
+            document.getElementById('summaryStatus').style.color = 'var(--success-color)';
+            document.getElementById('summaryDuration').textContent = `${summ.total_duration_sec}s`;
+            document.getElementById('summaryCost').textContent = `$${summ.total_cost_usd.toFixed(6)}`;
+            document.getElementById('summaryScenes').textContent = summ.scene_count || 0;
+            document.getElementById('summaryImages').textContent = summ.images_generated || 0;
+
+            // Scroll to summary
+            summary.scrollIntoView({ behavior: 'smooth' });
+        }
+
+        function updateStepStatus(stepId, status, statusText) {
+            const step = document.getElementById(stepId);
+            const icon = step.querySelector('.step-icon');
+            const statusBadge = step.querySelector('.step-status');
+
+            // Remove all status classes
+            step.classList.remove('pending', 'running', 'completed', 'failed');
+            icon.classList.remove('pending', 'running', 'completed', 'failed');
+            statusBadge.classList.remove('pending', 'running', 'completed', 'failed');
+
+            // Add new status
+            step.classList.add(status);
+            icon.classList.add(status);
+            statusBadge.classList.add(status);
+            statusBadge.textContent = statusText;
+        }
+
+        function showSummary(status, errorMessage) {
+            const summary = document.getElementById('testSummary');
+            summary.style.display = 'block';
+
+            const totalDuration = Math.round((Date.now() - testStartTime) / 1000);
+            const totalCost = (testData.theme?.cost_usd || 0) + (testData.narrative?.cost_usd || 0) + (testData.audio?.cost_usd || 0);
+
+            document.getElementById('summaryStatus').textContent = status === 'success' ? '✅ Успішно' : '❌ Помилка';
+            document.getElementById('summaryStatus').style.color = status === 'success' ? 'var(--success-color)' : 'var(--danger-color)';
+            document.getElementById('summaryDuration').textContent = `${totalDuration}s`;
+            document.getElementById('summaryCost').textContent = `$${totalCost.toFixed(6)}`;
+            document.getElementById('summaryScenes').textContent = testData.narrative?.scene_count || 0;
+
+            if (errorMessage) {
+                document.getElementById('summaryStatus').innerHTML += `<br><small>${errorMessage}</small>`;
+            }
+
+            // Scroll to summary
+            summary.scrollIntoView({ behavior: 'smooth' });
+        }
+
+        function resetTest(fullReset = true) {
+            if (fullReset) {
+                testData = {};
+                testStartTime = null;
+                document.getElementById('totalDuration').style.display = 'none';
+                document.getElementById('testSummary').style.display = 'none';
+                document.getElementById('resetBtn').style.display = 'none';
+            }
+
+            // Reset all steps
+            ['step-get-channel', 'step-theme', 'step-narrative', 'step-audio', 'step-save'].forEach(stepId => {
+                updateStepStatus(stepId, 'pending', 'Очікування');
+                document.getElementById(stepId + '-body').style.display = 'none';
+            });
+        }
+
+        function toggleExpand(elementId) {
+            const element = document.getElementById(elementId);
+            if (element.style.maxHeight === 'none') {
+                element.style.maxHeight = '300px';
+            } else {
+                element.style.maxHeight = 'none';
+            }
+        }
+
+        // ====== TAB SWITCHING ======
+
+        function switchTab(tabName) {
+            console.log('🔄 Switching to tab:', tabName);
+
+            // Hide all tab panes
+            document.querySelectorAll('.dashboard-tab-pane').forEach(pane => {
+                pane.style.display = 'none';
+            });
+
+            // Remove active class from all tab buttons
+            document.querySelectorAll('.nav-tabs .nav-link').forEach(btn => {
+                btn.classList.remove('active');
+            });
+
+            // Show selected tab pane
+            const selectedPane = document.getElementById(tabName);
+            if (selectedPane) {
+                selectedPane.style.display = 'block';
+                console.log('✅ Tab pane shown:', tabName);
+            } else {
+                console.error('❌ Tab pane not found:', tabName);
+            }
+
+            // Add active class to selected button
+            const selectedBtn = document.getElementById(tabName + '-tab');
+            if (selectedBtn) {
+                selectedBtn.classList.add('active');
+            }
+
+            // Trigger refresh for specific tabs
+            if (tabName === 'control') {
+                loadControlCenterData();
+            } else if (tabName === 'monitoring') {
+                refreshExecutions();
+                refreshLogs();
+                // checkSD35Health(); // DEPRECATED - SD 3.5 Medium removed
+            } else if (tabName === 'debug') {
+                loadChannels();
+            }
+        }
+
+        // ====== INITIALIZATION ======
+
+        // Close modal when clicking outside
+        document.getElementById('executionModal').addEventListener('click', function(e) {
+            if (e.target === this) {
+                closeExecutionModal();
+            }
+        });
+
+        // Auto-refresh monitoring tab every 30 seconds
+        setInterval(() => {
+            // Check if monitoring tab is active
+            const monitoringTab = document.getElementById('monitoring');
+            if (monitoringTab && monitoringTab.style.display !== 'none') {
+                // checkSD35Health(); // DEPRECATED - SD 3.5 Medium removed
+            }
+        }, 30000);
+
+        // Separate interval for executions (less frequent to reduce API calls)
+        setInterval(() => {
+            const monitoringPane = document.getElementById('monitoring');
+            if (monitoringPane && monitoringPane.style.display !== 'none') {
+                refreshExecutions();
+                refreshLogs();
+            }
+        }, 30000);
+
+        // Load initial data when DOM is ready
+        document.addEventListener('DOMContentLoaded', () => {
+            console.log('🚀 Initializing dashboard...');
+
+            // Load Control Center data (default tab)
+            loadControlCenterData();
+
+            // Also load other tabs data
+            loadChannels(); // For Debug tab
+        });
+        // Schema Validation Function
+        async function runSchemaValidation() {
+            const btn = document.getElementById('validateSchemaBtn');
+            const resultsDiv = document.getElementById('validationResults');
+            const alertDiv = document.getElementById('validationAlert');
+            const statusEl = document.getElementById('validationStatus');
+            const summaryEl = document.getElementById('validationSummary');
+            const frontendEl = document.getElementById('frontendFunctions');
+            const lambdaEl = document.getElementById('lambdaChecks');
+            const rawEl = document.getElementById('rawValidationResponse');
+
+            // URL check removed - SCHEMA_VALIDATOR_URL is defined
+
+            // Disable button and show loading
+            btn.disabled = true;
+            btn.innerHTML = '<span class="spinner-border spinner-border-sm me-2"></span>Валідація...';
+            resultsDiv.style.display = 'block';
+            alertDiv.className = 'alert alert-info';
+            statusEl.textContent = 'Виконується валідація...';
+            summaryEl.textContent = 'Зачекайте, будь ласка...';
+
+            try {
+                const response = await fetch(SCHEMA_VALIDATOR_URL, {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json'
+                    },
+                    body: JSON.stringify({})
+                });
+
+                const result = await response.json();
+                console.log('Validation result:', result);
+
+                const validationStatus = result.validation_status || 'UNKNOWN';
+                const isPass = validationStatus === 'PASS';
+
+                alertDiv.className = `alert ${isPass ? 'alert-success' : 'alert-danger'}`;
+                statusEl.innerHTML = `${isPass ? '✅' : '❌'} Validation ${validationStatus}`;
+                summaryEl.textContent = `${result.summary.valid_functions}/${result.summary.total_functions} frontend functions valid | Lambda API: ${result.results.lambda_api_checks.all_checks_passed ? 'PASS' : 'FAIL'}`;
+
+                let frontendHTML = '';
+                const functions = result.results.frontend_expectations.functions;
+                for (const [funcName, funcResult] of Object.entries(functions)) {
+                    const icon = funcResult.valid ? '✅' : '❌';
+                    const status = funcResult.valid ? 'VALID' : 'INVALID';
+                    frontendHTML += `${icon} ${funcName}: ${status} (${funcResult.satisfied_count}/${funcResult.required_count} paths)
+`;
+
+                    if (!funcResult.valid && funcResult.missing_paths.length > 0) {
+                        frontendHTML += `   Missing paths:
+`;
+                        funcResult.missing_paths.forEach(path => {
+                            frontendHTML += `      - ${path}
+`;
+                        });
+                    }
+                }
+                frontendEl.textContent = frontendHTML;
+
+                const lambdaChecks = result.results.lambda_api_checks;
+                let lambdaHTML = '';
+                lambdaHTML += `${lambdaChecks.supports_s3_conversion ? '✅' : '❌'} S3 URL Conversion Support
+`;
+                lambdaHTML += `${lambdaChecks.supports_mega_types ? '✅' : '❌'} MEGA Types Recognition
+`;
+                lambdaHTML += `${lambdaChecks.tracks_mega_stats ? '✅' : '❌'} MEGA Stats Tracking
+`;
+                lambdaHTML += `
+Overall: ${lambdaChecks.all_checks_passed ? '✅ PASS' : '❌ FAIL'}`;
+                lambdaEl.textContent = lambdaHTML;
+
+                rawEl.textContent = JSON.stringify(result, null, 2);
+
+            } catch (error) {
+                console.error('Validation error:', error);
+                alertDiv.className = 'alert alert-danger';
+                statusEl.innerHTML = '❌ Validation Error';
+                summaryEl.textContent = error.message;
+                frontendEl.textContent = 'Error occurred during validation';
+                lambdaEl.textContent = 'Error occurred during validation';
+                rawEl.textContent = JSON.stringify({ error: error.message }, null, 2);
+            } finally {
+                btn.disabled = false;
+                btn.innerHTML = '<i class="bi bi-check-circle"></i> Запустити валідацію';
+            }
+        }
+
+    </script>
+</body>
+</html>

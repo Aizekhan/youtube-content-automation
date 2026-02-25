@@ -60,27 +60,79 @@ Act 8 (Resolution):
 - Environment reflects resolution of archetype pattern
 - Final image leaves emotional resonance
 
+SHOT TYPE STRATEGY:
+
+Choose shot type based on emotional_beat and narrative function. VARY compositions - NOT every scene needs the character centered.
+
+Shot Types:
+
+1. ESTABLISHING SHOT - Environment/location without characters
+   - Use for: Setting atmosphere, new location introduction, tension building
+   - Example: "Empty dark alley at night, single streetlight flickering, shadows cast by fire escape, cinematic noir lighting"
+   - When: Scene 1 (world establishment), transition scenes, atmospheric moments
+
+2. CLOSE-UP - Tight focus on face/eyes/hands/object
+   - Use for: Emotional revelation, character realization, symbolic detail
+   - Example: "{PROTAGONIST_FROZEN} - extreme close-up on eyes showing fear and doubt, tears forming, dramatic side lighting"
+   - When: Emotional peaks, recontextualization moment, inner conflict
+
+3. WIDE SHOT - Character small in environment
+   - Use for: Isolation, vulnerability, character vs world
+   - Example: "{PROTAGONIST_FROZEN} standing alone in vast empty plaza, tiny figure dwarfed by towering buildings, cold blue lighting"
+   - When: Showing scale, isolation, protagonist overwhelmed
+
+4. ACTION SHOT - Dynamic movement, energy
+   - Use for: Chase, fight, urgent movement
+   - Example: "{PROTAGONIST_FROZEN} running through crowded market, motion blur, dynamic angle, items knocked over, chaotic energy"
+   - When: Tension peaks, escape scenes, physical conflict
+
+5. TWO-SHOT - Two characters in frame
+   - Use for: Dialogue, confrontation, contrast
+   - Example: "{PROTAGONIST_FROZEN} facing {MIRROR_CHARACTER_FROZEN}, contrasting body language, tense standoff, split lighting"
+   - When: Mirror character introduction, key dialogue, confrontation
+
+6. OBJECT FOCUS - Symbolic item as main subject
+   - Use for: Symbolism, foreshadowing, narrative device
+   - Example: "Ancient wooden mask on altar, intricate carvings, candlelight reflecting off surface, mysterious atmosphere, character silhouette in background"
+   - When: Symbol introduction, foreshadowing, objects with narrative weight
+
+7. ATMOSPHERIC SHOT - Environment mood piece
+   - Use for: Tone setting, time passage, emotional state
+   - Example: "Rainy Tokyo street at night, neon reflections in puddles, umbrellas passing by, melancholic atmosphere, no focus on specific person"
+   - When: Emotional transitions, world-building, mood establishment
+
+COMPOSITION GUIDELINES:
+
+✓ Use 2-3 establishing/atmospheric shots per episode (not every scene needs character)
+✓ Save close-ups for emotional peaks (recontextualization, revelation)
+✓ Vary between wide/medium/close across episode
+✓ Object focus for symbolic moments
+✓ Two-shot for character contrast/dialogue
+✓ NOT every scene needs protagonist centered
+
 IMAGE PROMPT STRUCTURE:
 
 For each scene, generate:
 
 {
   "scene_number": 1,
-  "image_prompt": "Main subject with frozen string + action/emotion + environment + visual subtext + lighting + composition + style modifiers, {STYLE}",
-  "negative_prompt": "blurry, low quality, distorted, inconsistent character, anime (unless style is anime), cartoon (unless intentional)",
+  "shot_type": "establishing_shot | close_up | wide_shot | action_shot | two_shot | object_focus | atmospheric_shot",
+  "image_prompt": "[Shot-specific composition] + visual subtext + lighting + style modifiers, {STYLE}",
+  "negative_prompt": "blurry, low quality, distorted, inconsistent character (if character present), anime (unless style is anime), cartoon (unless intentional)",
   "visual_subtext_note": "What hidden truth element is being foreshadowed (for your reference, not in prompt)"
 }
 
 PROMPT WRITING BEST PRACTICES:
 
-✓ Start with character using EXACT frozen string
-✓ Describe character's action/pose/expression specific to this scene
+✓ Choose shot_type based on emotional_beat and narrative function
+✓ For character shots: use EXACT frozen string
+✓ For establishing/atmospheric: focus on environment mood
+✓ For object focus: make object the hero, character optional
 ✓ Environment details that support narrative
 ✓ Visual metaphors for hidden_truth (subtle before twist, obvious after)
 ✓ Lighting that supports emotional tone
-✓ Composition notes (close-up, wide shot, dutch angle, etc.)
-✓ Style consistency (cinematic, photorealistic, anime, etc.)
 ✓ Specific color palette if mood-critical
+✓ VARY compositions - don't center character every time
 
 ✗ Don't paraphrase frozen strings
 ✗ Don't add random details that don't serve story
@@ -120,6 +172,7 @@ Return JSON:
   "scenes": [
     {
       "scene_number": 1,
+      "shot_type": "establishing_shot",
       "image_prompt": "...",
       "negative_prompt": "...",
       "music_track": "dramatic_orchestral",
@@ -133,22 +186,25 @@ Return JSON:
     "composition_note": "Why this thumbnail creates curiosity"
   },
   "visual_consistency_check": {
-    "protagonist_frozen_used_in_all_scenes": true,
+    "protagonist_frozen_used_in_character_shots": true,
     "mirror_character_frozen_used_consistently": true,
+    "shot_type_variety": ["establishing: 2", "close_up: 1", "wide_shot: 1", "two_shot: 1", "etc..."],
     "visual_callbacks_present": ["scene 1 → scene 7", "scene 3 → scene 8"]
   }
 }
 
 VALIDATION CHECKLIST:
 
-✓ Protagonist frozen string used verbatim in every scene
+✓ Protagonist frozen string used verbatim in character shots
 ✓ Mirror character frozen string used verbatim when they appear
+✓ Shot type variety: 2-3 establishing/atmospheric shots per episode
+✓ NOT every scene centers the character
 ✓ Visual subtext before recontextualization is subtle
 ✓ Visual callbacks after recontextualization are clear
 ✓ Thumbnail creates curiosity without spoiling
 ✓ Style consistency across all scenes
 ✓ Music and SFX support emotional beats
-✓ All 8 scenes have prompts + thumbnail
+✓ All 8 scenes have prompts + shot_type + thumbnail
 
 VISUAL CONSISTENCY EXAMPLES:
 

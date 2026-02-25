@@ -668,6 +668,8 @@
                                 "user_id.$": "$.user_id",
                                 "config_id.$": "$.config_id",
                                 "content_id.$": "$.narrativeResult.data.narrative_id",
+                                "series_id.$": "$.series_id",
+                                "episode_number.$": "$.episode_number",
                                 "selected_topic": {
                                     "title.$": "$.selected_topic",
                                     "topic_id.$": "$.topic_id"

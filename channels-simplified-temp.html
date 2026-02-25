@@ -1,0 +1,58 @@
+<!DOCTYPE html>
+<html lang="uk">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Channels Management - Simplified</title>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.1/font/bootstrap-icons.css" rel="stylesheet">
+    <link rel="stylesheet" href="css/unified-navigation.css">
+    <link rel="stylesheet" href="css/channels-unified.css">
+</head>
+<body>
+    <div id="topNav"></div>
+    <div class="container">
+        <div class="page-header">
+            <h1 class="page-title">📺 Channels Management</h1>
+            <p class="page-subtitle">Simplified - Working Fields Only (12 fields)</p>
+        </div>
+        <div id="channels-container"></div>
+    </div>
+    
+    <div id="editModal" class="modal">
+        <div class="modal-content">
+            <span class="close-modal" onclick="closeModal()">&times;</span>
+            <h2 id="modalTitle">Edit Channel</h2>
+            <form id="configForm">
+                <div class="form-section">
+                    <h3>Basic Info</h3>
+                    <input type="text" id="channel_name" placeholder="Channel Name" required>
+                    <input type="text" id="channel_id" readonly>
+                    <select id="language"><option value="en">English</option><option value="ru">Russian</option><option value="uk">Ukrainian</option></select>
+                    <select id="genre"><option value="horror">Horror</option><option value="mystery">Mystery</option></select>
+                </div>
+                <div class="form-section">
+                    <h3>Story</h3>
+                    <input type="number" id="complexity_level" min="1" max="10" value="7">
+                    <select id="tone"><option value="dark">Dark</option><option value="balanced">Balanced</option></select>
+                    <div id="archetype_pool"></div>
+                </div>
+                <div class="form-section">
+                    <h3>TTS (Qwen3)</h3>
+                    <select id="tts_language"><option value="en">English</option></select>
+                    <div id="tts_voice_speaker"></div>
+                </div>
+                <div class="form-section">
+                    <h3>Images</h3>
+                    <input type="text" id="image_style" placeholder="cinematic, photorealistic">
+                    <input type="number" id="image_width" value="1024">
+                    <input type="number" id="image_height" value="576">
+                </div>
+                <button type="submit">Save</button>
+            </form>
+        </div>
+    </div>
+    
+    <script src="js/unified-navigation.js"></script>
+    <script src="js/channels-unified.js"></script>
+</body>
+</html>

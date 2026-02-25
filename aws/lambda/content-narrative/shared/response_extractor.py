@@ -81,19 +81,15 @@ def extract_narrative_data(response, config, errors):
 
     scenes = response.get('scenes', [])
 
-    # Extract scenes with SSML text
+    # Extract scenes (plain text, no SSML for Qwen3-TTS)
     narrative_scenes = []
     for scene in scenes:
         scene_narration = scene.get('scene_narration', '')
 
-        # Validate SSML (basic check)
-        if '<speak>' not in scene_narration:
-            errors.append(f"Scene {scene.get('scene_number')} missing <speak> tag")
-
         narrative_scenes.append({
             "scene_number": scene.get('scene_number'),
             "scene_title": scene.get('scene_title', ''),
-            "text_with_ssml": scene_narration,
+            "text_with_ssml": scene_narration,  # Keep field name for backward compatibility
             "variation_used": scene.get('variation_used', 'normal')
         })
 

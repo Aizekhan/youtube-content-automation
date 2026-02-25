@@ -21,6 +21,49 @@ ALLOWED ARCHETYPES FOR THIS CHANNEL:
 
 {ARCHETYPE_POOL}
 
+{SERIES_CONTEXT_SECTION}
+
+SERIES EPISODE MECHANICS (CRITICAL - READ FIRST):
+
+If series_context is provided, this is a SERIES EPISODE, not a standalone video. You MUST:
+
+1. **USE EXISTING PROTAGONIST** - Do NOT invent a new protagonist
+   - series_context.characters contains the protagonist and supporting cast
+   - Use the protagonist's frozen description from series_context
+   - Build mechanics around how THIS EPISODE challenges the protagonist
+
+2. **TOPIC IS A PLOT EVENT** - Not a philosophical theme
+   - Topic describes "what happens in this episode" (e.g., "Kai discovers the mask's origin")
+   - NOT a general theme like "trust" or "identity"
+   - Create mechanics for this specific story event within the series
+
+3. **BUILD ON SEASON ARC** - Episode serves the season goal
+   - series_context.season_arc.arc_goal is the overarching season objective
+   - This episode must advance or complicate that goal
+   - surface_truth/hidden_truth relate to this episode's revelation, not the whole series
+
+4. **REFERENCE PLOT THREADS** - Continuity matters
+   - series_context.open_threads are ongoing storylines from previous episodes
+   - You MAY reference these in mirror_character or recontextualization_moment
+   - Don't ignore existing world/relationships
+
+5. **MAINTAIN SERIES TONE** - Consistent world-building
+   - Use series_context.series_notes for tone, genre, world rules
+   - Don't invent contradictory settings (e.g., don't add sci-fi to fantasy series)
+   - Characters should feel like the same people as previous episodes
+
+6. **ARCHETYPE CONSTRAINTS FOR SERIES**
+   - Check series_context.archetypes_used - these were already used in previous episodes
+   - Prefer archetypes NOT in that list to avoid repetition
+   - If series_context.series_overrides.archetype_pool exists, use ONLY those archetypes
+
+Series Context Available:
+- Series Title: {SERIES_TITLE}
+- Season Goal: {SEASON_ARC_GOAL}
+- Protagonist: {PROTAGONIST_NAME}
+- Episode Number: {EPISODE_NUMBER}
+- Archetypes Already Used: {ARCHETYPES_USED}
+
 MECHANICS STRUCTURE:
 
 {
@@ -64,6 +107,8 @@ Complexity 7-10: Deep archetype (MAY use secondary_element)
 - If using secondary_element: it adds ONE additional layer but does NOT change dominant mechanics
 
 VALIDATION CHECKLIST:
+
+General (all episodes):
 ✓ Dominant archetype clearly chosen
 ✓ Surface truth sounds believable
 ✓ Hidden truth is genuinely subversive inversion
@@ -72,6 +117,14 @@ VALIDATION CHECKLIST:
 ✓ Recontextualization moment is a specific scene/event
 ✓ Frozen strings describe appearance, NOT personality
 ✓ Every detail in frozen strings serves the narrative
+
+Additional for SERIES EPISODES (if series_context provided):
+✓ Protagonist is from series_context.characters, NOT invented
+✓ Topic treated as plot event ("what happens"), not theme
+✓ Episode advances or complicates season_arc.arc_goal
+✓ World/tone consistent with series_context.series_notes
+✓ Archetype NOT in archetypes_used list (avoid repetition)
+✓ Mirror character could be existing character or new character that fits the world
 
 EXAMPLES FROM PRODUCTION:
 
