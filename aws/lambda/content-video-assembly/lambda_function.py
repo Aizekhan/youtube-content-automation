@@ -499,9 +499,9 @@ def assemble_video(content, assets, template, work_dir):
                 scene_video
             ]
         elif ken_burns.get('enabled'):
-            # Ken Burns: slow zoom and pan
-            zoom_max = ken_burns.get('zoom_range', {}).get('max', 1.2)
-            zoom_min = ken_burns.get('zoom_range', {}).get('min', 1.0)
+            # Ken Burns: slow zoom and pan (DISABLED - zoom crops heads)
+            zoom_max = 1.0  # ken_burns.get('zoom_range', {}).get('max', 1.2)
+            zoom_min = 1.0  # ken_burns.get('zoom_range', {}).get('min', 1.0)
 
             # Calculate zoom rate to complete over the ENTIRE duration
             total_frames = int(duration_sec * 30)
