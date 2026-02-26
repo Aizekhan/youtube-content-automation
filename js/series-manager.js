@@ -114,7 +114,7 @@ function renderOverviewTab() {
     // Stats
     document.getElementById('total-episodes').textContent = state.season_arc?.total_episodes || 0;
     document.getElementById('characters-count').textContent = Object.keys(state.characters || {}).length;
-    document.getElementById('open-threads').textContent = (state.open_threads || []).filter(t => t.status === 'open').length;
+    document.getElementById('open-threads').textContent = (state.plot_threads || []).filter(t => t.status === 'open').length;
 }
 
 /**
