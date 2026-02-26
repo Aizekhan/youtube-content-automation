@@ -1,0 +1,261 @@
+# Mask of Gods - Season 1: Episode Structure
+
+series_title: "Mask of Gods"
+season: 1
+total_episodes: 10
+genre: "Horror / Urban Fantasy / Mystery"
+target_length_per_episode: "180-240 seconds (3-4 minutes)"
+
+season_arc:
+  logline: "After his brother's murder, Kai steals an ancient Egyptian mask that reveals truth - but each use costs him a year of his life, and the mask's power attracts those who want to use it to resurrect the gods."
+
+  act1_episodes: [1, 2, 3]
+  act1_arc: "Kai steals Mask of Ra, learns the cost, discovers he's hunted"
+
+  act2_episodes: [4, 5, 6, 7]
+  act2_arc: "Kai becomes addicted to mask's power, allies betray him, he loses trust in everyone"
+
+  act3_episodes: [8, 9, 10]
+  act3_arc: "Truth about brother revealed, final confrontation, choice to destroy or use mask one last time"
+
+  season_theme: "The cost of truth - sometimes lies protect us from unbearable reality"
+
+## EPISODE BREAKDOWN
+
+episode_1:
+  title: "The Theft"
+  status: "Ready for generation"
+
+  logline: "Kai steals the Mask of Ra from Cairo Museum to uncover the truth about his brother's death, but the mask's first use costs him a year of his life."
+
+  story_beats:
+    - "TEASER: Kai drinks alone at bar, sees Amir's death anniversary news on TV, smashes glass"
+    - "ACT 1: Flashback - Merlin warns Kai about mask's cost, Kai doesn't care"
+    - "ACT 2: Heist - Kai breaks into museum room 304, disables camera, steals Mask of Ra from shattered display case"
+    - "ACT 3: First use - Kai wears mask in alley, speaks 'Ra em hotep', sees vision of Amir's final moments (cult ritual)"
+    - "CLIMAX: Mask burns his face, he screams, rips it off, collapses"
+    - "RESOLUTION: Kai looks in mirror - gray streak in hair, wrinkles, ages 1 year, whispers 'Worth it'"
+
+  key_scenes:
+    scene_1:
+      location: "Dive bar, Cairo, night"
+      characters: ["Kai"]
+      mood: "Bitter grief"
+      visual: "Kai alone at bar, TV shows Amir's memorial, Kai smashes glass on counter"
+      action: "Bartender shouts, Kai throws money down, walks out"
+
+    scene_2:
+      location: "Merlin's antique shop basement"
+      characters: ["Kai", "Merlin"]
+      mood: "Tense warning"
+      visual: "Ritual circle drawn in salt, Merlin holds ancient journal, single candle"
+      dialogue_key: "Merlin: 'Each use costs a year. Are you willing to die for truth?' Kai: 'I'm already dead.'"
+
+    scene_3:
+      location: "Cairo Museum, Hall of Pharaohs, room 304"
+      characters: ["Kai"]
+      mood: "Focused tension"
+      visual: "Kai picks lock, red alarm lights, sandstone pillars cast shadows, empty display case"
+      action: "Kai disables camera 304-B, reaches through broken glass, lifts golden mask"
+
+    scene_4:
+      location: "Dark alley, near museum"
+      characters: ["Kai", "Mask of Ra"]
+      mood: "Supernatural horror"
+      visual: "Kai's hands shake, mask's hawk eye glows orange, he whispers activation phrase"
+      action: "Kai puts on mask, eyes roll back, hieroglyphics glow on mask surface"
+
+    scene_5:
+      location: "Vision - abandoned warehouse (Amir's death)"
+      characters: ["Amir (vision)", "Cultists (shadows)"]
+      mood: "Nightmarish revelation"
+      visual: "Red robes circle Amir, knife rises, Amir screams Kai's name, blood"
+      sound: "Kai screams in real world overlapping Amir's scream"
+
+    scene_6:
+      location: "Alley (present), then Kai's apartment bathroom"
+      characters: ["Kai"]
+      mood: "Body horror realization"
+      visual: "Kai claws mask off, face burned, collapses gasping, later: mirror shows gray hair streak, new wrinkles"
+      closing_line: "Kai (whispered): 'I saw you, Amir. I'll find them.'"
+
+  episode_goals:
+    - "Establish Kai's motivation (dead brother)"
+    - "Introduce Mask of Ra and its cost"
+    - "Show first use (visual aging effect)"
+    - "Hint at larger conspiracy (cult)"
+    - "End with Kai committed despite cost"
+
+  cliffhanger: "Kai looks at mask in his hands - he knows he'll use it again"
+
+  new_information:
+    - "Amir was killed by cultists in ritual"
+    - "Mask of Ra reveals hidden truths through visions"
+    - "Cost is 1 year of life per use (visible aging)"
+    - "Merlin knows about masks but didn't stop Kai"
+
+episode_2:
+  title: "The Hunted"
+  logline: "Kai investigates the cult symbol from his vision, unaware that the Order of Maat has sent an assassin to kill him before he uses the mask again."
+
+  story_beats:
+    - "Kai returns to warehouse from vision, finds Amir's blood still on floor (6 months old)"
+    - "Draws cult symbol, shows to Merlin, Merlin recognizes it: Cult of Set"
+    - "Agent 47 follows Kai through Khan el-Khalili bazaar"
+    - "Chase scene - rooftops, crowded market, Kai escapes"
+    - "Dr. Khalil warns Kai someone is after him (ironic - she sent the assassin)"
+    - "Kai uses mask second time to see Agent 47's face - ages another year"
+
+  cliffhanger: "Merlin opens hidden closet - inside is the Mask of Set (red, cracked)"
+
+episode_3:
+  title: "The Mentor's Secret"
+  logline: "Merlin reveals he possesses the Mask of Set and has used it for over a century - Kai feels betrayed and questions everything he thought he knew."
+
+  story_beats:
+    - "Confrontation - Kai accuses Merlin of hypocrisy"
+    - "Merlin's backstory: 1910, found mask, watched family die, been hunting other masks since"
+    - "Merlin confesses: Set's voice whispers to him even without wearing mask"
+    - "Kai storms out, doesn't know who to trust"
+    - "Dr. Khalil comforts Kai (manipulation), offers to help find cult"
+    - "Kai decides to find Mask of Anubis (talk to Amir's ghost directly)"
+
+  cliffhanger: "Archive map shows Anubis mask last seen 1952 in Alexandria - someone crosses out location"
+
+episode_4:
+  title: "The Dead Speak"
+  logline: "Kai tracks the Mask of Anubis to an Alexandria tomb, but Agent 47 follows, leading to a deadly confrontation underground."
+
+  story_beats:
+    - "Kai travels to Alexandria (8-hour drive), notices car following"
+    - "Tomb of unknown pharaoh, Anubis mask in sarcophagus"
+    - "Kai wears Anubis mask - sees ghost of dead pharaoh, then Amir's spirit"
+    - "Amir's ghost: 'It wasn't your fault. But you need to stop. The truth will kill you.'"
+    - "Agent 47 attacks, Kai fights blindly (Anubis mask's cost: can't see living world)"
+    - "Kai escapes with both masks, ages 30 minutes due to Anubis mask"
+
+  cliffhanger: "Amir's ghost whispers one word before vanishing: 'Brother?'"
+
+episode_5:
+  title: "The Addiction"
+  logline: "Kai uses the Mask of Ra three more times in one week to hunt cult members, rapidly aging - Merlin intervenes with the Mask of Set, paying a terrible price."
+
+  story_beats:
+    - "Montage: Kai uses mask to find cult members, kills them one by one, ages visibly"
+    - "Merlin finds Kai collapsed, now looking 33 years old (used Ra mask 5 times total)"
+    - "Cult retaliates - surrounds Merlin's shop"
+    - "Merlin wears Mask of Set, unleashes chaos - electronics explode, cultists hallucinate and flee"
+    - "Cost: Merlin enters uncontrollable rage, attacks Kai, Kai barely escapes"
+    - "Kai realizes he's become addicted to mask's power despite cost"
+
+  cliffhanger: "Dr. Khalil visits unconscious Kai in hospital, whispers: 'Sleep well, you'll be dead soon.'"
+
+episode_6:
+  title: "The Betrayal Suspected"
+  logline: "Kai begins to suspect Dr. Khalil isn't who she claims to be, and plants a trap to test her loyalty."
+
+  story_beats:
+    - "Kai tells Khalil fake information: mask hidden at museum"
+    - "That night, Kai watches as Khalil leads Order agents to fake location"
+    - "Kai confronts her at gunpoint, Khalil confesses: Order of Maat, wants masks destroyed"
+    - "Khalil's backstory: daughter killed by Anubis mask bearer 10 years ago"
+    - "Khalil: 'I like you, Kai. But you're too dangerous to live.'"
+    - "Kai escapes using Ra mask (ages again, now visibly mid-30s)"
+
+  cliffhanger: "Kai arrives at Merlin's shop - it's burned to the ground, Merlin missing"
+
+episode_7:
+  title: "The Mentor's Sacrifice"
+  logline: "Kai finds Merlin captured by the Cult of Set - to save him, Kai must give up the Mask of Ra, but Merlin has a different plan."
+
+  story_beats:
+    - "Cult holds Merlin in abandoned temple, demands Ra mask in exchange"
+    - "Kai arrives with both Ra and Anubis masks, plans to trade"
+    - "Merlin still wears Set mask (cult couldn't remove it - only another bearer can)"
+    - "Merlin uses Set mask, goes berserk, kills half the cult (Kai horrified)"
+    - "Agent 47 appears to kill Kai, Merlin kills Agent 47 instead"
+    - "Merlin, exhausted: 'I've killed for you. Now leave before Set takes me completely.'"
+
+  cliffhanger: "Hierophant appears in shadows: 'Hello, Kai. I've been waiting to meet you.'"
+
+episode_8:
+  title: "The Truth About Lies"
+  logline: "The Hierophant offers Kai a deal: join the cult and learn the truth about why Amir was killed - Kai uses the Ra mask and sees something that breaks him."
+
+  story_beats:
+    - "Hierophant: 'Your brother wasn't a victim. He was a volunteer.'"
+    - "Kai uses Ra mask to see truth - vision shows Amir willingly entering cult ritual"
+    - "But Ra mask also shows another truth: Amir was forced through blackmail (cult had photos of Kai's crimes)"
+    - "Amir sacrificed himself to protect Kai"
+    - "Kai collapses, aged to late 30s now (7 uses total)"
+    - "Hierophant vanishes: 'See you soon, brother.'"
+
+  cliffhanger: "Kai replays that word: 'brother?' Impossibility dawns on his face."
+
+episode_9:
+  title: "The Impossible Truth"
+  logline: "Kai confronts the Hierophant and discovers the unbearable truth - his brother Amir is alive, leading the cult, and orchestrated everything to hurt Kai."
+
+  story_beats:
+    - "Kai tracks Hierophant to cult headquarters, final confrontation"
+    - "Hierophant removes mask: it's Amir (scarred, burned, but alive)"
+    - "Amir's explanation: Kai abandoned him that night, Amir bled but survived, was found by cult"
+    - "Amir: 'You were drunk. You ignored my call. You let them carve me up for 6 hours before I escaped.'"
+    - "Flashback reveals the truth: Kai did ignore a call, was drinking, by the time he arrived it was 'too late'"
+    - "Amir: 'I spent 6 months in hell because you chose a bottle over your brother. Now you'll watch me resurrect the gods and burn this world.'"
+    - "Kai tries to remove Ra mask from own face - realizes he's worn it too long, it won't come off"
+
+  cliffhanger: "Merlin appears, possessed by Set, attacks both of them: 'The masks will unite. The prophecy is inevitable.'"
+
+episode_10:
+  title: "The Cost of Truth"
+  logline: "Kai must choose between using the mask one final time to stop Amir (which will kill him) or destroying it and letting the prophecy unfold."
+
+  story_beats:
+    - "Three-way battle: Kai (Ra), Amir (Hierophant's prototype Set mask), Merlin (full Set mask)"
+    - "Dr. Khalil and Order arrive, chaos erupts"
+    - "Merlin breaks free of Set's control long enough to destroy his own mask - it kills him (peaceful death after 140 years)"
+    - "Kai uses Ra mask final time to see the truth of how to stop prophecy: must destroy all masks at sunrise in Valley of Kings"
+    - "Cost: Using Ra mask 8th time ages Kai to death (should die)"
+    - "Twist: Mask of Bastet saves him (hidden by Merlin), heals him but transfers all pain"
+    - "Kai destroys Ra and Anubis masks at Valley of Kings altar"
+    - "Amir escapes with prototype Set mask and Thoth mask (from British Museum)"
+    - "Final scene: Kai aged to 40s appearance, visits Merlin's grave, Khalil leaves Order to help him"
+
+  final_line: "Kai: 'Two masks left. And my brother has both.' *Screen cuts to black* 'Season 2: The Return of Set'"
+
+## SERIES CONTINUITY TRACKING
+
+masks_status_by_episode:
+  episode_1: "Ra (Kai has)"
+  episode_2: "Ra (Kai has), Set (Merlin has)"
+  episode_4: "Ra + Anubis (Kai has), Set (Merlin has)"
+  episode_7: "Ra + Anubis (Kai has), Set (Merlin has)"
+  episode_10_end: "Ra DESTROYED, Anubis DESTROYED, Set DESTROYED, Thoth (Amir has), Bastet (location revealed), Prototype Set (Amir has)"
+
+kai_aging_tracker:
+  start: "Age 28"
+  episode_1: "Age 29 (1 use)"
+  episode_2: "Age 30 (2 uses)"
+  episode_4: "Age 30.5 (Anubis use)"
+  episode_5: "Age 33 (5 uses total)"
+  episode_6: "Age 34 (6 uses)"
+  episode_8: "Age 35-37 (7 uses)"
+  episode_10: "Age 40s (8 uses + Bastet healing partially reverses)"
+
+trust_tracker:
+  kai_trusts_merlin: "Yes → No (ep3) → Complicated (ep7) → Yes (ep10)"
+  kai_trusts_khalil: "Yes → No (ep6) → Neutral alliance (ep10)"
+  kai_trusts_amir: "Dead → Grief → Betrayed (ep9)"
+
+## SEASON 2 SETUP
+
+unresolved_threads:
+  - "Amir alive, has Thoth mask + prototype Set mask"
+  - "Cult of Set still active, weakened but not destroyed"
+  - "Order of Maat wants Kai dead (Khalil defected)"
+  - "Mask of Bastet location now known (Dubai private collection)"
+  - "Prophecy still possible if Amir collects all masks"
+  - "Kai's aging is permanent, he looks 40s at age 28"
+
+season_2_logline: "With two masks in his brother's hands, Kai must race to find the Mask of Bastet before Amir completes the ritual to resurrect Set - but the cost of stopping him may be killing his own brother."

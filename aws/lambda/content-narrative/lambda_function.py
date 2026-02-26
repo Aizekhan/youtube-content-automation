@@ -29,7 +29,7 @@ import sys
 sys.path.append('./shared')
 from openai_cache import get_cached_response, cache_response
 from archetype_mechanics import get_archetype_pool
-from three_phase_engine import run_three_phase_generation
+from three_phase_engine import run_three_phase_generation, run_merged_phase1
 
 # WEEK 2.5: Request size validation
 try:
@@ -321,8 +321,8 @@ def lambda_handler(event, context):
                 'timestamp': timestamp
             }
 
-        # 2. Run THREE PHASE STORY ENGINE
-        print("\n Running THREE PHASE STORY ENGINE...")
+        # 2. Run THREE PHASE STORY ENGINE (or MERGED PHASE 1)
+        print("\n Running STORY ENGINE...")
         try:
             # Use topic_id as cache key suffix for retry consistency
             topic_id = event.get('topic_id', '')
@@ -330,16 +330,44 @@ def lambda_handler(event, context):
             # Extract series_context if provided (from content-topics-get-next)
             series_context = event.get('series_context')
 
-            three_phase_result = run_three_phase_generation(
-                api_key=api_key,
-                topic=selected_topic,
-                channel_config=channel_config,
-                series_context=series_context,
-                use_cache=True,
-                cache_key_suffix=topic_id
-            )
+            # NEW: Load Series Bible if this is a series
+            bible_context = ""
+            if series_context:
+                series_id = series_context.get('series_id')
+                if series_id:
+                    try:
+                        series_table = dynamodb.Table('SeriesState')
+                        series_response = series_table.get_item(Key={'series_id': series_id})
+                        if 'Item' in series_response:
+                            bible_context = series_response['Item'].get('series_bible', '')
+                            print(f"  ✓ Loaded Series Bible: {len(bible_context)} chars")
+                    except Exception as bible_error:
+                        print(f"  ⚠ Could not load Series Bible: {bible_error}")
+
+            # CHOOSE ENGINE: Use merged if Bible exists, old three-phase otherwise
+            use_merged = len(bible_context) > 0
+
+            if use_merged:
+                print("  🔀 Using MERGED PHASE 1 (mechanics + narrative in one call)")
+                three_phase_result = run_merged_phase1(
+                    api_key=api_key,
+                    topic=selected_topic,
+                    channel_config=channel_config,
+                    series_context=series_context,
+                    bible_context=bible_context
+                )
+            else:
+                print("  📚 Using ORIGINAL THREE-PHASE ENGINE (no Bible)")
+                three_phase_result = run_three_phase_generation(
+                    api_key=api_key,
+                    topic=selected_topic,
+                    channel_config=channel_config,
+                    series_context=series_context,
+                    use_cache=True,
+                    cache_key_suffix=topic_id
+                )
         except Exception as generation_error:
-            print(f"ERROR in three_phase_generation: {generation_error}")
+            print(f"ERROR in story engine: {generation_error}")
             import traceback
             traceback.print_exc()
             raise

@@ -1,0 +1,151 @@
+You are a Story Architect + Writer. You will create a complete narrative in TWO STEPS in this single response.
+
+CRITICAL: Complete BOTH steps in ONE response. Do NOT stop after Step 1.
+
+---
+
+## STEP 1: STORY MECHANICS (JSON block)
+
+Generate story mechanics with PHYSICAL EVENTS (not abstract themes).
+
+OUTPUT JSON:
+{
+  "dominant_archetype": "archetype_name_lowercase",
+
+  "inciting_event": "Opening physical action - MUST contain verbs: drops, grabs, breaks, hits, runs, throws, cuts, burns, falls, cracks. Example: 'Kai drops the Mask of Ra. It hits marble floor. Golden surface cracks.' NOT: 'Protagonist realizes truth.'",
+
+  "crisis_event": "Midpoint physical choice - protagonist forced to act. MUST be concrete action with objects. Example: 'Kai holds broken mask. Puts it on despite crack.' NOT: 'Character faces dilemma.'",
+
+  "mirror_confrontation_event": "Mirror character physically challenges protagonist. MUST show physical interaction. Example: 'Merlin grabs Kai's wrist. Shows his own gray hair streaks. Kai pulls away.' NOT: 'Mentor gives wisdom.'",
+
+  "revelation_event": "Hidden truth revealed through physical event. MUST be visible action. Example: 'Kai picks up shard. Hieroglyphics spell his name. Carved 3000 years ago.' NOT: 'Truth becomes clear.'",
+
+  "resolution_event": "Final physical action protagonist takes. MUST be concrete. Example: 'Kai throws mask into Nile. Watches it sink beneath surface.' NOT: 'Character accepts truth.'",
+
+  "protagonist_frozen": "Physical description for visual consistency (15-25 words). Include: age, gender, 1-2 distinctive features, 1 item of clothing. Example: '28-year-old male, scar on left eyebrow, brown leather jacket, dark intense eyes'",
+
+  "mirror_character_frozen": "Physical description contrasting protagonist (15-25 words). Example: '60s male appearance, completely bald, different colored eyes (green/amber), black three-piece suit'"
+}
+
+VALIDATION RULES (CRITICAL):
+- Every "event" field MUST contain at least ONE physical verb from this list:
+  drops, grabs, breaks, hits, runs, throws, cuts, burns, falls, cracks,
+  pushes, pulls, opens, closes, smashes, shatters, bleeds, screams,
+  collapses, stabs, shoots, explodes, drowns, chokes, burns
+
+- Every "event" field MUST reference specific objects (mask, knife, door, window, etc.)
+
+- NO abstract concepts allowed in events. If you write these words in an event field, STOP and rewrite:
+  FORBIDDEN: realizes, understands, feels, believes, thinks, knows, discovers (mental states)
+  REQUIRED: physical verbs that can be filmed with a camera
+
+- If event contains "truth", "belief", "reality", "understanding" → REJECTED, rewrite with physical objects
+
+SERIES BIBLE CONTEXT:
+{BIBLE_CONTEXT}
+
+Use ONLY the objects, locations, and character names from Series Bible above.
+
+---
+
+## STEP 2: NARRATIVE GENERATION (8 scenes)
+
+START ONLY AFTER STEP 1 JSON IS COMPLETE.
+
+DO NOT start Step 2 until you have written the complete JSON block above with all 5 events.
+
+Use EXACTLY the events you defined in Step 1 — do not invent new ones or change them.
+
+Write 8 scenes that incorporate the mechanics from Step 1.
+
+MANDATORY STRUCTURE:
+- Scene 1-2: Build dramatic tension toward inciting_event
+- Scene 3: inciting_event happens EXACTLY as written in Step 1
+- Scene 4: mirror_confrontation_event happens EXACTLY as written
+- Scene 5: crisis_event happens EXACTLY as written
+- Scene 7: revelation_event happens EXACTLY as written
+- Scene 8: resolution_event happens EXACTLY as written
+
+SCENE FORMAT:
+{
+  "scene_number": 1,
+  "scene_title": "Brief title (3-5 words, active voice)",
+  "scene_narration": "The narration text in {LANGUAGE}. Write in present tense. Use short sentences (max 15 words each). Physical verbs only. Concrete objects from Series Bible.",
+  "variation_used": "normal (default), whisper (secrets), dramatic (climax only), action (chase/fight)",
+  "emotional_beat": "What viewer feels",
+  "duration_estimate": 20
+}
+
+NARRATION WRITING RULES (MANDATORY):
+
+1. SHORT SENTENCES (max 15 words):
+   ✓ "Kai drops the mask. It hits the floor. The surface cracks."
+   ✗ "Kai drops the mask and it hits the floor and the surface cracks and he realizes something."
+
+2. PRESENT TENSE:
+   ✓ "Kai runs. Merlin shouts. The door slams."
+   ✗ "Kai ran. Merlin shouted. The door slammed."
+
+3. PHYSICAL VERBS ONLY:
+   ✓ "Kai's hands shake. His fingers slip. The mask falls."
+   ✗ "Kai feels fear. His confidence wavers. He realizes the truth."
+
+4. CONCRETE OBJECTS from Series Bible:
+   ✓ "The Mask of Ra glows orange. The hawk eye emblem flares. Hieroglyphics burn bright."
+   ✗ "The ancient artifact glows. The mystical symbol flares. The magical writing burns."
+
+5. SENSORY DETAILS (what camera sees/hears):
+   ✓ "Glass shatters. Alarms scream. Red lights flash across marble floor."
+   ✗ "The atmosphere becomes tense. Danger fills the air. Time seems to slow."
+
+6. NO EXPLANATIONS:
+   ✓ "Kai stares at the shard. His name. Carved 3000 years ago."
+   ✗ "Kai stares at the shard and realizes that his name was carved 3000 years ago which means he was always destined to find this mask."
+
+7. SHOW CHARACTER EMOTION through physical action:
+   ✓ "Kai's jaw clenches. He throws the mask. It hits the wall. He screams."
+   ✗ "Kai feels angry and betrayed. His emotions overwhelm him."
+
+FORBIDDEN PHRASES (never use these):
+- "little did they know"
+- "internal light" / "inner voice" / "spiritual journey"
+- "belief shapes reality"
+- "understanding dawns"
+- "truth sets free"
+- "fate has other plans"
+- "suddenly, out of nowhere"
+- "it was all a dream"
+
+TOPIC: {TOPIC}
+
+CHANNEL CONTEXT:
+- Genre: {GENRE}
+- Tone: {TONE}
+- Language: {LANGUAGE}
+- Duration: {DURATION} seconds
+- Number of Scenes: {NUM_SCENES}
+
+{SERIES_CONTEXT_SECTION}
+
+---
+
+FINAL CHECKLIST BEFORE SUBMITTING:
+
+Step 1 JSON:
+□ All 5 event fields contain physical verbs?
+□ All events reference specific objects from Bible?
+□ No abstract concepts (realizes, understands, feels)?
+□ protagonist_frozen and mirror_character_frozen are 15-25 words?
+
+Step 2 Scenes:
+□ All scenes use short sentences (max 15 words)?
+□ All scenes use present tense?
+□ Scene 3 matches inciting_event from Step 1 exactly?
+□ Scene 4 matches mirror_confrontation_event exactly?
+□ Scene 5 matches crisis_event exactly?
+□ Scene 7 matches revelation_event exactly?
+□ Scene 8 matches resolution_event exactly?
+□ No forbidden phrases used?
+
+If ALL boxes checked → submit response
+If ANY box unchecked → review and fix before submitting

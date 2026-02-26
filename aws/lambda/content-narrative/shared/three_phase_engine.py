@@ -611,3 +611,166 @@ def run_three_phase_generation(api_key, topic, channel_config, series_context=No
         'mechanics': mechanics,
         'usage': total_usage
     }
+
+
+# ============================================================================
+# MERGED PHASE 1 (Phase 1a + 1b combined)
+# ============================================================================
+
+PHYSICAL_VERBS = [
+    'drops', 'grabs', 'breaks', 'hits', 'runs', 'throws', 'cuts', 'burns',
+    'falls', 'cracks', 'pushes', 'pulls', 'opens', 'closes', 'smashes',
+    'shatters', 'bleeds', 'screams', 'collapses', 'stabs', 'shoots',
+    'explodes', 'drowns', 'chokes', 'slams', 'tears', 'rips', 'crushes'
+]
+
+def validate_physical_events(mechanics):
+    """
+    Validate that event fields contain physical verbs
+
+    Returns: (is_valid, errors_list)
+    """
+    errors = []
+
+    event_fields = [
+        'inciting_event', 'crisis_event', 'mirror_confrontation_event',
+        'revelation_event', 'resolution_event'
+    ]
+
+    for field in event_fields:
+        if field not in mechanics:
+            errors.append(f"Missing required field: {field}")
+            continue
+
+        event_text = mechanics[field].lower()
+
+        # Check for physical verbs
+        has_physical_verb = any(verb in event_text for verb in PHYSICAL_VERBS)
+
+        if not has_physical_verb:
+            errors.append(f"{field}: No physical verb found. Text: '{mechanics[field][:50]}...'")
+
+        # Check for forbidden abstract words
+        forbidden = ['realizes', 'understands', 'feels', 'believes', 'thinks', 'knows']
+        has_forbidden = any(word in event_text for word in forbidden)
+
+        if has_forbidden:
+            errors.append(f"{field}: Contains abstract concept (realizes/understands/feels)")
+
+    return len(errors) == 0, errors
+
+
+def run_merged_phase1(api_key, topic, channel_config, series_context=None, bible_context=""):
+    """
+    MERGED Phase 1: Generate mechanics + narrative in single GPT-4o call
+
+    Args:
+        api_key: OpenAI API key
+        topic: Video topic
+        channel_config: Channel configuration
+        series_context: Series context (optional)
+        bible_context: Series Bible text (120-200 words max)
+
+    Returns:
+        dict: {mechanics, scenes, usage}
+    """
+    print("\n" + "="*80)
+    print("🔀 MERGED PHASE 1: Story Mechanics + Narrative Generation")
+    print("="*80)
+
+    # Load merged prompt template
+    import os
+    prompt_path = os.path.join(os.path.dirname(__file__), '..', 'story_prompts', 'phase1-merged.txt')
+
+    with open(prompt_path, 'r', encoding='utf-8') as f:
+        prompt_template = f.read()
+
+    # Build series context section
+    series_section = ""
+    if series_context:
+        series_section = f"""
+SERIES MODE ACTIVE:
+- Series: {series_context.get('series_title', 'Unknown')}
+- Season: {series_context.get('season_arc', {}).get('season_number', 1)}
+- Episode: {series_context.get('episode_number', 1)}
+
+This is part of ongoing series. Maintain continuity with previous episodes.
+"""
+
+    # Build voice instructions
+    voice_instructions = build_voice_instructions(series_context)
+
+    # Replace placeholders
+    system_message = prompt_template.replace('{BIBLE_CONTEXT}', bible_context)
+    system_message = system_message.replace('{TOPIC}', topic)
+    system_message = system_message.replace('{GENRE}', channel_config.get('genre', 'Mystery'))
+    system_message = system_message.replace('{TONE}', channel_config.get('narrative_tone', 'dark'))
+    system_message = system_message.replace('{LANGUAGE}', channel_config.get('language', 'en'))
+    system_message = system_message.replace('{DURATION}', str(channel_config.get('target_duration', 180)))
+    system_message = system_message.replace('{NUM_SCENES}', str(channel_config.get('num_scenes', 8)))
+    system_message = system_message.replace('{SERIES_CONTEXT_SECTION}', series_section)
+
+    user_message = f"Generate complete narrative for: {topic}"
+
+    # Call OpenAI (gpt-4o, higher tokens for both steps)
+    complexity = channel_config.get('complexity_level', 5)
+    model = 'gpt-4o' if complexity >= 6 else 'gpt-4o'  # Always gpt-4o for merged
+
+    print(f"  Model: {model}")
+    print(f"  Topic: {topic}")
+    print(f"  Bible context: {len(bible_context)} chars")
+
+    result = call_openai_api(
+        api_key=api_key,
+        system_message=system_message,
+        user_message=user_message,
+        model=model,
+        temperature=0.8,
+        max_tokens=6000,  # More tokens for merged response
+        use_json=True
+    )
+
+    # Parse response
+    content = result['choices'][0]['message']['content']
+    parsed = json.loads(content)
+
+    # Extract mechanics and scenes
+    mechanics = {
+        'inciting_event': parsed.get('inciting_event'),
+        'crisis_event': parsed.get('crisis_event'),
+        'mirror_confrontation_event': parsed.get('mirror_confrontation_event'),
+        'revelation_event': parsed.get('revelation_event'),
+        'resolution_event': parsed.get('resolution_event'),
+        'protagonist_frozen': parsed.get('protagonist_frozen'),
+        'mirror_character_frozen': parsed.get('mirror_character_frozen'),
+        'dominant_archetype': parsed.get('dominant_archetype')
+    }
+
+    scenes = parsed.get('scenes', [])
+
+    # Validate physical events
+    is_valid, validation_errors = validate_physical_events(mechanics)
+
+    if not is_valid:
+        print("\n⚠️  VALIDATION WARNINGS:")
+        for error in validation_errors:
+            print(f"  - {error}")
+        # Continue anyway but log warnings
+
+    usage = result['usage']
+
+    print(f"\n✅ Merged Phase 1 complete:")
+    print(f"  - Mechanics generated: {len([k for k in mechanics if mechanics[k]])}/8 fields")
+    print(f"  - Scenes generated: {len(scenes)}")
+    print(f"  - Tokens used: {usage['total_tokens']}")
+    print(f"  - Validation: {'✓ PASS' if is_valid else '⚠ WARNINGS'}")
+
+    return {
+        'mechanics': mechanics,
+        'scenes': scenes,
+        'story_title': parsed.get('story_title', topic),
+        'usage': {
+            'merged_phase1_tokens': usage['total_tokens'],
+            'total_tokens': usage['total_tokens']
+        }
+    }

@@ -1,0 +1,263 @@
+# Mask of Gods - Season 1: Character Bible
+
+## PROTAGONIST
+
+kai_omar:
+  full_name: "Kai Omar"
+  age: 28
+  occupation_public: "Freelance photographer"
+  occupation_secret: "Artifact thief (part-time)"
+
+  physical:
+    ethnicity: "Egyptian-British (father Egyptian, mother British)"
+    height: "5'10\" (178 cm)"
+    build: "Lean, runner's physique"
+    distinctive_features:
+      - "Scar across left eyebrow (knife fight, age 19)"
+      - "Tattoo on right forearm: Eye of Horus (covers burn scar)"
+      - "Always wears leather jacket (brown, worn, belonged to his father)"
+      - "Silver ring on left hand (mother's wedding ring)"
+    hair: "Black, short, messy"
+    eyes: "Dark brown, intense gaze"
+    voice: "Deep, quiet, British accent with Arabic inflections"
+
+  personality:
+    core_trait: "Cynical idealist - wants to do good but expects the worst"
+    strengths:
+      - "Brilliant improviser under pressure"
+      - "Loyal to the few he trusts (only Merlin and his brother)"
+      - "Photographic memory for visual details"
+      - "Speaks 4 languages (English, Arabic, French, hieroglyphics)"
+    weaknesses:
+      - "Self-destructive guilt over brother's death"
+      - "Trust issues - assumes everyone will betray him"
+      - "Addictive personality - uses mask despite knowing cost"
+      - "Terrible liar to people he cares about (excellent with strangers)"
+    fears:
+      - "Dying alone and forgotten like his father"
+      - "Hurting others with mask's power"
+      - "Becoming the gods he's learned to hate"
+
+  backstory:
+    childhood: "Grew up in London until age 12, moved to Cairo after mother's death"
+    father: "Dr. Hassan Omar - archaeologist, died when Kai was 15 (officially: heart attack, truth: murdered by Order of Maat)"
+    mother: "Elizabeth Reeves - historian, died when Kai was 12 (car accident)"
+    brother: "Amir Omar - younger brother, died 6 months ago at age 24"
+    brothers_death: "Amir stumbled into cult ritual, sacrificed before Kai could save him"
+    guilt: "Kai blames himself - he was drunk, ignored Amir's call for help that night"
+    catalyst: "Found father's hidden journal 3 months ago revealing mask locations"
+    current_goal: "Use Mask of Ra to see truth about Amir's death, then destroy all masks"
+
+  relationships:
+    merlin: "Mentor/father figure, met at age 16 after father's death, taught Kai about masks"
+    order_of_maat: "Hunted by them, doesn't know Dr. Khalil is a member"
+    cult_of_set: "Killed Amir, Kai wants revenge but doesn't know leader's identity"
+    dr_khalil: "Museum curator, Kai uses him for information, trusts him (mistake)"
+
+  character_arc_s1:
+    episode_1: "Steals Mask of Ra, first use (ages 1 year)"
+    episode_3: "Discovers Merlin has Mask of Set, feels betrayed"
+    episode_5: "Uses mask 5 times total, visible aging, denial about addiction"
+    episode_7: "Learns Dr. Khalil is Order member, trust shattered"
+    episode_9: "Confronts Amir's killer, learns terrible truth about brother"
+    episode_10: "Chooses between destroying mask or using it one final time"
+
+  visual_notes:
+    kai_normal: "28-year-old man, leather jacket, confident but guarded posture"
+    kai_after_mask_use: "Gray streak in hair (episode 1), more wrinkles each episode"
+    kai_episode_10: "Visibly aged to mid-30s appearance, haunted eyes"
+
+  voice_style:
+    dialogue_patterns:
+      - "Short, clipped sentences when stressed"
+      - "Sarcastic humor to deflect emotion"
+      - "Switches to Arabic when angry"
+      - "Never says 'I love you' - shows love through actions"
+    catchphrase: "Truth has a price." (says before using mask)
+    never_says:
+      - "Everything will be fine" (doesn't believe in happy endings)
+      - "Trust me" (knows he's not trustworthy)
+
+## MENTOR / GUIDE
+
+merlin:
+  full_name: "Merlin" (no other name given)
+  age: "Claims 60s, actually 140+ (Mask of Set kept him alive)"
+  occupation: "Antique shop owner (front), Guardian of forbidden knowledge"
+
+  physical:
+    ethnicity: "Unknown - appears Middle Eastern but accent shifts"
+    height: "5'7\" (170 cm)"
+    build: "Thin, frail-looking (deceptive)"
+    distinctive_features:
+      - "Completely bald head"
+      - "Eyes are different colors: left green, right amber"
+      - "No visible aging despite mask use (suspicious)"
+      - "Always wears three-piece suit (black, anachronistic)"
+      - "Walks with silver cane (hollow, contains ritual knife)"
+    voice: "Soft, grandfatherly, British RP accent"
+
+  personality:
+    core_trait: "Manipulative protector - genuinely cares but lies constantly"
+    strengths:
+      - "150 years of occult knowledge"
+      - "Master manipulator - can talk way out of anything"
+      - "Calm under pressure (has seen everything)"
+      - "Strategic thinker - plans 10 steps ahead"
+    weaknesses:
+      - "Arrogant - assumes he knows best"
+      - "Emotionally distant - centuries of loss taught him not to attach"
+      - "Addicted to Mask of Set (in denial)"
+      - "Will sacrifice individuals to save the world"
+    fears:
+      - "Losing Kai the way he lost his original son (1890s)"
+      - "Living forever while everyone dies"
+      - "The prophecy coming true on his watch"
+
+  backstory:
+    real_age: "Born 1886, real name forgotten"
+    first_mask_use: "1910, found Mask of Set in Egypt"
+    cost: "Has used mask hundreds of times, should be dead, but Set keeps him alive (WHY?)"
+    family: "Had wife and son in 1912, both killed by Order of Maat, been alone since"
+    met_kai: "Saw Hassan Omar's journal mentioned Kai, took him in after Hassan's death"
+    secret: "Knows Order of Maat killed Hassan, never told Kai"
+    current_goal: "Train Kai to destroy masks, die peacefully after 140 years"
+
+  relationships:
+    kai: "Sees him as second chance son, but still manipulates him 'for his own good'"
+    order_of_maat: "Mutual hatred, they killed his family, he's killed 7 of their agents"
+    cult_of_set: "Unknown connection - why does Set keep him alive?"
+    mask_of_set: "Has worn it so long he hears Set's voice even when not wearing it"
+
+  character_arc_s1:
+    episode_1: "Warns Kai not to steal Ra mask (doesn't try hard to stop him)"
+    episode_3: "Reveals he has Set mask, Kai feels betrayed"
+    episode_5: "Uses Set mask to save Kai from cult, pays price (rage episode)"
+    episode_7: "Confesses he knew about Hassan's murder all along"
+    episode_9: "Set takes control, Merlin attacks Kai while possessed"
+    episode_10: "Sacrifices himself to destroy Set mask, dies peacefully (finally)"
+
+  visual_notes:
+    merlin_normal: "Frail old man, three-piece suit, calm expression"
+    merlin_with_set_mask: "Red eyes, crackling energy, shadows writhe around him"
+    merlin_possessed: "Puppet-like movements, speaks in Set's voice (distorted)"
+
+## ANTAGONIST (PRIMARY)
+
+dr_yasmin_khalil:
+  full_name: "Dr. Yasmin Khalil"
+  age: 45
+  occupation: "Chief Curator, Cairo Museum / Order of Maat operative"
+
+  physical:
+    ethnicity: "Egyptian"
+    height: "5'6\" (168 cm)"
+    build: "Average, practical"
+    distinctive_features:
+      - "Always wears red hijab (Order's secret signal)"
+      - "Gold scarab pendant (tracking device + comms)"
+      - "Professional demeanor, warm smile (fake)"
+    hair: "Black with gray streaks (natural)"
+    eyes: "Sharp, calculating"
+    voice: "Warm and professorial (public), cold and clipped (private)"
+
+  personality:
+    core_trait: "Zealot pragmatist - believes she's saving the world through murder"
+    motivation: "Saw her daughter killed by Mask of Anubis wielder (10 years ago)"
+    goal: "Destroy all masks by any means necessary"
+    methods: "Manipulation, assassination, collateral damage acceptable"
+    conflict: "Genuinely likes Kai, still plans to kill him"
+
+  relationships:
+    kai: "Uses him for information, feels maternal toward him (complicated)"
+    order_of_maat: "Rising star, next in line for High Priestess"
+    merlin: "Knows he killed her agents, wants him dead first"
+
+  character_arc_s1:
+    episode_1: "Helps Kai access museum archives (gaining trust)"
+    episode_4: "Orders Agent 47 to kill Kai (he fails)"
+    episode_7: "Revealed as Order member to Kai, confrontation"
+    episode_10: "Chooses to let Kai live, expelled from Order"
+
+## ANTAGONIST (SECONDARY)
+
+the_hierophant:
+  full_name: "Unknown"
+  age: "Unknown"
+  title: "Leader of Cult of Set"
+
+  physical:
+    appearance: "Never seen without Mask of Set prototype"
+    build: "Tall, imposing (6'2\" / 188 cm)"
+    distinctive_features:
+      - "Wears crimson robes with gold Set symbols"
+      - "Hands show severe burn scars"
+      - "Voice is distorted by mask (sounds like two people speaking)"
+
+  personality:
+    core_trait: "True believer - wants gods to return and burn modern world"
+    motivation: "UNKNOWN - revealed in Season 2"
+    methods: "Human sacrifice, psychological torture, ritualistic murder"
+
+  character_arc_s1:
+    episode_2: "Mentioned in rumors"
+    episode_5: "First appearance (shadows), orders Kai's death"
+    episode_9: "Revealed truth about Amir's death (twist: Amir is The Hierophant)"
+    episode_10: "Escapes with 2 masks, sets up Season 2"
+
+## SUPPORTING CHARACTERS
+
+amir_omar:
+  status: "Dead (official), alive (twist)"
+  relationship: "Kai's younger brother"
+  twist: "Faked his death, now leads Cult of Set as The Hierophant"
+  motivation: "Hates Kai for abandoning him, wants to hurt him before killing him"
+  reveal: "Episode 9"
+
+agent_47:
+  name: "Marcus Webb"
+  occupation: "Order of Maat assassin"
+  personality: "Professional, emotionless, follows orders"
+  arc: "Hunts Kai episodes 1-7, killed by Merlin episode 7"
+
+youssef:
+  full_name: "Omar Al-Masri"
+  occupation: "Black market information broker"
+  personality: "Jovial, greedy, surprisingly loyal if paid well"
+  arc: "Recurring contact for Kai, provides intel for artifacts"
+
+## CHARACTER INTERACTION RULES
+
+kai_merlin_dynamic:
+  normal: "Father-son banter, Merlin gives cryptic advice, Kai rolls eyes"
+  conflict: "Kai accuses Merlin of manipulation, Merlin admits truth but justifies it"
+  resolution: "Kai forgives because he understands Merlin's trauma"
+
+kai_khalil_dynamic:
+  early: "Kai trusts her, seeks advice, she plays maternal role"
+  midseason: "Kai suspects something wrong, investigates"
+  reveal: "Kai feels utterly betrayed, Khalil shows genuine regret"
+
+kai_mask_dynamic:
+  episode_1: "Tool for revenge, willing to pay any cost"
+  episode_5: "Addiction visible, makes excuses for repeated use"
+  episode_10: "Accepts he's destroying himself, final choice"
+
+## DIALOGUE VOICE GUIDE
+
+kai_examples:
+  casual: "Yeah, that's a tomb. Full of dead things. Why would I want to go there?"
+  stressed: "I don't have time for this. Tell me where the mask is. Now."
+  emotional: "*switches to Arabic* La, la... mish mumkin..." (No, no... not possible...)
+  using_mask: "Truth has a price. *whispers* Ra em hotep."
+
+merlin_examples:
+  teaching: "The masks, dear boy, are not tools. They are prisons. Never forget what you're setting free."
+  manipulating: "I never said you should steal it. I merely mentioned where it was kept. What you do with that information..."
+  genuine: "I've lived 140 years. I've buried everyone I've loved. Don't make me bury you too."
+  possessed: "*distorted voice* The boy is mine now, old man. You've worn me too long."
+
+khalil_examples:
+  public: "Kai, how wonderful to see you. I have those research papers you requested."
+  private_order: "Target acquired. Recommend termination before he collects second mask."
+  conflicted: "I wish I'd met you in another life. One where your death wasn't necessary."

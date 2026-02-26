@@ -1,0 +1,173 @@
+# Mask of Gods - Season 1: World Bible
+# Series: Horror/Mythology
+# Setting: Modern-day Cairo, Egypt + Mythological realms
+
+world_type: urban_fantasy
+tone: dark_horror_with_mystical_elements
+primary_location: Cairo, Egypt
+time_period: Present day (2026)
+
+## CORE WORLD RULES
+
+magic_system:
+  source: "Ancient Egyptian gods trapped in physical masks"
+  activation: "Wearing mask + speaking god's true name"
+  cost: "Each use drains wearer's life force (visible aging)"
+  limitation: "Mask can only be removed by another mask-bearer"
+  corruption: "Prolonged use merges wearer's mind with the god"
+
+masks:
+  mask_of_ra:
+    god: "Ra (Sun God)"
+    appearance: "Golden half-face mask, hawk eye emblem on forehead, hieroglyphics glow orange when active"
+    power: "Reveals true nature - strips illusions, shows hidden identities, unmasks shapeshifters"
+    activation_phrase: "Ra em hotep" (Ra in peace)
+    cost_per_use: "1 year of life, visible gray hair streak"
+    weakness: "Only works in direct sunlight or firelight"
+    current_location: "Cairo Museum, Hall of Pharaohs, room 304, stolen by Kai"
+
+  mask_of_anubis:
+    god: "Anubis (Death God)"
+    appearance: "Black jackal-shaped full mask, silver trim, empty eye sockets"
+    power: "Sees and speaks with the dead, can force spirits to answer questions"
+    activation_phrase: "Anpu em duat" (Anubis of the underworld)
+    cost_per_use: "Temporary blindness to living world (30 minutes)"
+    weakness: "Cannot be used on sacred ground (mosques, churches)"
+    current_location: "Unknown - last seen 1952 in Alexandria"
+
+  mask_of_set:
+    god: "Set (Chaos God)"
+    appearance: "Red clay mask with beast snout, jagged edges, cracks glow crimson"
+    power: "Creates localized chaos - technology fails, weather shifts, people hallucinate"
+    activation_phrase: "Set em isfet" (Set of chaos)
+    cost_per_use: "Uncontrollable rage for 1 hour after removal"
+    weakness: "Disrupted by ritual order (prayer, meditation, ceremony)"
+    current_location: "Held by Merlin (secret)"
+
+  mask_of_thoth:
+    god: "Thoth (Knowledge God)"
+    appearance: "Silver ibis-beak mask, inscribed with mathematical formulas"
+    power: "Instant knowledge of any written language, decryption, seeing hidden text"
+    activation_phrase: "Djehuty em maat" (Thoth of truth)
+    cost_per_use: "Severe migraines, temporary amnesia of personal memories"
+    weakness: "Cannot read spoken lies, only written truth"
+    current_location: "British Museum, catalogued as 'Ceremonial Bird Mask'"
+
+  mask_of_bastet:
+    god: "Bastet (Protection Goddess)"
+    appearance: "Bronze cat-faced mask with emerald eyes, warm to touch"
+    power: "Creates protective barrier, heals minor wounds, calms fear"
+    activation_phrase: "Bastet em ankh" (Bastet of life)
+    cost_per_use: "Bearer feels all pain they've blocked (delayed 24 hours)"
+    weakness: "Cannot protect from betrayal or emotional harm"
+    current_location: "Private collection, Dubai"
+
+## LOCATIONS
+
+cairo_museum:
+  full_name: "Museum of Egyptian Antiquities"
+  key_areas:
+    hall_of_pharaohs:
+      room_number: "Room 304, Third Floor"
+      description: "Dimly lit hall with sandstone pillars, temperature controlled to 18°C"
+      key_objects:
+        - "Empty display case (glass shattered) - former home of Mask of Ra"
+        - "Security camera 304-B (Kai disabled before theft)"
+        - "Hidden passage behind Ramses II statue (opened by pressure plate)"
+      guards: "Rotates every 2 hours, Ahmed on night shift (bribable)"
+
+    basement_archives:
+      access: "Restricted - requires Dr. Khalil's keycard"
+      description: "Concrete maze, flickering fluorescent lights, smell of old papyrus"
+      key_objects:
+        - "Unpublished excavation reports (shelf A-47)"
+        - "Map of Valley of Kings tombs (missing 3 locations)"
+        - "Dr. Samir's journal (locked drawer)"
+
+khan_el_khalili:
+  type: "Ancient market/bazaar"
+  atmosphere: "Crowded, smoke from shisha pipes, calls of vendors, smell of spices"
+  key_locations:
+    merlins_shop:
+      official_name: "Antiques of Alexandria"
+      facade: "Narrow storefront, faded blue door, no sign"
+      interior: "Three floors, walls covered with artifacts, dust everywhere, trapdoor to basement"
+      basement: "Stone chamber, ritual circle drawn in salt, shelves of forbidden texts"
+      merlin_lives_here: true
+
+    black_market_contact:
+      name: "Youssef's Carpet Shop"
+      contact_person: "Youssef (fake name, real: Omar Al-Masri)"
+      services: "Forged documents, untraceable weapons, information broker"
+      cost: "Payment in artifacts or blood (literally)"
+
+valley_of_kings:
+  distance_from_cairo: "670 km south, 8-hour drive"
+  tourist_areas: "KV62 (Tutankhamun), KV9 (Ramses VI)"
+  restricted_tombs:
+    kv_unknown:
+      code_name: "KV-Ω (Omega)"
+      discovery: "2019, immediately sealed by Egyptian government"
+      rumor: "Contains altar where original masks were created"
+      access: "Military checkpoint, Dr. Khalil has clearance"
+      danger: "Guardian spirits (not metaphorical - actual spirits)"
+
+## ORGANIZATIONS
+
+order_of_maat:
+  type: "Secret society"
+  goal: "Destroy all masks to prevent apocalypse"
+  methods: "Assassination, theft, manipulation of governments"
+  known_members:
+    - "Dr. Khalil (public face - museum curator)"
+    - "Unknown Agent 47 (follows Kai)"
+    - "High Priestess (identity unknown)"
+  resources: "Unlimited funding, government connections, ancient texts"
+  weakness: "Fractured leadership, some members want masks for themselves"
+
+cult_of_set:
+  type: "Chaos worshippers"
+  goal: "Collect all masks to resurrect Set in physical form"
+  methods: "Human sacrifice, demonic pacts, terrorism"
+  leader: "The Hierophant (wears Mask of Set prototype)"
+  headquarters: "Abandoned temple, 50 km west of Cairo"
+  ritual: "Requires all 5 masks + blood of 100 innocents"
+
+## WORLD PHYSICS
+
+time_rules:
+  mask_activation_duration: "5-30 minutes depending on user's strength"
+  cooldown_between_uses: "Minimum 6 hours or risk permanent fusion"
+  life_drain_visibility: "Gray hair, wrinkles, sunken eyes (permanent)"
+
+combat_rules:
+  mask_vs_mask: "Powers cancel each other out in 10-meter radius"
+  mask_vs_mundane: "Guns still work, masks don't make you bulletproof"
+  mask_removal: "Only another mask-bearer can forcibly remove a mask"
+  death_while_wearing: "Mask bonds to corpse, cannot be removed for 40 days"
+
+vision_effects:
+  normal_humans: "See mask glow, feel supernatural dread"
+  mask_bearers: "See each other's auras (gold=Ra, black=Anubis, red=Set)"
+  spirit_world: "Only Anubis mask allows seeing ghosts/spirits"
+
+## MYTHOLOGY RULES
+
+gods_trapped_reason: "Thoth betrayed the gods in 2500 BCE, forged masks as prisons"
+prophecy: "When all 5 masks unite at sunrise in Valley of Kings, gods will be freed"
+apocalypse_scenario: "Gods return → modern world collapses → 1000 years of divine rule"
+loophole: "If masks destroyed before union → gods stay imprisoned forever"
+
+## ATMOSPHERE KEYWORDS
+
+sensory_details:
+  cairo_day: "Scorching heat, car horns, smell of diesel and cumin, dust in throat"
+  cairo_night: "Cool breeze, call to prayer echoes, alley cats, distant traffic"
+  museum: "Sterile air conditioning, echo of footsteps on marble, smell of old wood"
+  bazaar: "Overwhelming spices, press of bodies, shouts in Arabic, smoke from grills"
+  tomb: "Absolute silence, stale air (3000 years old), beam of flashlight cutting darkness"
+
+horror_elements:
+  psychological: "Paranoia (being watched), memory loss, identity confusion"
+  visceral: "Rapid aging, bleeding from eyes when mask activates, touch of corpse-cold mask"
+  supernatural: "Shadows move wrong, hieroglyphics whisper, time loops in tombs"
