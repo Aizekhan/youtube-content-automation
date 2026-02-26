@@ -12,14 +12,9 @@ from narrative_parser import parse_narrative_for_tts, get_character_voices_from_
 dynamodb = boto3.client('dynamodb')
 series_table = boto3.resource('dynamodb', region_name='eu-central-1').Table('SeriesState')
 
-# Mapping variation_used -> voice_description for Qwen3-TTS
-# Simple, clear instructions - Qwen3 works best with natural conversational style
-VOICE_DESCRIPTIONS = {
-    'normal': 'Clear, natural voice. Speak at a calm, steady pace as if telling a story to a friend.',
-    'whisper': 'Quiet, intimate voice. Slightly slower pace, as if sharing something personal.',
-    'dramatic': 'Speak with quiet intensity. Do not shout — let the words carry the weight.',
-    'action': 'Slightly faster pace with energy. Stay natural, do not over-dramatize.',
-}
+# DISABLED: Voice description causes unnatural intonation/modulation in Qwen3-TTS
+# Use None to get clean, natural voice without style modulation
+VOICE_DESCRIPTION = None
 
 
 def lambda_handler(event, context):
@@ -118,12 +113,12 @@ def lambda_handler(event, context):
 
             # Per-scene voice_description based on variation_used (from OpenAI / story blueprint)
             # Keep it simple - just use the base variation description
-            variation = scene.get('variation_used', 'normal')
-            scene_voice_desc = VOICE_DESCRIPTIONS.get(variation, VOICE_DESCRIPTIONS['normal'])
+            # Single voice description for all scenes
+            scene_voice_desc = VOICE_DESCRIPTION
 
             # Multi-voice parsing: if series_id exists and text has character tags
             if series_id and ('[NARRATOR]' in text or re.search(r'\[[A-Z_]+\]', text)):
-                print(f"  Scene {scene_id}: Parsing for multi-voice (variation={variation})")
+                print(f"  Scene {scene_id}: Parsing for multi-voice")
                 segments = parse_narrative_for_tts(text, scene_id, speaker, character_voices)
 
                 for seg in segments:
@@ -143,7 +138,7 @@ def lambda_handler(event, context):
                     })
             else:
                 # Single voice (no series or no character tags)
-                print(f"  Scene {scene_id}: Single voice (variation={variation})")
+                print(f"  Scene {scene_id}: Single voice")
                 all_scenes.append({
                     'channel_id': channel_id,
                     'content_id': content_id,
@@ -163,8 +158,8 @@ def lambda_handler(event, context):
 
         print(f"Channel {channel_id}: {len(cta_segments)} CTA segments")
 
-        # CTA uses 'normal' voice description (clear, engaging delivery)
-        cta_voice_desc = VOICE_DESCRIPTIONS['normal']
+        # CTA uses same voice description
+        cta_voice_desc = VOICE_DESCRIPTION
 
         for idx, cta_segment in enumerate(cta_segments):
             cta_audio_segment = cta_segment.get('cta_audio_segment', {})
