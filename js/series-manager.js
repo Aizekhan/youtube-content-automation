@@ -105,6 +105,12 @@ function renderOverviewTab() {
     const arcGoal = state.season_arc?.arc_goal || 'No arc goal defined';
     document.getElementById('arc-goal-text').textContent = arcGoal;
 
+    // Series Bible textarea
+    const bibleTextarea = document.getElementById('series-bible-textarea');
+    if (bibleTextarea) {
+        bibleTextarea.value = state.series_bible || '';
+    }
+
     // Stats
     document.getElementById('total-episodes').textContent = state.season_arc?.total_episodes || 0;
     document.getElementById('characters-count').textContent = Object.keys(state.characters || {}).length;
@@ -171,7 +177,8 @@ function renderCharactersTab() {
  * Render Threads Tab
  */
 function renderThreadsTab() {
-    const threads = currentSeriesState.open_threads || [];
+    // FIX: DynamoDB field is plot_threads, not open_threads
+    const threads = currentSeriesState.plot_threads || [];
     const container = document.getElementById('threads-list');
 
     const openThreads = threads.filter(t => t.status === 'open');
@@ -391,6 +398,73 @@ function showSuccess(message) {
 function setupEventListeners() {
     // Add any global event listeners here
 }
+
+/**
+ * Save Series Bible
+ */
+async function saveBible() {
+    const textarea = document.getElementById('series-bible-textarea');
+    if (!textarea || !currentSeriesState) return;
+
+    currentSeriesState.series_bible = textarea.value.trim();
+    await saveSeriesState();
+}
+
+/**
+ * Generate Series Bible using GPT
+ */
+async function generateBible() {
+    if (!currentSeriesState) return;
+
+    const logline = prompt('Enter series logline (one sentence):\n\nExample: "Kai steals ancient Egyptian masks to uncover truth about his brothers murder, but each mask costs a year of his life"');
+
+    if (!logline || logline.trim() === '') {
+        return;
+    }
+
+    showLoading(true);
+
+    try {
+        // Call OpenAI via narrative Lambda (reuse existing endpoint)
+        const response = await fetch('https://ywsop7xk36ir7r3a66fqcphdy40esadg.lambda-url.eu-central-1.on.aws/', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({
+                operation: 'GENERATE_BIBLE',
+                user_id: USER_ID,
+                channel_id: currentChannelId,
+                series_id: currentSeriesId,
+                logline: logline.trim(),
+                genre: currentSeriesState.genre || 'Mystery'
+            })
+        });
+
+        const data = await response.json();
+
+        if (!data.success && !data.generated_bible) {
+            throw new Error(data.error || 'Failed to generate Bible');
+        }
+
+        // Update textarea with generated Bible
+        const textarea = document.getElementById('series-bible-textarea');
+        if (textarea) {
+            textarea.value = data.generated_bible || data.bible || '';
+            currentSeriesState.series_bible = textarea.value;
+            await saveSeriesState();
+            showSuccess('Series Bible generated successfully!');
+        }
+
+    } catch (error) {
+        console.error('Error generating Bible:', error);
+        showError('Failed to generate Bible: ' + error.message);
+    } finally {
+        showLoading(false);
+    }
+}
+
+// Make functions globally available
+window.saveBible = saveBible;
+window.generateBible = generateBible;
 
 // Export functions for onclick handlers
 window.editCharacter = editCharacter;

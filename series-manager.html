@@ -322,6 +322,26 @@
                         <p id="arc-goal-text">Loading...</p>
                     </div>
 
+                    <!-- Series Bible Section -->
+                    <div class="mt-4 p-4 bg-light rounded">
+                        <div class="d-flex justify-content-between align-items-center mb-3">
+                            <h4 class="mb-0">📖 Series Bible</h4>
+                            <button class="btn btn-sm btn-primary" onclick="generateBible()">
+                                <i class="bi bi-magic"></i> Generate Bible
+                            </button>
+                        </div>
+                        <textarea
+                            id="series-bible-textarea"
+                            class="form-control font-monospace"
+                            rows="10"
+                            placeholder="PROTAGONIST: Name, age, appearance, motivation.&#10;&#10;LOCATION: Where it happens, place details.&#10;&#10;OBJECT: Main object, how it works, cost of use.&#10;&#10;WORLD RULES: Magic/mechanics rules.&#10;&#10;FORBIDDEN: What NOT to write in this series."
+                            onchange="saveBible()"
+                        ></textarea>
+                        <small class="text-muted d-block mt-2">
+                            120-200 words. This is passed to every episode as context for GPT.
+                        </small>
+                    </div>
+
                     <div class="stats-grid">
                         <div class="stat-card">
                             <div class="stat-value" id="total-episodes">0</div>
