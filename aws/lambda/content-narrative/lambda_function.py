@@ -332,20 +332,27 @@ def lambda_handler(event, context):
 
             # NEW: Load Series Bible if this is a series
             bible_context = ""
+            print(f"  series_context: {series_context}")
             if series_context:
                 series_id = series_context.get('series_id')
+                print(f"  series_id from context: {series_id}")
                 if series_id:
                     try:
                         series_table = dynamodb.Table('SeriesState')
                         series_response = series_table.get_item(Key={'series_id': series_id})
+                        print(f"  DynamoDB response has Item: {'Item' in series_response}")
                         if 'Item' in series_response:
                             bible_context = series_response['Item'].get('series_bible', '')
                             print(f"  ✓ Loaded Series Bible: {len(bible_context)} chars")
+                            print(f"  Bible preview: {bible_context[:100]}...")
                     except Exception as bible_error:
                         print(f"  ⚠ Could not load Series Bible: {bible_error}")
+            else:
+                print("  ⚠ series_context is None or empty")
 
-            # CHOOSE ENGINE: Use merged if Bible exists, old three-phase otherwise
-            use_merged = len(bible_context) > 0
+            # CHOOSE ENGINE: Use merged if series_context exists, old three-phase otherwise
+            use_merged = series_context is not None
+            print(f"  Bible length: {len(bible_context)}, series_context exists: {series_context is not None}, use_merged: {use_merged}")
 
             if use_merged:
                 print("  🔀 Using MERGED PHASE 1 (mechanics + narrative in one call)")
@@ -433,11 +440,14 @@ def lambda_handler(event, context):
         input_tokens = int(total_tokens * 0.6)
         output_tokens = int(total_tokens * 0.4)
 
+        # Determine model identifier based on engine used
+        model_name = 'merged_phase_v1' if use_merged else 'three_phase_v4'
+
         # Log combined cost (we'll improve this later to log each phase separately)
         cost_usd = log_openai_cost(
             channel_id=channel_id,
             content_id=narrative_id,
-            model='three_phase_v4',  # New model identifier
+            model=model_name,
             input_tokens=input_tokens,
             output_tokens=output_tokens,
             user_id=user_id
@@ -467,8 +477,8 @@ def lambda_handler(event, context):
                 'scenes': scenes_decimal,
                 'full_response': mega_response_decimal,
                 'mechanics': mechanics_decimal,
-                'model': 'three_phase_v4',
-                'api_version': 'three_phase_v4',
+                'model': model_name,
+                'api_version': model_name,
                 'status': 'completed',
                 'cost_usd': Decimal(str(cost_usd)),
                 'tokens_used': total_tokens,
@@ -536,7 +546,7 @@ def lambda_handler(event, context):
             },
 
             # Metadata for SaveFinalContent (genre & model)
-            'model': 'three_phase_v4',
+            'model': model_name,
             'genre': channel_config.get('genre'),
 
             'character_count': character_count,
