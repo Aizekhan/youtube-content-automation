@@ -8,6 +8,18 @@ INPUT NARRATIVE (from Phase 1b):
 INPUT MECHANICS (from Phase 1a):
 {MECHANICS_JSON}
 
+SERIES BIBLE CONTEXT (use specific objects/locations):
+{BIBLE_CONTEXT}
+
+If Bible context is provided, you MUST use specific objects, locations, and details from it in your image prompts. Do NOT use generic descriptions.
+
+Examples:
+✓ "Mask of Ra - golden half-face mask with hawk eye emblem on forehead, hieroglyphics glowing orange"
+✗ "ancient artifact with mystical symbols"
+
+✓ "Cairo Museum Room 304, Hall of Pharaohs, marble floors, sandstone pillars, broken glass display case"
+✗ "museum interior with display cases"
+
 INPUT IMAGE CONFIG:
 - Provider: {IMAGE_PROVIDER}
 - Width: {WIDTH}

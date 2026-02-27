@@ -2,13 +2,31 @@ You are a Story Architect + Writer. You will create a complete narrative in TWO 
 
 CRITICAL: Complete BOTH steps in ONE response. Do NOT stop after Step 1.
 
+FINAL OUTPUT MUST BE A SINGLE JSON OBJECT WITH THIS STRUCTURE:
+{
+  "dominant_archetype": "...",
+  "inciting_event": "...",
+  "crisis_event": "...",
+  "mirror_confrontation_event": "...",
+  "revelation_event": "...",
+  "resolution_event": "...",
+  "protagonist_frozen": "...",
+  "mirror_character_frozen": "...",
+  "story_title": "...",
+  "scenes": [
+    {"scene_number": 1, "scene_title": "...", "scene_narration": "...", ...},
+    {"scene_number": 2, ...},
+    ...8 scenes total
+  ]
+}
+
 ---
 
-## STEP 1: STORY MECHANICS (JSON block)
+## STEP 1: STORY MECHANICS
 
 Generate story mechanics with PHYSICAL EVENTS (not abstract themes).
 
-OUTPUT JSON:
+MECHANICS FIELDS:
 {
   "dominant_archetype": "archetype_name_lowercase",
 
@@ -58,13 +76,31 @@ Use EXACTLY the events you defined in Step 1 — do not invent new ones or chang
 
 Write 8 scenes that incorporate the mechanics from Step 1.
 
-MANDATORY STRUCTURE:
-- Scene 1-2: Build dramatic tension toward inciting_event
-- Scene 3: inciting_event happens EXACTLY as written in Step 1
-- Scene 4: mirror_confrontation_event happens EXACTLY as written
-- Scene 5: crisis_event happens EXACTLY as written
-- Scene 7: revelation_event happens EXACTLY as written
-- Scene 8: resolution_event happens EXACTLY as written
+MANDATORY SCENE-TO-EVENT MAPPING (STRICT):
+
+Scene 1-2: Build dramatic tension toward inciting_event (flexible)
+
+Scene 3: COPY inciting_event text VERBATIM into scene_narration
+  → Example: If inciting_event = "Kai drops the Mask of Ra. It hits marble floor. Golden surface cracks."
+  → Then scene 3 narration MUST start with: "Kai drops the Mask of Ra. It hits marble floor. Golden surface cracks."
+  → DO NOT paraphrase. DO NOT add interpretation. EXACT TEXT.
+
+Scene 4: COPY mirror_confrontation_event VERBATIM into scene_narration
+  → Use the exact sentence from Step 1. Word-for-word.
+
+Scene 5: COPY crisis_event VERBATIM into scene_narration
+  → Use the exact sentence from Step 1. Word-for-word.
+
+Scene 6: Action/escalation (flexible)
+
+Scene 7: COPY revelation_event VERBATIM into scene_narration
+  → Use the exact sentence from Step 1. Word-for-word.
+
+Scene 8: COPY resolution_event VERBATIM into scene_narration
+  → Use the exact sentence from Step 1. Word-for-word.
+
+CRITICAL: "VERBATIM" means copy-paste the event text character-by-character.
+If you change even one word, the scene is INVALID.
 
 SCENE FORMAT:
 {
@@ -131,21 +167,25 @@ CHANNEL CONTEXT:
 
 FINAL CHECKLIST BEFORE SUBMITTING:
 
-Step 1 JSON:
+Step 1 Mechanics:
 □ All 5 event fields contain physical verbs?
 □ All events reference specific objects from Bible?
 □ No abstract concepts (realizes, understands, feels)?
 □ protagonist_frozen and mirror_character_frozen are 15-25 words?
 
 Step 2 Scenes:
+□ All 8 scenes generated?
 □ All scenes use short sentences (max 15 words)?
 □ All scenes use present tense?
-□ Scene 3 matches inciting_event from Step 1 exactly?
-□ Scene 4 matches mirror_confrontation_event exactly?
-□ Scene 5 matches crisis_event exactly?
-□ Scene 7 matches revelation_event exactly?
-□ Scene 8 matches resolution_event exactly?
+□ Scene 3 narration contains inciting_event text VERBATIM (exact copy-paste)?
+□ Scene 4 narration contains mirror_confrontation_event text VERBATIM?
+□ Scene 5 narration contains crisis_event text VERBATIM?
+□ Scene 7 narration contains revelation_event text VERBATIM?
+□ Scene 8 narration contains resolution_event text VERBATIM?
 □ No forbidden phrases used?
+□ Did you copy-paste events word-for-word or did you paraphrase (FAIL if paraphrased)?
 
-If ALL boxes checked → submit response
+If ALL boxes checked → submit COMPLETE JSON with mechanics + scenes
 If ANY box unchecked → review and fix before submitting
+
+REMEMBER: Your response must be a single JSON object containing ALL mechanics fields AND the "scenes" array with 8 scenes.
