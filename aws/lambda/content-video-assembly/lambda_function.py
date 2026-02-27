@@ -499,29 +499,21 @@ def assemble_video(content, assets, template, work_dir):
                 scene_video
             ]
         elif ken_burns.get('enabled'):
-            # Ken Burns: slow zoom and pan (DISABLED - zoom crops heads)
-            zoom_max = 1.0  # ken_burns.get('zoom_range', {}).get('max', 1.2)
-            zoom_min = 1.0  # ken_burns.get('zoom_range', {}).get('min', 1.0)
+            # Ken Burns DISABLED: use static image to prevent head cropping
+            print(f"Ken Burns disabled: using static image for {duration_sec}s")
 
-            # Calculate zoom rate to complete over the ENTIRE duration
-            total_frames = int(duration_sec * 30)
-            zoom_range = zoom_max - zoom_min
-            zoom_rate = zoom_range / total_frames if total_frames > 0 else 0.0015
-
-            print(f"Ken Burns: {duration_sec}s, zoom {zoom_min}→{zoom_max}, rate={zoom_rate:.6f}")
-
-            # FFmpeg zoompan filter with proper duration
+            # Static image + audio (no zoom/pan)
             cmd = [
                 FFMPEG_PATH,
                 '-loop', '1',
                 '-i', image['path'],
                 '-i', audio['path'],
-                '-vf', f"scale=1920:1080:force_original_aspect_ratio=increase,crop=1920:1080,zoompan=z='min(zoom+{zoom_rate},{zoom_max})':d={total_frames}:s=1920x1080:fps=30",
+                '-vf', 'scale=1920:1080:force_original_aspect_ratio=decrease,pad=1920:1080:(ow-iw)/2:(oh-ih)/2',
                 '-c:v', 'libx264',
                 '-preset', 'veryfast',
                 '-crf', '23',
                 '-c:a', 'aac',
-                '-shortest',
+                '-t', str(duration_sec),
                 '-y',
                 scene_video
             ]

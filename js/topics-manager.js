@@ -365,15 +365,14 @@ function changeStatus(topicId, currentStatus) {
     const topic = allTopics.find(t => t.topic_id === topicId);
     if (!topic) return;
 
-    // Valid transitions based on state machine
+    // Valid transitions based on simplified state machine
+    // draft → queued → done
+    //               → failed
     const validTransitions = {
-        'draft': ['approved', 'deleted'],
-        'approved': ['queued', 'deleted'],
-        'queued': ['in_progress', 'deleted'],
-        'in_progress': ['published', 'failed', 'deleted'],
-        'published': ['archived', 'deleted'],
-        'failed': ['queued', 'deleted'],
-        'archived': ['deleted']
+        'draft':  ['queued', 'deleted'],
+        'queued': ['draft', 'deleted'],
+        'done':   ['queued'],
+        'failed': ['queued', 'deleted']
     };
 
     const allowedStatuses = validTransitions[currentStatus] || [];
@@ -393,14 +392,12 @@ function changeStatus(topicId, currentStatus) {
     const container = document.getElementById('statusButtonsContainer');
     container.innerHTML = '';
 
-    // Status button configs with icons and colors
+    // Status button configs with icons and colors (simplified statuses)
     const statusConfigs = {
-        'approved': { icon: 'bi-check-circle', color: '#10b981', label: 'Approve' },
-        'queued': { icon: 'bi-list-check', color: '#3b82f6', label: 'Queue' },
-        'in_progress': { icon: 'bi-arrow-clockwise', color: '#f59e0b', label: 'In Progress' },
-        'published': { icon: 'bi-check-all', color: '#8b5cf6', label: 'Published' },
-        'failed': { icon: 'bi-x-circle', color: '#ef4444', label: 'Mark Failed' },
-        'archived': { icon: 'bi-archive', color: '#64748b', label: 'Archive' },
+        'draft':   { icon: 'bi-pencil', color: '#64748b', label: 'Draft' },
+        'queued':  { icon: 'bi-list-check', color: '#3b82f6', label: 'Queue' },
+        'done':    { icon: 'bi-check-circle', color: '#10b981', label: 'Done' },
+        'failed':  { icon: 'bi-x-circle', color: '#ef4444', label: 'Failed' },
         'deleted': { icon: 'bi-trash', color: '#ef4444', label: 'Delete' }
     };
 

@@ -218,19 +218,8 @@ def lambda_handler(event, context):
     print(f"  user_id: {user_id}")
 
     try:
-        # Query topics with status "approved" or "queued"
-        # First try "approved"
-        print(f"\n  Querying topics with status='approved'")
-
-        response_approved = topics_table.query(
-            IndexName='status-index',
-            KeyConditionExpression=Key('channel_id').eq(channel_id) & Key('status').eq('approved'),
-            Limit=50,
-            ScanIndexForward=False
-        )
-
-        # Then try "queued"
-        print(f"  Querying topics with status='queued'")
+        # Query topics with status "queued"
+        print(f"\n  Querying topics with status='queued'")
 
         response_queued = topics_table.query(
             IndexName='status-index',
@@ -239,10 +228,10 @@ def lambda_handler(event, context):
             ScanIndexForward=False
         )
 
-        # Combine results
-        all_topics = response_approved.get('Items', []) + response_queued.get('Items', [])
+        # Get topics
+        all_topics = response_queued.get('Items', [])
 
-        print(f"\n  Found {len(all_topics)} topics (approved + queued)")
+        print(f"\n  Found {len(all_topics)} queued topics")
 
         # Security check: Filter only topics belonging to user
         filtered_topics = []
@@ -257,7 +246,7 @@ def lambda_handler(event, context):
             return create_response(404, {
                 'success': False,
                 'error': 'NO_TOPICS_AVAILABLE',
-                'message': 'No approved or queued topics found for this channel'
+                'message': 'No queued topics found for this channel'
             }, event)
 
         # Sort by priority DESC, then by episode_number ASC (for series)
@@ -375,6 +364,9 @@ def lambda_handler(event, context):
                     # Previous episode summaries (EP1 + last 3)
                     'previous_episodes': previous_episodes
                 }
+
+                # Also add episode_number at topic level for Step Functions ExtractTopicData
+                topic_response['episode_number'] = episode_num
 
                 print(f"    Series context added:")
                 print(f"      - Characters: {len(series_state.get('characters', {}))}")

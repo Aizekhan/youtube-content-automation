@@ -413,7 +413,7 @@ def generate_phase1b_narrative(api_key, topic, mechanics, channel_config, num_sc
     return narrative_json, result['usage']
 
 
-def generate_phase1c_prompts(api_key, narrative, mechanics, image_config, series_context=None, use_cache=True):
+def generate_phase1c_prompts(api_key, narrative, mechanics, image_config, series_context=None, bible_context="", use_cache=True):
     """
     Phase 1c: Image/Audio Prompts Generation
 
@@ -423,6 +423,7 @@ def generate_phase1c_prompts(api_key, narrative, mechanics, image_config, series
         mechanics (dict): Mechanics JSON from Phase 1a
         image_config (dict): Image generation config
         series_context (dict|None): Series context for visual consistency
+        bible_context (str): Series Bible text with specific objects/locations
         use_cache (bool): Whether to use cache
 
     Returns:
@@ -436,8 +437,9 @@ def generate_phase1c_prompts(api_key, narrative, mechanics, image_config, series
 
     # Extract config values
     provider = image_config.get('provider', 'ec2-zimage')
-    width = image_config.get('width', 1024)
-    height = image_config.get('height', 576)
+    # IMPORTANT: Dimensions must be divisible by 16 for FLUX (1088/16=68, 1080 NOT divisible)
+    width = image_config.get('width', 1920)
+    height = image_config.get('height', 1088)
     style = image_config.get('style', 'cinematic, photorealistic')
 
     # Get frozen strings - prefer SeriesState for visual consistency
@@ -463,6 +465,7 @@ def generate_phase1c_prompts(api_key, narrative, mechanics, image_config, series
     # Build prompt
     user_message = template.replace('{NARRATIVE_JSON}', json.dumps(narrative, indent=2)) \
                           .replace('{MECHANICS_JSON}', json.dumps(mechanics, indent=2)) \
+                          .replace('{BIBLE_CONTEXT}', bible_context) \
                           .replace('{IMAGE_PROVIDER}', provider) \
                           .replace('{WIDTH}', str(width)) \
                           .replace('{HEIGHT}', str(height)) \
@@ -568,12 +571,16 @@ def run_three_phase_generation(api_key, topic, channel_config, series_context=No
     }
     print(f"  Image config: {image_config['width']}x{image_config['height']}, style={image_config['style']}")
 
+    # Get bible_context if available (from lambda_function.py)
+    bible_context = series_context.get('bible_context', '') if series_context else ''
+
     prompts, usage_1c = generate_phase1c_prompts(
         api_key=api_key,
         narrative=narrative,
         mechanics=mechanics,
         image_config=image_config,
         series_context=series_context,
+        bible_context=bible_context,
         use_cache=use_cache
     )
 
@@ -713,7 +720,7 @@ This is part of ongoing series. Maintain continuity with previous episodes.
     user_message = f"Generate complete narrative for: {topic}"
 
     # Call OpenAI (gpt-4o, higher tokens for both steps)
-    complexity = channel_config.get('complexity_level', 5)
+    complexity = int(channel_config.get('complexity_level', 5))
     model = 'gpt-4o' if complexity >= 6 else 'gpt-4o'  # Always gpt-4o for merged
 
     print(f"  Model: {model}")
@@ -765,12 +772,41 @@ This is part of ongoing series. Maintain continuity with previous episodes.
     print(f"  - Tokens used: {usage['total_tokens']}")
     print(f"  - Validation: {'✓ PASS' if is_valid else '⚠ WARNINGS'}")
 
+    # Run Phase 1c: Generate image prompts for scenes
+    print("\n═══ PHASE 1c: IMAGE/AUDIO PROMPTS ═══")
+    narrative = {'scenes': scenes, 'story_title': parsed.get('story_title', topic)}
+
+    # Build image config (dimensions must be divisible by 16 for FLUX)
+    image_config = {
+        'provider': channel_config.get('image_provider', 'ec2-zimage'),
+        'width': channel_config.get('image_width', 1920),
+        'height': channel_config.get('image_height', 1088),
+        'style': channel_config.get('image_style', 'anime, dark fantasy, dramatic lighting, detailed character art')
+    }
+
+    prompts, usage_1c = generate_phase1c_prompts(
+        api_key=api_key,
+        narrative=narrative,
+        mechanics=mechanics,
+        image_config=image_config,
+        series_context=series_context,
+        bible_context=bible_context,
+        use_cache=False  # Don't cache for series content
+    )
+
+    # Merge scene narratives with image prompts
+    scenes_with_prompts = []
+    for scene_narrative, scene_prompts in zip(scenes, prompts.get('scenes', [])):
+        merged_scene = {**scene_narrative, **scene_prompts}
+        scenes_with_prompts.append(merged_scene)
+
     return {
         'mechanics': mechanics,
-        'scenes': scenes,
+        'scenes': scenes_with_prompts,
         'story_title': parsed.get('story_title', topic),
         'usage': {
             'merged_phase1_tokens': usage['total_tokens'],
-            'total_tokens': usage['total_tokens']
+            'phase1c_tokens': usage_1c['total_tokens'],
+            'total_tokens': usage['total_tokens'] + usage_1c['total_tokens']
         }
     }

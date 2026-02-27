@@ -297,8 +297,9 @@ def handle_multi_channel_batch(all_prompts, provider, user_id=None):
                     channel_configs[channel_id] = channel_config
 
                     # Thumbnail dimensions (Templates system removed - use defaults)
+                    # IMPORTANT: Dimensions must be divisible by 16 for FLUX
                     aspect_ratio = '16:9'  # YouTube standard
-                    resolution = '1920x1080'
+                    resolution = '1920x1088'  # 1088 is divisible by 16 (1080 is NOT)
                     width, height = get_dimensions_from_aspect_ratio(aspect_ratio, resolution)
                     thumbnail_dimensions[channel_id] = (width, height)
                     print(f"    {channel_id[-6:]}: Thumbnail {aspect_ratio} = {width}x{height}")
@@ -306,10 +307,11 @@ def handle_multi_channel_batch(all_prompts, provider, user_id=None):
                 print(f"     Failed to load channel config for {channel_id}: {e}")
 
         # Default image config for scene images
+    # IMPORTANT: Dimensions must be divisible by 16 for FLUX
     default_image_config = {
         'quality': 'standard',
-        'width': 1024,
-        'height': 576,
+        'width': 1920,
+        'height': 1088,  # 1088/16=68, 1080/16=67.5 (NOT divisible!)
         'steps': 15  # EC2 FLUX schnell optimal
     }
 
@@ -589,25 +591,14 @@ def lambda_handler(event, context):
         # 2. Get image generation settings from channel config
         image_settings = channel_config.get('image_generation', {})
         quality = image_settings.get('quality', 'standard')
-        width = image_settings.get('width', 1024)
-        height = image_settings.get('height', 576)  # FLUX default 16:9 aspect ratio
+        width = image_settings.get('width', 1920)  # Full HD 16:9
+        height = image_settings.get('height', 1088)  # 1088/16=68 (divisible by 16 for FLUX)
 
         print(f" Image provider: {provider}")
         print(f"   Quality: {quality}, Size: {width}x{height}")
 
-        # 3. Get API keys if needed
+        # 3. Get API keys if needed (reserved for future providers)
         api_keys = {}
-        control_api_url = 'https://xmstnomewqj2zlhrgkqxnnhkz40znusc.lambda-url.eu-central-1.on.aws'
-
-                print("Instance already running")
-
-        # 4b. Auto-start EC2 SD35 instance if using ec2-sd35 provider
-        ec2_instance_started = False
-        
-                print("EC2 SD35 instance ready for generation")
-            except Exception as e:
-                print(f" Failed to start EC2: {e}")
-                raise
 
         # 5. Generate images for each scene
         scene_images = []
@@ -635,9 +626,8 @@ def lambda_handler(event, context):
             print(f"   Prompt: {image_prompt[:100]}...")
 
             try:
-                # Select generation method based on provider
-                
-                    print(f"  Unknown provider '{provider}', falling back to EC2 FLUX")
+                # Generate image using EC2 Z-Image (FLUX)
+                result = generate_image_ec2_zimage(image_prompt, image_config)
 
                 # Upload to S3
                 upload_result = upload_to_s3(
