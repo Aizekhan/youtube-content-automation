@@ -289,17 +289,24 @@ async function renderEpisodesTab() {
         container.innerHTML = episodes.map(ep => {
             const hasSummary = ep.episode_summary && ep.episode_summary.episode_summary;
             const statusColor = ep.status === 'completed' ? 'success' : ep.status === 'in_progress' ? 'warning' : 'secondary';
+            const notes = ep.episode_notes || '';
             return `
             <div class="episode-card">
                 <div class="episode-header">
                     <h4>Episode ${ep.episode_number}</h4>
-                    <span class="badge bg-${statusColor}">${ep.status}</span>
+                    <div>
+                        <span class="badge bg-${statusColor}">${ep.status}</span>
+                        <button class="btn btn-sm btn-outline-primary ms-2" onclick="editEpisodeNotes('${ep.topic_id}', ${ep.episode_number})">
+                            <i class="bi bi-pencil"></i> Edit Notes
+                        </button>
+                    </div>
                 </div>
                 <p class="episode-topic"><strong>${ep.topic_text || 'No topic'}</strong></p>
                 ${hasSummary ?
                     `<p class="episode-summary">${ep.episode_summary.episode_summary}</p>` :
                     `<p class="text-muted"><i>Summary not yet generated</i></p>`
                 }
+                ${notes ? `<div class="episode-notes"><strong>Notes:</strong> ${notes}</div>` : ''}
                 <div class="episode-meta">
                     <small class="text-muted">
                         Priority: ${ep.priority || 100} |

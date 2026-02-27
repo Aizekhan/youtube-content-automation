@@ -276,3 +276,90 @@ window.closeThread = closeThread;
 window.reopenThread = reopenThread;
 window.showAddCharacterModal = showAddCharacterModal;
 window.addCharacter = addCharacter;
+
+// ============================================
+// EPISODES MANAGEMENT
+// ============================================
+
+/**
+ * Edit episode notes
+ */
+function editEpisodeNotes(topicId, episodeNumber) {
+    // Find current notes from loaded episodes
+    const currentNotes = ''; // Will be loaded from topic
+
+    const modalHTML = `
+        <div class="modal fade" id="editEpisodeModal" tabindex="-1">
+            <div class="modal-dialog modal-lg">
+                <div class="modal-content">
+                    <div class="modal-header">
+                        <h5 class="modal-title">Edit Episode ${episodeNumber} Notes</h5>
+                        <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+                    </div>
+                    <div class="modal-body">
+                        <div class="alert alert-info">
+                            <i class="bi bi-info-circle"></i> Add director notes, plot reminders, or key moments for this episode
+                        </div>
+                        <div class="mb-3">
+                            <label class="form-label">Episode Notes</label>
+                            <textarea class="form-control" id="episode-notes" rows="6"
+                                placeholder="Example: Main character discovers secret letter. Foreshadow villain reveal in EP8.">${currentNotes}</textarea>
+                        </div>
+                    </div>
+                    <div class="modal-footer">
+                        <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancel</button>
+                        <button type="button" class="btn btn-primary" onclick="saveEpisodeNotes('${topicId}', ${episodeNumber})">Save Notes</button>
+                    </div>
+                </div>
+            </div>
+        </div>
+    `;
+
+    document.body.insertAdjacentHTML('beforeend', modalHTML);
+    const modal = new bootstrap.Modal(document.getElementById('editEpisodeModal'));
+    modal.show();
+
+    document.getElementById('editEpisodeModal').addEventListener('hidden.bs.modal', function () {
+        this.remove();
+    });
+}
+
+async function saveEpisodeNotes(topicId, episodeNumber) {
+    const notes = document.getElementById('episode-notes').value.trim();
+
+    try {
+        showLoading(true);
+
+        // Update topic via content-topics-update-status Lambda
+        const response = await fetch('https://2bpzgwfqpqmm25e2rwovyjsmgy0zfplq.lambda-url.eu-central-1.on.aws/', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({
+                user_id: USER_ID,
+                channel_id: currentChannelId,
+                topic_id: topicId,
+                episode_notes: notes
+            })
+        });
+
+        const data = await response.json();
+
+        if (!data.success) {
+            throw new Error(data.error || 'Failed to save notes');
+        }
+
+        bootstrap.Modal.getInstance(document.getElementById('editEpisodeModal')).hide();
+        await renderEpisodesTab(); // Reload episodes
+        showSuccess('Episode notes saved!');
+
+    } catch (error) {
+        console.error('Error saving notes:', error);
+        showError('Failed to save notes: ' + error.message);
+    } finally {
+        showLoading(false);
+    }
+}
+
+// Make functions global
+window.editEpisodeNotes = editEpisodeNotes;
+window.saveEpisodeNotes = saveEpisodeNotes;
