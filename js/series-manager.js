@@ -226,16 +226,41 @@ function renderThread(thread, isOpen) {
 /**
  * Render Episodes Tab
  */
-function renderEpisodesTab() {
-    const previous = currentSeriesState.previous_episodes || [];
+async function renderEpisodesTab() {
     const container = document.getElementById('episodes-list');
 
-    if (previous.length === 0) {
-        container.innerHTML = '<p class="text-muted text-center">No episodes generated yet</p>';
-        return;
-    }
+    // Show loading
+    container.innerHTML = '<p class="text-muted text-center"><i class="bi bi-hourglass-split"></i> Loading episodes...</p>';
 
-    container.innerHTML = previous.map(ep => `
+    // Load episodes from Topics Queue (they have episode_summary field)
+    try {
+        const response = await fetch('https://o7oswstatxulqezia6fvli4iny0uizlg.lambda-url.eu-central-1.on.aws/', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({
+                user_id: USER_ID,
+                channel_id: currentChannelId,
+                limit: 100
+            })
+        });
+
+        const data = await response.json();
+
+        if (!data.success) {
+            throw new Error(data.error || 'Failed to load topics');
+        }
+
+        // Filter topics that belong to this series AND have episode_summary
+        const episodes = data.topics
+            .filter(t => t.series_id === currentSeriesId && t.episode_summary)
+            .sort((a, b) => (a.episode_number || 0) - (b.episode_number || 0));
+
+        if (episodes.length === 0) {
+            container.innerHTML = '<p class="text-muted text-center">No completed episodes yet. Episodes will appear here after generation.</p>';
+            return;
+        }
+
+        container.innerHTML = episodes.map(ep => `
         <div class="episode-card">
             <div class="episode-header">
                 <h4>Episode ${ep.episode_number}</h4>
