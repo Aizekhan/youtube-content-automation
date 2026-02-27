@@ -250,29 +250,43 @@ async function renderEpisodesTab() {
             throw new Error(data.error || 'Failed to load topics');
         }
 
-        // Filter topics that belong to this series AND have episode_summary
+        // Filter topics that belong to this series (show all, not just with summaries)
         const episodes = data.topics
-            .filter(t => t.series_id === currentSeriesId && t.episode_summary)
+            .filter(t => t.series_id === currentSeriesId && t.episode_number)
             .sort((a, b) => (a.episode_number || 0) - (b.episode_number || 0));
 
         if (episodes.length === 0) {
-            container.innerHTML = '<p class="text-muted text-center">No completed episodes yet. Episodes will appear here after generation.</p>';
+            container.innerHTML = `
+                <div class="alert alert-info">
+                    <i class="bi bi-info-circle"></i> No episodes in queue for this series.
+                    <br><small>Total generated (SeriesState): ${currentSeriesState.episodes_generated || 0}</small>
+                </div>`;
             return;
         }
 
-        container.innerHTML = episodes.map(ep => `
-        <div class="episode-card">
-            <div class="episode-header">
-                <h4>Episode ${ep.episode_number}</h4>
-                <span class="badge bg-info">${ep.archetype_used || 'Unknown archetype'}</span>
+        container.innerHTML = episodes.map(ep => {
+            const hasSummary = ep.episode_summary && ep.episode_summary.episode_summary;
+            const statusColor = ep.status === 'completed' ? 'success' : ep.status === 'in_progress' ? 'warning' : 'secondary';
+            return `
+            <div class="episode-card">
+                <div class="episode-header">
+                    <h4>Episode ${ep.episode_number}</h4>
+                    <span class="badge bg-${statusColor}">${ep.status}</span>
+                </div>
+                <p class="episode-topic"><strong>${ep.topic_text || 'No topic'}</strong></p>
+                ${hasSummary ?
+                    `<p class="episode-summary">${ep.episode_summary.episode_summary}</p>` :
+                    `<p class="text-muted"><i>Summary not yet generated</i></p>`
+                }
+                <div class="episode-meta">
+                    <small class="text-muted">
+                        Priority: ${ep.priority || 100} |
+                        Created: ${new Date(ep.created_at).toLocaleDateString()}
+                    </small>
+                </div>
             </div>
-            <p class="episode-topic"><strong>${ep.topic_text || 'No topic'}</strong></p>
-            <p class="episode-summary">${ep.episode_summary?.episode_summary || ep.episode_summary || 'No summary available'}</p>
-            <div class="episode-meta">
-                <small class="text-muted">Status: <span class="badge bg-${ep.status === 'completed' ? 'success' : 'warning'}">${ep.status}</span></small>
-            </div>
-        </div>
-    `).join('');
+        `;
+        }).join('');
 
     } catch (error) {
         console.error('Error loading episodes:', error);
