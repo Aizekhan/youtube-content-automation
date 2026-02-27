@@ -266,13 +266,18 @@ async function renderEpisodesTab() {
                 <h4>Episode ${ep.episode_number}</h4>
                 <span class="badge bg-info">${ep.archetype_used || 'Unknown archetype'}</span>
             </div>
-            <p class="episode-topic"><strong>${ep.topic_text}</strong></p>
-            <p class="episode-summary">${ep.episode_summary || 'No summary available'}</p>
+            <p class="episode-topic"><strong>${ep.topic_text || 'No topic'}</strong></p>
+            <p class="episode-summary">${ep.episode_summary?.episode_summary || ep.episode_summary || 'No summary available'}</p>
             <div class="episode-meta">
-                <small class="text-muted">Generated: ${new Date(ep.generated_at).toLocaleDateString()}</small>
+                <small class="text-muted">Status: <span class="badge bg-${ep.status === 'completed' ? 'success' : 'warning'}">${ep.status}</span></small>
             </div>
         </div>
     `).join('');
+
+    } catch (error) {
+        console.error('Error loading episodes:', error);
+        container.innerHTML = `<p class="text-danger text-center">Failed to load episodes: ${error.message}</p>`;
+    }
 }
 
 /**
