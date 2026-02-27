@@ -4,7 +4,10 @@
  */
 
 const LAMBDA_URL = 'https://4cjfvbsvr5ahk5wqxoiygbj3zi0ypdwk.lambda-url.eu-central-1.on.aws/';
-const USER_ID = 'c334d862-4031-7097-4207-84856b59d3ed';
+
+// Auth manager instance
+let authManager = null;
+let USER_ID = null; // Will be set from authenticated user
 
 // Qwen3-TTS Voice Configuration
 const QWEN3_VOICES = {
@@ -27,6 +30,25 @@ let currentChannelId = null;
  * Initialize on page load
  */
 document.addEventListener('DOMContentLoaded', async () => {
+    // Initialize auth manager and check authentication
+    authManager = new AuthManager();
+    const isAuthenticated = await authManager.initialize();
+
+    if (!isAuthenticated) {
+        showError('Please log in to access Series Manager');
+        setTimeout(() => window.location.href = '/login.html', 2000);
+        return;
+    }
+
+    // Get user_id from authenticated session
+    USER_ID = authManager.getUserId();
+    if (!USER_ID) {
+        showError('Failed to get user ID from session');
+        return;
+    }
+
+    console.log('✅ Authenticated as:', authManager.user?.email, 'user_id:', USER_ID);
+
     // Get series_id from URL
     const urlParams = new URLSearchParams(window.location.search);
     currentSeriesId = urlParams.get('series_id');
