@@ -7,14 +7,11 @@ Functionality:
 - Validate state transitions
 - Security: check user_id ownership
 
-State machine:
-- draft -> approved, deleted
-- approved -> queued, deleted
-- queued -> in_progress, deleted
-- in_progress -> published, failed, deleted
-- published -> archived, deleted
+Simplified State machine:
+- draft -> queued, deleted
+- queued -> draft, deleted
+- done -> queued (regenerate)
 - failed -> queued (retry), deleted
-- Any status can go to "deleted"
 """
 
 import json
@@ -34,15 +31,12 @@ boto_config = Config(
 dynamodb = boto3.resource('dynamodb', region_name='eu-central-1', config=boto_config)
 topics_table = dynamodb.Table('ContentTopicsQueue')
 
-# Valid status transitions
+# Valid status transitions (simplified workflow)
 VALID_TRANSITIONS = {
-    'draft': ['approved', 'deleted'],
-    'approved': ['queued', 'deleted'],
-    'queued': ['in_progress', 'deleted'],
-    'in_progress': ['published', 'failed', 'deleted'],
-    'published': ['archived', 'deleted'],
-    'failed': ['queued', 'deleted'],  # Allow retry
-    'archived': ['deleted']
+    'draft': ['queued', 'deleted'],
+    'queued': ['draft', 'deleted'],
+    'done': ['queued'],  # Allow regenerate
+    'failed': ['queued', 'deleted']  # Allow retry
 }
 
 
