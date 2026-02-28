@@ -627,7 +627,7 @@ def lambda_handler(event, context):
 
             try:
                 # Generate image using EC2 Z-Image (FLUX)
-                result = generate_image_ec2_zimage(image_prompt, image_config)
+                result = generate_with_ec2_zimage(image_prompt, image_config)
 
                 # Upload to S3
                 upload_result = upload_to_s3(
