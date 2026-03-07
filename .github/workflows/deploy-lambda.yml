@@ -24,16 +24,6 @@ jobs:
           aws-secret-access-key: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
           aws-region: eu-central-1
 
-      - name: Deploy Theme Agent Lambda
-        run: |
-          cd aws/lambda/content-theme-agent
-          zip -r theme-agent.zip lambda_function.py
-          aws lambda update-function-code \
-            --function-name content-theme-agent \
-            --zip-file fileb://theme-agent.zip \
-            --region eu-central-1
-          echo "✅ Theme Agent deployed successfully"
-
       - name: Deploy Narrative Architect Lambda
         run: |
           cd aws/lambda/content-narrative
@@ -44,15 +34,15 @@ jobs:
             --region eu-central-1
           echo "✅ Narrative Architect deployed successfully"
 
-      - name: Deploy Prompts API Lambda
+      - name: Deploy System Settings API Lambda (Node.js)
         run: |
-          cd aws/lambda/prompts-api
-          zip -r prompts-api.zip lambda_function.py
+          cd aws/lambda/system-settings-api
+          zip -r function.zip index.js package.json node_modules
           aws lambda update-function-code \
-            --function-name prompts-api \
-            --zip-file fileb://prompts-api.zip \
+            --function-name system-settings-api \
+            --zip-file fileb://function.zip \
             --region eu-central-1
-          echo "✅ Prompts API deployed successfully"
+          echo "✅ System Settings API deployed successfully"
 
       - name: Deploy Image Generation Lambda
         run: |
@@ -84,15 +74,15 @@ jobs:
             --region eu-central-1
           echo "✅ Get Channels deployed successfully"
 
-      - name: Deploy TTS Router Lambda
+      - name: Deploy Qwen3-TTS Lambda
         run: |
-          cd aws/lambda/content-audio-tts
+          cd aws/lambda/content-audio-qwen3tts
           zip -r function.zip lambda_function.py
           aws lambda update-function-code \
-            --function-name content-audio-tts \
+            --function-name content-audio-qwen3tts \
             --zip-file fileb://function.zip \
             --region eu-central-1
-          echo "✅ TTS Router deployed successfully"
+          echo "✅ Qwen3-TTS deployed successfully"
 
       - name: Deploy EC2 Control Lambda
         run: |
@@ -107,12 +97,11 @@ jobs:
       - name: Deployment Summary
         run: |
           echo "🚀 Deployment completed!"
-          echo "- Theme Agent: content-theme-agent"
           echo "- Narrative Architect: content-narrative"
-          echo "- Prompts API: prompts-api"
+          echo "- System Settings API: system-settings-api"
           echo "- Image Generation: content-generate-images"
           echo "- Video Assembly: content-video-assembly"
           echo "- Get Channels: content-get-channels"
-          echo "- TTS Router: content-audio-tts"
+          echo "- Qwen3-TTS: content-audio-qwen3tts"
           echo "- EC2 Control: ec2-qwen3-control"
           echo "- Region: eu-central-1"
