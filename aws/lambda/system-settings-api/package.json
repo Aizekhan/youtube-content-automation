@@ -1,0 +1,10 @@
+{
+  "name": "system-settings-api",
+  "version": "1.0.0",
+  "description": "API for managing system settings (Telegram, API keys, etc.)",
+  "main": "index.js",
+  "dependencies": {
+    "@aws-sdk/client-dynamodb": "^3.450.0",
+    "@aws-sdk/lib-dynamodb": "^3.450.0"
+  }
+}

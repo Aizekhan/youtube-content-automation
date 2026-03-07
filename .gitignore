@@ -313,9 +313,6 @@ aws/lambda/shared/validation_utils.py
 /costs-hybrid.html
 /content-new.html
 
-# System settings API (if unused)
-aws/lambda/system-settings-api/
-
 # Auth security patches
 auth-security-patch.js
 
