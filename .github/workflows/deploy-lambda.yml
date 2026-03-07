@@ -34,16 +34,6 @@ jobs:
             --region eu-central-1
           echo "✅ Narrative Architect deployed successfully"
 
-      - name: Deploy System Settings API Lambda (Node.js)
-        run: |
-          cd aws/lambda/system-settings-api
-          zip -r function.zip index.js package.json node_modules
-          aws lambda update-function-code \
-            --function-name system-settings-api \
-            --zip-file fileb://function.zip \
-            --region eu-central-1
-          echo "✅ System Settings API deployed successfully"
-
       - name: Deploy Image Generation Lambda
         run: |
           cd aws/lambda/content-generate-images
@@ -79,10 +69,20 @@ jobs:
           cd aws/lambda/content-audio-qwen3tts
           zip -r function.zip lambda_function.py
           aws lambda update-function-code \
-            --function-name content-audio-qwen3tts \
+            --function-name content-audio-tts \
             --zip-file fileb://function.zip \
             --region eu-central-1
           echo "✅ Qwen3-TTS deployed successfully"
+
+      - name: Deploy Save Result Lambda
+        run: |
+          cd aws/lambda/content-save-result
+          python3 create_zip.py
+          aws lambda update-function-code \
+            --function-name content-save-result \
+            --zip-file fileb://function.zip \
+            --region eu-central-1
+          echo "✅ Save Result deployed successfully"
 
       - name: Deploy EC2 Control Lambda
         run: |
