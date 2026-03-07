@@ -74,6 +74,36 @@ jobs:
             --region eu-central-1
           echo "✅ Video Assembly deployed successfully"
 
+      - name: Deploy Get Channels Lambda
+        run: |
+          cd aws/lambda/content-get-channels
+          zip -r function.zip lambda_function.py
+          aws lambda update-function-code \
+            --function-name content-get-channels \
+            --zip-file fileb://function.zip \
+            --region eu-central-1
+          echo "✅ Get Channels deployed successfully"
+
+      - name: Deploy TTS Router Lambda
+        run: |
+          cd aws/lambda/content-audio-tts
+          zip -r function.zip lambda_function.py
+          aws lambda update-function-code \
+            --function-name content-audio-tts \
+            --zip-file fileb://function.zip \
+            --region eu-central-1
+          echo "✅ TTS Router deployed successfully"
+
+      - name: Deploy EC2 Control Lambda
+        run: |
+          cd aws/lambda/ec2-qwen3-control
+          zip -r function.zip lambda_function.py
+          aws lambda update-function-code \
+            --function-name ec2-qwen3-control \
+            --zip-file fileb://function.zip \
+            --region eu-central-1
+          echo "✅ EC2 Qwen3 Control deployed successfully"
+
       - name: Deployment Summary
         run: |
           echo "🚀 Deployment completed!"
@@ -82,4 +112,7 @@ jobs:
           echo "- Prompts API: prompts-api"
           echo "- Image Generation: content-generate-images"
           echo "- Video Assembly: content-video-assembly"
+          echo "- Get Channels: content-get-channels"
+          echo "- TTS Router: content-audio-tts"
+          echo "- EC2 Control: ec2-qwen3-control"
           echo "- Region: eu-central-1"

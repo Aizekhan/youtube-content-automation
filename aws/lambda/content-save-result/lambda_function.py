@@ -314,8 +314,9 @@ def lambda_handler(event, context):
         'audio_duration_sec': event.get('audio_duration_sec', 0),
         'tts_provider': event.get('tts_provider'),
 
-        # Images
+        # Images (both field names for compatibility)
         'scene_images': scene_images,
+        'generated_images': scene_images,  # Primary field name in database
         'has_images': len(scene_images) > 0,
         'image_count': len(scene_images),
 

@@ -20,15 +20,12 @@ content_table = dynamodb.Table('GeneratedContent')
 # VideoEditingTemplates removed - see CLEANUP_STATUS_CHECKPOINT.md
 
 # FFmpeg path (will be in Lambda Layer)
-FFMPEG_PATH = '/opt/bin/ffmpeg'
+# FFmpeg path from environment or default layer path
+FFMPEG_PATH = os.environ.get('FFMPEG_PATH', '/opt/bin/ffmpeg')
 
-# S3 URL Validation
-ALLOWED_S3_BUCKETS = [
-    'youtube-automation-audio-files',
-    'youtube-automation-images',
-    'youtube-automation-data-grucia',
-    'youtube-automation-final-videos'
-]
+# S3 URL Validation - Configurable via Environment
+ALLOWED_S3_BUCKETS = os.environ.get('ALLOWED_S3_BUCKETS', 'youtube-automation-audio-files,youtube-automation-images,youtube-automation-data-grucia,youtube-automation-final-videos').split(',')
+FINAL_VIDEOS_BUCKET = os.environ.get('FINAL_VIDEOS_BUCKET', 'youtube-automation-final-videos')
 
 def validate_s3_url(s3_url, context='unknown'):
     """
@@ -598,7 +595,7 @@ def assemble_video(content, assets, template, work_dir):
 
 def upload_video(video_path, channel_id, content_id):
     """Upload final video to S3"""
-    bucket = 'youtube-automation-final-videos'
+    bucket = FINAL_VIDEOS_BUCKET
     key = f'videos/{channel_id}/{content_id}/final_video.mp4'
 
     print(f"Uploading to s3://{bucket}/{key}")

@@ -78,13 +78,20 @@ def lambda_handler(event, context):
         # Query by user_id using GSI
         print(f"Querying channels for user_id: {user_id}")
 
-        response = table.query(
-            IndexName='user_id-channel_id-index',
-            KeyConditionExpression='user_id = :uid',
-            ExpressionAttributeValues={
+        query_params = {
+            'IndexName': 'user_id-channel_id-index',
+            'KeyConditionExpression': 'user_id = :uid',
+            'ExpressionAttributeValues': {
                 ':uid': user_id
             }
-        )
+        }
+
+        # Add server-side filter for active channels if requested
+        if active_only:
+            query_params['FilterExpression'] = 'is_active = :act OR active = :act'
+            query_params['ExpressionAttributeValues'][':act'] = True
+
+        response = table.query(**query_params)
 
         items = response.get('Items', [])
         print(f"Found {len(items)} channels for user {user_id}")
@@ -96,10 +103,8 @@ def lambda_handler(event, context):
                 print(f"WARNING: Skipping channel {item.get('channel_id')} - wrong user_id")
                 continue
 
-            # Filter by active status if requested
+            # Filter by active status (redundant if active_only is True as it's handled in Query)
             is_channel_active = item.get('is_active', False) or item.get('active', False)
-            if active_only and not is_channel_active:
-                continue
 
             channel_id = item.get('channel_id', '')
             config_id = item.get('config_id', '')

@@ -1,4 +1,4 @@
-﻿# Backup files
+# Backup files
 *.tar.gz
 *.bak
 backups/
@@ -58,8 +58,17 @@ git-cleanup.bat
 test-*.json
 test-*.py
 test-*.js
-response.json
+response*.json
 backfill-response.json
+sf-execution.json
+
+# Lambda development and deployment
+**/function.zip
+**/layer.zip
+**/package/
+**/node_modules/
+**/python/
+/aws/lambda/shared/venv/
 
 # JavaScript Backup Files
 *-backup.js

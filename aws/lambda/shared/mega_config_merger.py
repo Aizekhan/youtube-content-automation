@@ -38,65 +38,39 @@ def merge_mega_configuration(
     story_blueprint=None
 ):
     """
-    Build mega_config for content generation
-
-    UPDATED 2026-02-20: Templates system removed
-    All template parameters now optional (default None)
-    Returns minimal config - New Story Engine will provide full configuration
+    Build mega_config for content generation using the New Story Engine.
 
     Args:
         channel_config (dict): ChannelConfig from DynamoDB
-        All template params: DEPRECATED, kept for backward compatibility
+        story_blueprint (dict, optional): Retention template engine blueprint
+        **kwargs: Legacy template parameters (deprecated)
 
     Returns:
-        dict: mega_config with minimal defaults
+        dict: mega_config with merged instructions
     """
-
-    # Templates deprecated - use empty dicts
-    narrative_template = narrative_template or {}
-    image_template = image_template or {}
-    cta_template = cta_template or {}
-    thumbnail_template = thumbnail_template or {}
-    tts_template = tts_template or {}
-    sfx_template = sfx_template or {}
-    description_template = description_template or {}
-
-    # Extract ai_config from each template (will be empty)
-    narrative_ai = narrative_template.get('ai_config', {})
-    image_ai = image_template.get('ai_config', {})
-    cta_ai = cta_template.get('ai_config', {})
-    thumbnail_ai = thumbnail_template.get('ai_config', {})
-    tts_ai = tts_template.get('ai_config', {})
-    sfx_ai = sfx_template.get('ai_config', {})
-    description_ai = description_template.get('ai_config', {})
-
-    # Base config (from narrative template - it's the main generator)
+    # Legacy templates are now ignored, instructions are derived from channel_config
+    # or provided dynamically by the Story Engine.
+    
+    # Model config
     mega_config = {
-        # Channel identity
         'channel_id': channel_config.get('channel_id'),
         'channel_name': channel_config.get('channel_name', 'Unnamed Channel'),
-
-        # Model config
-        'model': narrative_ai.get('model', 'gpt-4o-mini'),  # WEEK 5: Changed to gpt-4o-mini (16x cheaper)
-        'temperature': float(narrative_ai.get('temperature', 0.8)),  # From template (default)
-        'max_tokens': int(channel_config.get('max_tokens', 16000)),  # GPT-4o-mini max: 128k tokens
-
-        # Channel context (WHAT to generate about)
+        'model': channel_config.get('model', 'gpt-4o-mini'),  # Default to gpt-4o-mini
+        'temperature': float(channel_config.get('temperature', 0.8)),
+        'max_tokens': int(channel_config.get('max_tokens', 16000)),
         'channel_context': extract_channel_context(channel_config),
-
-        # Template instructions (HOW to generate each component)
-        'narrative_instructions': extract_narrative_instructions(narrative_template, channel_config),
-        'image_instructions': extract_image_instructions(image_template, channel_config),
-        'cta_instructions': extract_cta_instructions(cta_template, channel_config),
-        'thumbnail_instructions': extract_thumbnail_instructions(thumbnail_template, channel_config),
-        'tts_instructions': extract_tts_instructions(tts_template, channel_config),
-        'sfx_instructions': extract_sfx_instructions(sfx_template, channel_config),
-        'description_instructions': extract_description_instructions(description_template, channel_config),
-
-        # Story Blueprint (retention template engine)
+        
+        # Instructions are now primarily driven by ChannelConfig context
+        'narrative_instructions': extract_narrative_instructions({}, channel_config),
+        'image_instructions': extract_image_instructions({}, channel_config),
+        'cta_instructions': extract_cta_instructions({}, channel_config),
+        'thumbnail_instructions': extract_thumbnail_instructions({}, channel_config),
+        'tts_instructions': extract_tts_instructions({}, channel_config),
+        'sfx_instructions': extract_sfx_instructions({}, channel_config),
+        'description_instructions': extract_description_instructions({}, channel_config),
+        
         'story_blueprint': story_blueprint,
-
-        # Constraints
+        
         'constraints': {
             'target_character_count': int(channel_config.get('target_character_count', 8000)),
             'scene_count_target': int(channel_config.get('scene_count_target', 18)),

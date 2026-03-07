@@ -364,6 +364,7 @@ def handle_multi_channel_batch(all_prompts, provider, user_id=None):
 
         try:
             # Generate image based on provider
+            result = generate_with_ec2_zimage(prompt, image_config)
 
             # Upload to S3
             upload_result = upload_to_s3(
